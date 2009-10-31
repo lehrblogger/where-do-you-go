@@ -4,5 +4,9 @@ runtime: python
 api_version: 1
 
 handlers:
+- url: /get_recent_checkins
+  script: get_recent_checkins.py
+#  login: admin
+  
 - url: .*
   script: main.py

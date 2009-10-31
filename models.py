@@ -1,6 +1,6 @@
 from google.appengine.ext import db
 
-class FoursquareToken(db.Model):
+class Token(db.Model):
   owner = db.UserProperty()
   created = db.DateTimeProperty(auto_now_add=True)
   token = db.StringProperty()
@@ -14,11 +14,12 @@ class Venue(db.Model):
   city = db.StringProperty()
   state = db.StringProperty()
   zipcode = db.IntegerProperty()
-  geolat = db.StringProperty()
-  geolong = db.StringProperty()
+  geolat = db.FloatProperty()
+  geolong = db.FloatProperty()
   phone = db.PhoneNumberProperty()
 
 class Checkin(db.Model):
   user = db.UserProperty()
-  datetime = db.DateTimeProperty()
+  checkin_id = db.IntegerProperty()
+  created = db.DateTimeProperty()
   venue =  db.ReferenceProperty(Venue)

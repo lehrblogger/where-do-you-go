@@ -1,7 +1,13 @@
 indexes:
-- kind: FoursquareToken
+- kind: Token
   properties:
   - name: owner
+  - name: created
+    direction: desc
+
+- kind: Checkin
+  properties:
+  - name: user
   - name: created
     direction: desc
 

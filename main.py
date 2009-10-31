@@ -17,25 +17,36 @@
 
 import wsgiref.handlers
 import oauth
-from models import FoursquareToken, Venue, Checkin
+from get_recent_checkins import fetch_and_store_n_recent_checkins_for_token
+from models import Token, Venue, Checkin
 from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp.util import run_wsgi_app
 
 from django.utils import simplejson as json
+import os
+from google.appengine.ext.webapp import template
+
 
 class MainHandler(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
 
     if user:
-      self.response.out.write('Hello there, ' + user.nickname() + '. Where do you go?')
-      self.response.out.write('<br/><br/>')
-      self.response.out.write('<a href="/go_to_foursquare">authenticate with oauth</a>')
-    
+      url = users.create_logout_url(self.request.uri)
+      url_linktext = 'Logout'
     else:
-      self.redirect(users.create_login_url(self.request.uri))
+      url = users.create_login_url(self.request.uri)
+      url_linktext = 'Login'
+
+    template_values = {
+      'user': user,
+      'url': url,
+      'url_linktext': url_linktext,
+      } 
+    path = os.path.join(os.path.dirname(__file__), 'index.html')
+    self.response.out.write(template.render(path, template_values))
 
 class AuthHandler(webapp.RequestHandler):
   def get(self):
@@ -45,9 +56,11 @@ class AuthHandler(webapp.RequestHandler):
       auth_token = self.request.get("oauth_token")
       if auth_token:
         credentials= client.get_credentials(auth_token)
-        new_token = FoursquareToken(owner = user, token = credentials['token'], secret = credentials['secret'])
+        new_token = Token(owner = user, token = credentials['token'], secret = credentials['secret'])
         new_token.put()
     
+        fetch_and_store_n_recent_checkins_for_token(new_token, 50, client)
+        
         self.redirect("/map")
       else:
         self.redirect(client.get_authorization_url())
@@ -60,19 +73,35 @@ class MapHandler(webapp.RequestHandler):
     user = users.get_current_user()
     
     if user:
-      retreived_token = FoursquareToken.all().filter('owner =', user).order('-created').get()
+      retreived_token = Token.all().filter('owner =', user).order('-created').get()
      
       self.response.out.write('<object width="640" height="505"><param name="movie" value="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="640" height="505"></embed></object>')
       self.response.out.write('<br/><br/>')
-      response = client.make_request("http://api.foursquare.com/v1/history.json", token = retreived_token.token, secret = retreived_token.secret)   
-      history = json.loads(response.content)
-      self.response.out.write(history)
-    
+      
+      checkins = Checkin.all().filter('user =', user).order('-created').fetch(1000)
+      
+      for checkin in checkins:
+        self.response.out.write(str(checkin.checkin_id) + " - " + checkin.venue.name + "<br/>")
+
+class DeleteHandler(webapp.RequestHandler):
+  def get(self):
+    user = users.get_current_user()
+
+    if user:
+      tokens = Token.all().filter('owner =', user).fetch(1000)
+      db.delete(tokens)
+      
+      checkins = Checkin.all().filter('user =', user).fetch(1000)
+      db.delete(checkins)
+      
+    self.redirect('/')
+
 def main():
   application = webapp.WSGIApplication(
                                        [('/', MainHandler),
                                         ('/go_to_foursquare', AuthHandler),
                                         ('/authenticated', AuthHandler),
+                                        ('/delete_all_my_data', DeleteHandler),
                                         ('/map', MapHandler)],
                                        debug=True)
 
