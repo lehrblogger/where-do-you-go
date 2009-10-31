@@ -63,7 +63,6 @@ def get_oauth_client(service, key, secret, callback_url):
 
   A factory that will return the appropriate OAuth client.
   """
-
   if service == "foursquare":
     return FoursquareClient(key, secret, callback_url)
   elif service == "twitter":
@@ -168,13 +167,9 @@ class OAuthClient():
 
     raise NotImplementedError, "Must be implemented by a subclass"
 
-  def get_credentials(self, auth_token, auth_verifier=""):
+  def easy_make_request(self, url):
     """COMMENT
     """
-
-    auth_token = urlunquote(auth_token)
-    auth_verifier = urlunquote(auth_verifier)
-
     auth_secret = memcache.get(self._get_memcache_auth_key(auth_token))
 
     if not auth_secret:
@@ -191,7 +186,7 @@ class OAuthClient():
         raise Exception, "Could not find Auth Token in database"
       else:
         auth_secret = result.secret
-
+    
     response = self.make_request(self.access_url,
                                 token=auth_token,
                                 secret=auth_secret,
@@ -199,9 +194,14 @@ class OAuthClient():
                                                     auth_verifier})
 
     # Extract the access token/secret from the response.
-    result = self._extract_credentials(response)
+    result = get_access_token(self, auth_token, auth_verifier="")
 
-    return result
+    data = self.make_request(url,
+                            token=result["token"],#auth_token,
+                            secret=result["secret"],#auth_secret,
+                            additional_params={"oauth_verifier":
+                                                auth_verifier})
+    return data
 
   def get_user_info(self, auth_token, auth_verifier=""):
     """Get User Info.
@@ -210,6 +210,16 @@ class OAuthClient():
     of information about the authenticated user.
     """
 
+    result = get_access_token(self, auth_token, auth_verifier="")
+
+    # Try to collect some information about this user from the service.
+    user_info = self._lookup_user_info(result["token"], result["secret"])
+    user_info.update(result)
+
+    return user_info
+    
+  def get_access_token(self, auth_token, auth_verifier=""):
+    
     auth_token = urlunquote(auth_token)
     auth_verifier = urlunquote(auth_verifier)
 
@@ -238,12 +248,8 @@ class OAuthClient():
 
     # Extract the access token/secret from the response.
     result = self._extract_credentials(response)
-
-    # Try to collect some information about this user from the service.
-    user_info = self._lookup_user_info(result["token"], result["secret"])
-    user_info.update(result)
-
-    return user_info
+    
+    return result
 
   def _get_auth_token(self):
     """Get Authorization Token.
@@ -321,12 +327,8 @@ class OAuthClient():
 
     return {
       "id": "",
-      "username": "",
-      "name": "",
       "picture": ""
     }
-
-
 
 
 
@@ -371,9 +373,9 @@ class FoursquareClient(OAuthClient):
     user_info["firstname"] = data["user"]["firstname"]
     user_info["lastname"] = data["user"]["lastname"]
     user_info["picture"] = data["user"]["photo"]
-
+    
     return user_info
-        
+
 class TwitterClient(OAuthClient):
   """Twitter Client.
 

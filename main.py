@@ -44,15 +44,18 @@ class AuthHandler(webapp.RequestHandler):
 class MapHandler(webapp.RequestHandler):
   def get(self):
     auth_token = self.request.get("oauth_token")
-    user_info = client.get_user_info(auth_token)
-    self.response.out.write("working??<br/><br/>")
-    self.response.out.write(user_info)
+    credentials= client.get_credentials(auth_token)
     
-    response = client.make_request("http://api.foursquare.com/v1/history.json", token = auth_token, secret = auth_secret)    
+    response = client.make_request("http://api.foursquare.com/v1/history.json", token = credentials['token'], secret = credentials['secret'])    
     history = json.loads(response.content)
-    self.response.out.write("<br/>3`<br/>")
+    self.response.out.write("<br/><br/>")
     self.response.out.write(history)
 
+    response = client.make_request("http://api.foursquare.com/v1/user.json", token = credentials['token'], secret = credentials['secret'])    
+    history = json.loads(response.content)
+    self.response.out.write("<br/><br/>")
+    self.response.out.write(history)
+    
 def main():
   application = webapp.WSGIApplication(
                                        [('/', MainHandler),
