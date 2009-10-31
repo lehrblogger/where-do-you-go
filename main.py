@@ -20,14 +20,23 @@
 
 import wsgiref.handlers
 
-
+from google.appengine.api import users
 from google.appengine.ext import webapp
+from google.appengine.ext.webapp.util import run_wsgi_app
+
 
 
 class MainHandler(webapp.RequestHandler):
 
   def get(self):
-    self.response.out.write('Hello world!')
+    
+    user = users.get_current_user()
+
+    if user:
+      self.response.out.write('<object width="640" height="505"><param name="movie" value="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="640" height="505"></embed></object>')
+      self.response.out.write('Hello, ' + user.nickname())
+    else:
+      self.redirect(users.create_login_url(self.request.uri))
 
 
 def main():
@@ -38,3 +47,7 @@ def main():
 
 if __name__ == '__main__':
   main()
+
+
+
+
