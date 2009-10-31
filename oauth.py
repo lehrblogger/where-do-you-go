@@ -63,8 +63,9 @@ def get_oauth_client(service, key, secret, callback_url):
 
   A factory that will return the appropriate OAuth client.
   """
-
-  if service == "twitter":
+  if service == "foursquare":
+    return FoursquareClient(key, secret, callback_url)
+  elif service == "twitter":
     return TwitterClient(key, secret, callback_url)
   elif service == "yahoo":
     return YahooClient(key, secret, callback_url)
@@ -284,11 +285,54 @@ class OAuthClient():
 
     return {
       "id": "",
-      "username": "",
-      "name": "",
       "picture": ""
     }
 
+
+
+class FoursquareClient(OAuthClient):
+  """Foursquare Client.
+
+  A client for talking to the Foursquare API using OAuth as the
+  authentication model.
+  """
+
+  def __init__(self, consumer_key, consumer_secret, callback_url):
+    """Constructor."""
+
+    OAuthClient.__init__(self,
+        "fouraquare",
+        consumer_key,
+        consumer_secret,
+        "http://foursquare.com/oauth/request_token",
+        "http://foursquare.com/oauth/access_token",
+        callback_url)
+
+  def get_authorization_url(self):
+    """Get Authorization URL."""
+
+    token = self._get_auth_token()
+    return "http://foursquare.com/oauth/authorize?oauth_token=%s" % token
+
+  def _lookup_user_info(self, access_token, access_secret):
+    """Lookup User Info.
+
+    Lookup the user on Foursquare.
+    """
+
+    response = self.make_request(
+        "http://api.foursquare.com/v1/user.json",
+        token=access_token, secret=access_secret, protected=True)
+
+    data = json.loads(response.content)
+
+    user_info = self._get_default_user_info()
+    user_info["id"] = data["user"]["id"]
+    user_info["firstname"] = data["user"]["firstname"]
+    user_info["lastname"] = data["user"]["lastname"]
+    user_info["picture"] = data["user"]["photo"]
+    
+    return user_info
 
 class TwitterClient(OAuthClient):
   """Twitter Client.
