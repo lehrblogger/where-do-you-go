@@ -16,50 +16,63 @@
 #
 
 import wsgiref.handlers
-
+import oauth
+from models import FoursquareToken, Venue, Checkin
 from google.appengine.api import users
 from google.appengine.ext import webapp
+from google.appengine.ext import db
 from google.appengine.ext.webapp.util import run_wsgi_app
 
 from django.utils import simplejson as json
-
-import oauth
 
 class MainHandler(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
 
     if user:
-      self.response.out.write('<object width="640" height="505"><param name="movie" value="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="640" height="505"></embed></object>')
-      self.response.out.write('<br/>Hello, ' + user.nickname())
-      self.response.out.write('<br/><a href="/authenticate">authenticate with oauth</a>')
+      self.response.out.write('Hello there, ' + user.nickname() + '. Where do you go?')
+      self.response.out.write('<br/><br/>')
+      self.response.out.write('<a href="/go_to_foursquare">authenticate with oauth</a>')
     
     else:
       self.redirect(users.create_login_url(self.request.uri))
 
 class AuthHandler(webapp.RequestHandler):
   def get(self):
-    self.redirect(client.get_authorization_url())
+    user = users.get_current_user()
+    
+    if user: 
+      auth_token = self.request.get("oauth_token")
+      if auth_token:
+        credentials= client.get_credentials(auth_token)
+        new_token = FoursquareToken(owner = user, token = credentials['token'], secret = credentials['secret'])
+        new_token.put()
+    
+        self.redirect("/map")
+      else:
+        self.redirect(client.get_authorization_url())
+
+    else:
+      self.redirect(users.create_login_url(self.request.uri))
 
 class MapHandler(webapp.RequestHandler):
   def get(self):
-    auth_token = self.request.get("oauth_token")
-    credentials= client.get_credentials(auth_token)
+    user = users.get_current_user()
     
-    response = client.make_request("http://api.foursquare.com/v1/history.json", token = credentials['token'], secret = credentials['secret'])    
-    history = json.loads(response.content)
-    self.response.out.write("<br/><br/>")
-    self.response.out.write(history)
-
-    response = client.make_request("http://api.foursquare.com/v1/user.json", token = credentials['token'], secret = credentials['secret'])    
-    history = json.loads(response.content)
-    self.response.out.write("<br/><br/>")
-    self.response.out.write(history)
+    if user:
+      retreived_token = FoursquareToken.all().filter('owner =', user).order('-created').get()
+     
+      self.response.out.write('<object width="640" height="505"><param name="movie" value="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="640" height="505"></embed></object>')
+      self.response.out.write('<br/><br/>')
+      response = client.make_request("http://api.foursquare.com/v1/history.json", token = retreived_token.token, secret = retreived_token.secret)   
+      history = json.loads(response.content)
+      self.response.out.write(history)
     
 def main():
   application = webapp.WSGIApplication(
                                        [('/', MainHandler),
-                                        ('/authenticate', AuthHandler),
+                                        ('/go_to_foursquare', AuthHandler),
+                                        ('/authenticated', AuthHandler),
                                         ('/map', MapHandler)],
                                        debug=True)
 

@@ -169,7 +169,9 @@ class OAuthClient():
     raise NotImplementedError, "Must be implemented by a subclass"
 
   def get_credentials(self, auth_token, auth_verifier=""):
-    """COMMENT
+    """Gets credentials
+    
+    Exchanges the auth token for an access token and returns it for storage elsewhere.
     """
 
     auth_token = urlunquote(auth_token)
@@ -209,35 +211,7 @@ class OAuthClient():
     Exchanges the auth token for an access token and returns a dictionary
     of information about the authenticated user.
     """
-
-    auth_token = urlunquote(auth_token)
-    auth_verifier = urlunquote(auth_verifier)
-
-    auth_secret = memcache.get(self._get_memcache_auth_key(auth_token))
-
-    if not auth_secret:
-      result = AuthToken.gql("""
-        WHERE
-          service = :1 AND
-          token = :2
-        LIMIT
-          1
-      """, self.service_name, auth_token).get()
-
-      if not result:
-        logging.error("The auth token %s was not found in our db" % auth_token)
-        raise Exception, "Could not find Auth Token in database"
-      else:
-        auth_secret = result.secret
-
-    response = self.make_request(self.access_url,
-                                token=auth_token,
-                                secret=auth_secret,
-                                additional_params={"oauth_verifier":
-                                                    auth_verifier})
-
-    # Extract the access token/secret from the response.
-    result = self._extract_credentials(response)
+    result = get_credentials(auth_token, auth_verifier)
 
     # Try to collect some information about this user from the service.
     user_info = self._lookup_user_info(result["token"], result["secret"])
