@@ -8,7 +8,11 @@
     {% if user %}
        <p>Hello there, <strong>{{ user.nickname }}</strong>. Where do you go?</p>
   
-       <p><a href="/go_to_foursquare">authenticate on foursquare with oauth</a></p>
+       {% if map_ready %}
+         <p><a href="/map">look at your map</a></p>
+       {% else %}
+         <p><a href="/go_to_foursquare">authenticate on foursquare with oauth</a></p>
+       {% endif %}
        
        <p><a href="/delete_all_my_data">Delete all my data</a></p>
     {% endif %}

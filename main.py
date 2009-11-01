@@ -35,13 +35,16 @@ class MainHandler(webapp.RequestHandler):
 
     if user:
       url = users.create_logout_url(self.request.uri)
+      map_ready = Checkin.all().filter('user =', user).count() > 0
       url_linktext = 'Logout'
     else:
       url = users.create_login_url(self.request.uri)
+      map_ready = False
       url_linktext = 'Login'
 
     template_values = {
       'user': user,
+      'map_ready': map_ready,
       'url': url,
       'url_linktext': url_linktext,
       } 

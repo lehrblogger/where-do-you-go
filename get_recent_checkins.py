@@ -10,7 +10,7 @@ def fetch_and_store_n_recent_checkins_for_token(token, limit, client):
   
   try:
     history = json.loads(response.content)
-  
+    logging.debug(history)
     for checkin in history['checkins']:
       if 'venue' in checkin:
         if Venue.all().filter('venue_id =', checkin['venue']['id']).count() == 0:
@@ -41,7 +41,7 @@ def fetch_and_store_n_recent_checkins_for_token(token, limit, client):
           new_checkin.put()
         # else 
           #it's already there and we're good
-  except ValueError:
+  except:
     logging.error("There was a problem with the response: " % response)
 
 
