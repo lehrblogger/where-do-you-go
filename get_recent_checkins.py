@@ -10,7 +10,6 @@ def fetch_and_store_n_recent_checkins_for_token(token, limit, client):
   #ad7zy4hiv4yi temp random password
   # try:
   history = json.loads(response.content)
-  logging.debug(history)
   for checkin in history['checkins']:
     if 'venue' in checkin:
       json_venue = checkin['venue']

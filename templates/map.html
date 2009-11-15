@@ -1,0 +1,64 @@
+<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;sensor=false&amp;key=ABQIAAAAwA6oEsCLgzz6I150wm3ELBQO7aMTgd18mR6eRdj9blrVCeGU7BS14EnkGH_2LpNpZ8DJW0u7G5ocLQ" type="text/javascript"></script>
+<script type="text/javascript">
+
+function initialize() {
+  if (GBrowserIsCompatible()) {
+    var map = new GMap2(document.getElementById("map_canvas"));
+    map.setCenter(new GLatLng({{ centerlat }}, {{ centerlong }}), 13);
+    map.setUIToDefault();
+
+    addPlaceMarks(map);
+  }
+}
+
+function addPlaceMarks(map) {
+  {% for checkin in checkins %}
+    var point = new GLatLng({{ checkin.venue.geolat }}, {{ checkin.venue.geolong }});
+    map.addOverlay(new GMarker(point));
+  {% endfor %}
+}
+
+function addHeatMap(map) {
+  // Set up the copyright information. Each image used should indicate its copyright permissions
+  var myCopyright = new GCopyrightCollection("© ");
+  myCopyright.addCopyright(new GCopyright('lala', new GLatLngBounds(new GLatLng(-90,-180), new GLatLng(90,180)), 0,'la la la'));
+
+  // Create the tile layer overlay and implement the three abstract methods
+  var tilelayer = new GTileLayer(myCopyright);
+  tilelayer.getTileUrl = function(x, y, zoom) {
+
+    return "../include/tile_crosshairs.png";
+
+  };
+  tilelayer.isPng = function() { return true;};
+  tilelayer.getOpacity = function() { return 1.0; }
+
+  var myTileLayer = new GTileLayerOverlay(tilelayer);
+  map.addOverlay(myTileLayer);
+}
+
+</script>
+
+<body onload="initialize()" onunload="GUnload()">
+
+  <a href="/">go back to main</a>
+  <br/><br/>
+
+  <div id="map_canvas" style="width: 500px; height: 300px"></div>
+
+  {% if user %}
+      </body>
+    </html>
+
+
+    <ol>
+    {% for checkin in checkins %}
+      <li><strong>{{ checkin.venue.name }}</strong> at {{ checkin.venue.geolat }},{{ checkin.venue.geolong }}</li>
+    {% endfor %}
+    </ol>
+  {% endif %}
+
+
+  <br/><br/>
+  <object width="640" height="505"><param name="movie" value="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="640" height="505"></embed></object>
+

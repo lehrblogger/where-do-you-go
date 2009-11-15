@@ -27,7 +27,11 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from django.utils import simplejson as json
 import os
 from google.appengine.ext.webapp import template
+import logging
 
+
+import tile
+import data
 
 class MainHandler(webapp.RequestHandler):
   def get(self):
@@ -47,23 +51,26 @@ class MainHandler(webapp.RequestHandler):
       'map_ready': map_ready,
       'url': url,
       'url_linktext': url_linktext,
-      } 
-    path = os.path.join(os.path.dirname(__file__), 'index.html')
-    self.response.out.write(template.render(path, template_values))
+      }
+
+    os_path = os.path.dirname(__file__)
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), None))
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/main.html')  , template_values))
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/footer.html'), None))
 
 class AuthHandler(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
-    
-    if user: 
+
+    if user:
       auth_token = self.request.get("oauth_token")
       if auth_token:
         credentials= client.get_credentials(auth_token)
         new_token = Token(owner = user, token = credentials['token'], secret = credentials['secret'])
         new_token.put()
-    
+
         fetch_and_store_n_recent_checkins_for_token(new_token, 50, client)
-        
+
         self.redirect("/map")
       else:
         self.redirect(client.get_authorization_url())
@@ -74,20 +81,33 @@ class AuthHandler(webapp.RequestHandler):
 class MapHandler(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
-    
+
     if user:
       retreived_token = Token.all().filter('owner =', user).order('-created').get()
-      self.response.out.write('<a href="/">go back to main</a>')
-      self.response.out.write('<br/><br/>')
-      
       checkins = Checkin.all().filter('user =', user).order('-created').fetch(1000)
-      
-      for checkin in checkins:
-        self.response.out.write(str(checkin.checkin_id) + " - " + checkin.venue.name + "<br/>")
-      	
-      self.response.out.write('<br/><br/>')
-      self.response.out.write('<object width="640" height="505"><param name="movie" value="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="640" height="505"></embed></object>')
-	
+
+      response = client.make_request("http://api.foursquare.com/v1/user.json", token = retreived_token.token, secret = retreived_token.secret)
+      user_info = json.loads(response.content)
+
+      logging.debug(user_info)
+      user_lat = user_info['user']['city']['geolat']
+      user_long = user_info['user']['city']['geolong']
+    else:
+      user_lat = 40.7778
+      user_long = -73.8732
+
+    template_values = {
+      'user': user,
+      'checkins': checkins,
+      'centerlat': user_lat,
+      'centerlong': user_long,
+    }
+
+    os_path = os.path.dirname(__file__)
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), None))
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/map.html')   , template_values))
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/footer.html'), None))
+
 class DeleteHandler(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
@@ -95,10 +115,10 @@ class DeleteHandler(webapp.RequestHandler):
     if user:
       tokens = Token.all().filter('owner =', user).fetch(1000)
       db.delete(tokens)
-      
+
       checkins = Checkin.all().filter('user =', user).fetch(1000)
       db.delete(checkins)
-      
+
     self.redirect('/')
 
 def main():
@@ -107,7 +127,9 @@ def main():
                                         ('/go_to_foursquare', AuthHandler),
                                         ('/authenticated', AuthHandler),
                                         ('/delete_all_my_data', DeleteHandler),
-                                        ('/map', MapHandler)],
+                                        ('/map', MapHandler),
+                                        ('/tile/.*', tile.GetTile),
+                                        ('/data/.*', data.Data)],
                                        debug=True)
 
   wsgiref.handlers.CGIHandler().run(application)
