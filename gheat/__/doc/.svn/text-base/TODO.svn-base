@@ -1,0 +1,19 @@
+package
+documentation
+announcements
+    python-announce
+    blog
+    imaging-sig
+roll out on CCP
+===DONE===
+tilesets should be kept separate
+tilesets need to be separate in javascript so images can be cached
+fix opacity shift
+profile PIL and Pygame
+transparencies in PIL
+make transparencies similar
+empties in PIL
+offset is off? in pygame?
+profile again
+seeing very subtle squares around dots :^/ (pygame, classic)
+    not really noticint this anymore

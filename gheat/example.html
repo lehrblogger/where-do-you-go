@@ -1,0 +1,52 @@
+<html>
+<head>
+    <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAA-LQou8q_sKeS5aYUTmi6cBTwM0brOpm-All5BF6PoaKBxRWWERTLoTYiIZTo0Y148gT7RR7GgXyJLA"></script>
+    <script>
+
+        bounds = new GLatLngBounds( new GLatLng(-90, -180)
+                                  , new GLatLng(90, 180)
+                                   );
+        copyright = new GCopyright( 'your-copyright'
+                                  , bounds
+                                  , 0
+                                  , "(c) 2008 Your Organization " +
+                                    "<http://www.example.org/>"
+                                   );
+        copyrights = new GCopyrightCollection();
+        copyrights.addCopyright(copyright);
+        heatmap = new GTileLayer(copyrights, 10, 0);
+        heatmap.getTileUrl = function (tile, zoom) {
+            base = 'http://localhost:8080/';
+            color_scheme = 'classic';
+            url = base + color_scheme +'/'+ zoom +'/'
+            url += tile.x +','+ tile.y +'.png';
+            return url;
+        }
+        heatmap.isPng = function () {return true;}
+        heatmap.getOpacity = function () {return 1.0;}
+    
+        function initialize () {
+            var map = new GMap2(document.getElementById("map"));
+            var lebanon = new GLatLng(39.81447,-98.565388);
+            map.setCenter(lebanon, 4);
+            map.addOverlay(new GTileLayerOverlay(heatmap));
+        }
+    
+    </script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body onload="initialize()" onunload="GUnload()">
+    <div id="map">&nbsp;</div>       
+</body>
+</html>

@@ -7,7 +7,7 @@ import logging
 
 def fetch_and_store_n_recent_checkins_for_token(token, limit, client):
   response = client.make_request("http://api.foursquare.com/v1/history.json", token = token.token, secret = token.secret, additional_params = {'l':limit})
-  
+  #ad7zy4hiv4yi temp random password
   try:
     history = json.loads(response.content)
     logging.debug(history)
@@ -30,7 +30,7 @@ def fetch_and_store_n_recent_checkins_for_token(token, limit, client):
         else:
           # otherwise grab it
           venue = Venue.all().filter('venue_id =', checkin['venue']['id']).get()
-    
+
         if Checkin.all().filter('checkin_id =', checkin['id']).count() == 0:
           # if it's a new checkin, put it in the database
           new_checkin = Checkin()
@@ -38,8 +38,9 @@ def fetch_and_store_n_recent_checkins_for_token(token, limit, client):
           new_checkin.checkin_id = checkin['id']
           new_checkin.created    = datetime.datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000")
           new_checkin.venue      = venue
+          logging.debug(new_checkin)
           new_checkin.put()
-        # else 
+        # else
           #it's already there and we're good
   except:
     logging.error("There was a problem with the response: " % response)

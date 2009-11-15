@@ -1,0 +1,13 @@
+K 10
+svn:ignore
+V 59
+distutils
+*.pth
+setuptools*
+site.*
+numpy
+pygame
+PIL
+*.egg*
+
+END

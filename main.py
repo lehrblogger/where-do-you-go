@@ -77,15 +77,17 @@ class MapHandler(webapp.RequestHandler):
     
     if user:
       retreived_token = Token.all().filter('owner =', user).order('-created').get()
-     
-      self.response.out.write('<object width="640" height="505"><param name="movie" value="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="640" height="505"></embed></object>')
+      self.response.out.write('<a href="/">go back to main</a>')
       self.response.out.write('<br/><br/>')
       
       checkins = Checkin.all().filter('user =', user).order('-created').fetch(1000)
       
       for checkin in checkins:
         self.response.out.write(str(checkin.checkin_id) + " - " + checkin.venue.name + "<br/>")
-
+      	
+      self.response.out.write('<br/><br/>')
+      self.response.out.write('<object width="640" height="505"><param name="movie" value="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="640" height="505"></embed></object>')
+	
 class DeleteHandler(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()

@@ -1,0 +1,10 @@
+K 10
+svn:ignore
+V 43
+activate
+f2py
+pil*
+easy_install*
+nosetests
+
+END
