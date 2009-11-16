@@ -8,10 +8,10 @@ log = logging.getLogger('tile')
 
 
 class Provider(object):
-  
+
   def __init__(self):
     pass
-  
+
   def get_data(self, layer, x, y):
     pass
 
@@ -31,9 +31,9 @@ class Provider(object):
 
 
 class DummyProvider(Provider):
-  
+
   def get_data(self, zoom, layer, x, y):
-    return [ DataPoint(location=GeoPt(37.2344, 82.34)), 
+    return [ DataPoint(location=GeoPt(37.2344, 82.34)),
             DataPoint(location=GeoPt(37.2344, 82.34)),
             DataPoint(location=GeoPt(37.2344, 82.34)),
             DataPoint(location=GeoPt(37.2344, 82.34)),
@@ -51,9 +51,12 @@ class DummyProvider(Provider):
             DataPoint(location=GeoPt(37.2344, 82.34)),
             ]
 
+class FakeDBProvider(Provider): #TODO this is fake, delete it later
+  def get_data(self, zoom, layer, lat_north, lng_west, range_lat, range_lng):
+      return DataPoint.all().fetch(1000)
 
 class DBProvider(Provider):
-  
+
   def get_data(self, zoom, layer, lat_north, lng_west, range_lat, range_lng):
     log.info("GeoRange: (%6.4f, %6.4f) ZoomStep: (%6.4f, %6.4f)" % (lat_north, lng_west, range_lat, range_lng))
     log.info("Range: (%6.4f - %6.4f), (%6.4f - %6.4f)" % (min(90, max(-90, lat_north + range_lat)), lat_north, min(180, max(-180, lng_west + range_lng)), lng_west))

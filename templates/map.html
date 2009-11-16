@@ -8,6 +8,7 @@ function initialize() {
     map.setUIToDefault();
 
     addPlaceMarks(map);
+    addHeatMap(map);
   }
 }
 
@@ -25,11 +26,7 @@ function addHeatMap(map) {
 
   // Create the tile layer overlay and implement the three abstract methods
   var tilelayer = new GTileLayer(myCopyright);
-  tilelayer.getTileUrl = function(x, y, zoom) {
-
-    return "../include/tile_crosshairs.png";
-
-  };
+  tilelayer.getTileUrl = function(point, zoom) { return "tile/classic/" + zoom + "/" + point.y + "," + point.x +".png" };
   tilelayer.isPng = function() { return true;};
   tilelayer.getOpacity = function() { return 1.0; }
 

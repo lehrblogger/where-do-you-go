@@ -22,7 +22,7 @@ for i in range(LEVEL_MAX):
   cache_levels.append(int(((-(pow(float(i) - LEVEL_MAX, 2))/LEVEL_MAX) + LEVEL_MAX) / LEVEL_MAX * 255))
 
 class Tile(object):
-  
+
   def __init__(self, layer, zoom, x, y):
     self.layer = layer
     self.zoom = zoom
@@ -32,31 +32,50 @@ class Tile(object):
     self.decay = 0.5
 
     # attempt to get a cached object
-    self.tile_dump = self.__get_cached_image()
-    if not self.tile_dump:
+    #self.tile_dump = self.__get_cached_image()
+    if True: # not self.tile_dump: #TODO consider turning caching back on!!!
       # Get the bounds of this tile
+      logging.debug("x,y  = %f, %f" % (self.x, self.y))
+      logging.debug("zoom = %d" % (self.zoom))
+
       self.width, self.height = gmerc.ll2px(-90, 180, self.zoom)
+      logging.debug("width,height = %f, %f" % (self.width, self.height))
+
       self.numcols = int(math.ceil(self.width / 256.0))
       self.numrows = int(math.ceil(self.height / 256.0))
-      self.zoom_step = [ 180. / self.numrows, 360. / self.numcols ]
-      self.georange = ( min(90, max(-90, 180. / self.numrows * y - 90)), min(180, max(-180, 360. / self.numcols * x - 180 )))
 
+      logging.debug("numcols,numrows = %f, %f" % (self.numcols, self.numrows))
+
+      self.zoom_step = [ 180. / self.numrows, 360. / self.numcols ]
+      logging.debug(self.zoom_step)
+
+      self.georange = ( min(90, max(-90, 180. / self.numrows * y - 90)), min(180, max(-180, 360. / self.numcols * x - 180 )))
+      self.georange = ( 40.73542135862957, min(180, max(-180, 360. / self.numcols * x - 180 )))
       # Get the points and start plotting data
       self.tile_img = self.plot_image(
-          provider.get_data(self.zoom, self.layer, 
-                            self.georange[0], self.georange[1], 
+          provider.get_data(self.zoom, self.layer,
+                            self.georange[0], self.georange[1],
                             self.zoom_step[0], self.zoom_step[1]))
-  
+
   def plot_image(self, points):
+    #logging.debug("len(points) is %d" % len(points))
     space_level = self.__create_empty_space()
     for point in points:
-      self.__merge_point_in_space(space_level, point) 
+      self.__merge_point_in_space(space_level, point)
+
+    # for row in space_level:
+    #     for cell in row:
+    #         if cell > 0:
+    #           logging.debug(cell)
+
     return self.convert_image(space_level)
-  
+
   def __merge_point_in_space(self, space_level, point):
     # By default, multiply per color point
     dot_levels, x_off, y_off = self.get_dot(point)
-    
+
+    #logging.debug("len(dot_levels), x_off, y_off = %s, %f, %f" % (len(dot_levels), x_off, y_off))
+
     for y in range(y_off, y_off + len(dot_levels)):
       if y < 0 or y >= len(space_level):
         continue
@@ -67,6 +86,23 @@ class Tile(object):
         if dot_level <= 0.:
           continue
         space_level[y][x] += dot_level
+        #logging.debug("incrementing space_level[%d][%d] to %f" % (x,y,space_level[y][x]))
+
+      # for y in range(y_off, y_off + len(dot_levels)):
+      #   if y < 0 or y >= len(space_level):
+      #     logging.debug("continue due to: if y < 0 or y >= len(space_level):")
+      #     continue
+      #   for x in range(x_off, x_off + len(dot_levels[0])):
+      #     if x < 0 or x >= len(space_level[0]):
+      #       logging.debug("continue due to: if x < 0 or x >= len(space_level[0]):")
+      #       continue
+      #     dot_level = dot_levels[y - y_off][x - x_off]
+      #     if dot_level <= 0.:
+      #       logging.debug("continue due to: if dot_level <= 0.:")
+      #       continue
+      #     space_level[y - y_off][x - x_off] += dot_level
+      #     logging.debug("incrementing space_level[%d][%d] to %f" % (x,y,space_level[y - y_off][x - x_off]))
+
 
   def convert_image(self, space_level):
     tile = PNGCanvas(len(space_level[0]), len(space_level), bgcolor=[0xff,0xff,0xff,0])
@@ -98,7 +134,7 @@ class Tile(object):
     if cache.is_available(self.layer, self.x, self.y):
       return cache.get_image(self.layer, self.x, self.y)
     return None
-  
+
   def __cache_image(self, tile_dump):
     return cache.store_image(self.layer, self.x, self.y, tile_dump)
 

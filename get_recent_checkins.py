@@ -4,6 +4,11 @@ from google.appengine.ext import db
 from django.utils import simplejson as json
 import datetime
 import logging
+from gheatae import color_scheme, dot, tile, cache, provider
+from gheatae.point import DataPoint
+from gheatae.tile import Tile
+import handler
+import time
 
 def fetch_and_store_n_recent_checkins_for_token(token, limit, client):
   response = client.make_request("http://api.foursquare.com/v1/history.json", token = token.token, secret = token.secret, additional_params = {'l':limit})
@@ -50,6 +55,11 @@ def fetch_and_store_n_recent_checkins_for_token(token, limit, client):
         new_checkin.venue      = venue
         logging.debug(new_checkin)
         new_checkin.put()
+
+        new_data = DataPoint(location=db.GeoPt(venue.geolat, venue.geolong), time=new_checkin.created, weight=3, range=3)
+        new_data.update_location()
+        new_data.put()
+
       # else
         #it's already there and we're good
   # except:

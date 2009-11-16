@@ -28,10 +28,7 @@ from django.utils import simplejson as json
 import os
 from google.appengine.ext.webapp import template
 import logging
-
-
 import tile
-import data
 
 class MainHandler(webapp.RequestHandler):
   def get(self):
@@ -128,8 +125,7 @@ def main():
                                         ('/authenticated', AuthHandler),
                                         ('/delete_all_my_data', DeleteHandler),
                                         ('/map', MapHandler),
-                                        ('/tile/.*', tile.GetTile),
-                                        ('/data/.*', data.Data)],
+                                        ('/tile/.*', tile.GetTile)],
                                        debug=True)
 
   wsgiref.handlers.CGIHandler().run(application)
