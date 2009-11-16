@@ -35,21 +35,22 @@ class Tile(object):
     #self.tile_dump = self.__get_cached_image()
     if True: # not self.tile_dump: #TODO consider turning caching back on!!!
       # Get the bounds of this tile
-      logging.debug("x,y  = %f, %f" % (self.x, self.y))
-      logging.debug("zoom = %d" % (self.zoom))
+      logging.debug("x,y and zoom = %d,%d and %d" % (self.x, self.y, self.zoom))
 
       self.width, self.height = gmerc.ll2px(-90, 180, self.zoom)
-      logging.debug("width,height = %f, %f" % (self.width, self.height))
+      logging.debug("width,height = %d, %d" % (self.width, self.height))
 
       self.numcols = int(math.ceil(self.width / 256.0))
       self.numrows = int(math.ceil(self.height / 256.0))
 
-      logging.debug("numcols,numrows = %f, %f" % (self.numcols, self.numrows))
+      logging.debug("numcols,numrows = %d, %d" % (self.numcols, self.numrows))
 
       self.zoom_step = [ 180. / self.numrows, 360. / self.numcols ]
       logging.debug(self.zoom_step)
 
-      self.georange = ( min(90, max(-90, 180. / self.numrows * y - 90)), min(180, max(-180, 360. / self.numcols * x - 180 )))
+      self.georange = ( min(90, max(-90, -180. / self.numrows * y + 90)), min(180, max(-180, 360. / self.numcols * x - 180 )))
+
+      logging.debug("georange: %f, %f" % (self.georange[0], self.georange[1]))
       self.georange = ( 40.73542135862957, min(180, max(-180, 360. / self.numcols * x - 180 )))
       # Get the points and start plotting data
       self.tile_img = self.plot_image(
@@ -76,7 +77,7 @@ class Tile(object):
 
     #logging.debug("len(dot_levels), x_off, y_off = %s, %f, %f" % (len(dot_levels), x_off, y_off))
 
-    for y in range(y_off, y_off + len(dot_levels)):
+    for y in range(y_off, y_off + len(dot_levels)): #TODO make sure i'm getting stuff from just outside of the tile
       if y < 0 or y >= len(space_level):
         continue
       for x in range(x_off, x_off + len(dot_levels[0])):
@@ -111,7 +112,7 @@ class Tile(object):
       color_scheme.append(self.color_scheme.canvas[cache_levels[i]][0])
     for y in xrange(len(space_level[0])):
       for x in xrange(len(space_level[0])):
-        tile.canvas[y][x] = color_scheme[int(space_level[y][x])]
+        tile.canvas[y][x] = color_scheme[min(len(color_scheme) - 1, int(space_level[y][x]))]
     return tile
 
   def get_dot(self, point):
