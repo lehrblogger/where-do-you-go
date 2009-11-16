@@ -49,8 +49,8 @@ class Tile(object):
       logging.debug(self.zoom_step)
 
       self.georange = ( min(90, max(-90, -180. / self.numrows * y + 90)), min(180, max(-180, 360. / self.numcols * x - 180 )))
-
       logging.debug("georange: %f, %f" % (self.georange[0], self.georange[1]))
+
       self.georange = ( 40.73542135862957, min(180, max(-180, 360. / self.numcols * x - 180 )))
       # Get the points and start plotting data
       self.tile_img = self.plot_image(

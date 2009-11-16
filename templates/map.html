@@ -4,7 +4,7 @@
 function initialize() {
   if (GBrowserIsCompatible()) {
     var map = new GMap2(document.getElementById("map_canvas"));
-    map.setCenter(new GLatLng({{ centerlat }}, {{ centerlong }}), 5);
+    map.setCenter(new GLatLng({{ centerlat }}, {{ centerlong }}), 13);
     map.setUIToDefault();
 
     addPlaceMarks(map);
