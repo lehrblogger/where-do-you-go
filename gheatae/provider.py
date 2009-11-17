@@ -1,10 +1,11 @@
 from geo import geotypes
 from gheatae import consts
-from gheatae.point import DataPoint
+from models import Checkin
 from google.appengine.api.datastore_types import GeoPt
 import logging
 
 log = logging.getLogger('tile')
+from google.appengine.api import users
 
 
 class Provider(object):
@@ -30,40 +31,42 @@ class Provider(object):
 #      cache_georanges[zoom][y][x] = ( 180. / numrows * y - 90, 360. / numcols * x - 180 )
 
 
-class DummyProvider(Provider):
-
-  def get_data(self, zoom, layer, x, y):
-    return [ DataPoint(location=GeoPt(37.2344, 82.34)),
-            DataPoint(location=GeoPt(37.2344, 82.34)),
-            DataPoint(location=GeoPt(37.2344, 82.34)),
-            DataPoint(location=GeoPt(37.2344, 82.34)),
-            DataPoint(location=GeoPt(37.2344, 82.34)),
-            DataPoint(location=GeoPt(37.2344, 82.34)),
-            DataPoint(location=GeoPt(37.2344, 82.34)),
-            DataPoint(location=GeoPt(37.2344, 82.34)),
-            DataPoint(location=GeoPt(37.2344, 82.34)),
-            DataPoint(location=GeoPt(37.2344, 82.34)),
-            DataPoint(location=GeoPt(37.2344, 82.34)),
-            DataPoint(location=GeoPt(37.2344, 82.34)),
-            DataPoint(location=GeoPt(37.2344, 82.34)),
-            DataPoint(location=GeoPt(37.2344, 82.34)),
-            DataPoint(location=GeoPt(37.2344, 82.34)),
-            DataPoint(location=GeoPt(37.2344, 82.34)),
-            ]
-
-class FakeDBProvider(Provider): #TODO this is fake, delete it later
-  def get_data(self, zoom, layer, lat_north, lng_west, range_lat, range_lng):
-      return DataPoint.all().fetch(1000)
+# class DummyProvider(Provider):
+#
+#   def get_data(self, zoom, layer, x, y):
+#     return [ DataPoint(location=GeoPt(37.2344, 82.34)),
+#             DataPoint(location=GeoPt(37.2344, 82.34)),
+#             DataPoint(location=GeoPt(37.2344, 82.34)),
+#             DataPoint(location=GeoPt(37.2344, 82.34)),
+#             DataPoint(location=GeoPt(37.2344, 82.34)),
+#             DataPoint(location=GeoPt(37.2344, 82.34)),
+#             DataPoint(location=GeoPt(37.2344, 82.34)),
+#             DataPoint(location=GeoPt(37.2344, 82.34)),
+#             DataPoint(location=GeoPt(37.2344, 82.34)),
+#             DataPoint(location=GeoPt(37.2344, 82.34)),
+#             DataPoint(location=GeoPt(37.2344, 82.34)),
+#             DataPoint(location=GeoPt(37.2344, 82.34)),
+#             DataPoint(location=GeoPt(37.2344, 82.34)),
+#             DataPoint(location=GeoPt(37.2344, 82.34)),
+#             DataPoint(location=GeoPt(37.2344, 82.34)),
+#             DataPoint(location=GeoPt(37.2344, 82.34)),
+#             ]
 
 class DBProvider(Provider):
 
   def get_data(self, zoom, layer, lat_north, lng_west, range_lat, range_lng):
     log.info("GeoRange: (%6.4f, %6.4f) ZoomStep: (%6.4f, %6.4f)" % (lat_north, lng_west, range_lat, range_lng))
     log.info("Range: (%6.4f - %6.4f), (%6.4f - %6.4f)" % (min(90, max(-90, lat_north + range_lat)), lat_north, min(180, max(-180, lng_west + range_lng)), lng_west))
-    return DataPoint.bounding_box_fetch(
-        DataPoint.all(),
+
+    user = users.get_current_user()
+
+    if user:
+      return Checkin.bounding_box_fetch(
+        Checkin.all().filter('user =', user),
         geotypes.Box(min(90, max(-90, lat_north + range_lat)),
             min(180, max(-180, lng_west + range_lng)),
             lat_north,
             lng_west),
         max_results=1000, )
+    else:
+      return []

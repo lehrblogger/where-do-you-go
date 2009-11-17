@@ -1,5 +1,5 @@
 cron:
 - description: get most recent user checkins
   url: /get_recent_checkins
-  schedule: every 20 minutes
+  schedule: every 2 hours
 

@@ -4,10 +4,19 @@
 function initialize() {
   if (GBrowserIsCompatible()) {
     var map = new GMap2(document.getElementById("map_canvas"));
-    map.setCenter(new GLatLng({{ centerlat }}, {{ centerlong }}), 13);
-    map.setUIToDefault();
+    map.setCenter(new GLatLng({{ centerlat }}, {{ centerlong }}), 14);
 
-    addPlaceMarks(map);
+    var customUI = map.getDefaultUI();
+    customUI.maptypes.satellite  = false;
+    customUI.maptypes.hybrid  = false;
+    customUI.maptypes.physical  = false;
+    customUI.maptypes.normal = true;
+    customUI.zoom.scrollwheel = false;
+    customUI.controls.smallzoomcontrol3d = true;
+    customUI.controls.scalecontrol   = false;
+    map.setUI(customUI);
+
+    //addPlaceMarks(map);
     addHeatMap(map);
   }
 }
@@ -41,7 +50,7 @@ function addHeatMap(map) {
   <a href="/">go back to main</a>
   <br/><br/>
 
-  <div id="map_canvas" style="width: 500px; height: 300px"></div>
+  <div id="map_canvas" style="width: 500px; height: 500px"></div>
 
   {% if user %}
       </body>

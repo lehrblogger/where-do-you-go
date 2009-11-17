@@ -1,4 +1,5 @@
 from google.appengine.ext import db
+from geo.geomodel import GeoModel
 
 class Token(db.Model):
   owner = db.UserProperty()
@@ -18,8 +19,10 @@ class Venue(db.Model):
   geolong = db.FloatProperty()
   phone = db.PhoneNumberProperty()
 
-class Checkin(db.Model):
+class Checkin(GeoModel):
   user = db.UserProperty()
   checkin_id = db.IntegerProperty()
   created = db.DateTimeProperty()
   venue =  db.ReferenceProperty(Venue)
+  weight = db.IntegerProperty()
+  range = db.IntegerProperty()
