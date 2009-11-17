@@ -5,7 +5,6 @@ from google.appengine.api.datastore_types import GeoPt
 import logging
 
 log = logging.getLogger('tile')
-from google.appengine.api import users
 
 
 class Provider(object):
@@ -54,19 +53,16 @@ class Provider(object):
 
 class DBProvider(Provider):
 
-  def get_data(self, zoom, layer, lat_north, lng_west, range_lat, range_lng):
-    log.info("GeoRange: (%6.4f, %6.4f) ZoomStep: (%6.4f, %6.4f)" % (lat_north, lng_west, range_lat, range_lng))
-    log.info("Range: (%6.4f - %6.4f), (%6.4f - %6.4f)" % (min(90, max(-90, lat_north + range_lat)), lat_north, min(180, max(-180, lng_west + range_lng)), lng_west))
+    def get_user_data(self, user=None, lat_north=90, lng_west=-180, range_lat=180, range_lng=360):
+      log.info("GeoRange: (%6.4f, %6.4f) ZoomStep: (%6.4f, %6.4f)" % (lat_north, lng_west, range_lat, range_lng))
+      log.info("Range: (%6.4f - %6.4f), (%6.4f - %6.4f)" % (min(90, max(-90, lat_north + range_lat)), lat_north, min(180, max(-180, lng_west + range_lng)), lng_west))
 
-    user = users.get_current_user()
-
-    if user:
-      return Checkin.bounding_box_fetch(
-        Checkin.all().filter('user =', user),
-        geotypes.Box(min(90, max(-90, lat_north + range_lat)),
-            min(180, max(-180, lng_west + range_lng)),
-            lat_north,
-            lng_west),
-        max_results=1000, )
-    else:
-      return []
+      if user:
+        return Checkin.bounding_box_fetch(Checkin.all().filter('user =', user).order('-created'), #TODO find a way to specify this elsewhere!!
+          geotypes.Box(min(90, max(-90, lat_north + range_lat)),
+              min(180, max(-180, lng_west + range_lng)),
+              lat_north,
+              lng_west),
+          max_results=1000, )
+      else:
+        return []

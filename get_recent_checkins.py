@@ -4,9 +4,6 @@ from google.appengine.ext import db
 from django.utils import simplejson as json
 import datetime
 import logging
-from gheatae import color_scheme, dot, tile, cache, provider
-from gheatae.tile import Tile
-import handler
 import time
 
 def fetch_and_store_n_recent_checkins_for_token(token, limit, client):

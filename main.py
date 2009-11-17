@@ -29,18 +29,21 @@ import os
 from google.appengine.ext.webapp import template
 import logging
 import tile
+from gheatae import provider
+
+provider = provider.DBProvider()
 
 class MainHandler(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
 
     if user:
+      map_ready = (Checkin.all().filter('user =', user).count() > 0) and (Token.all().filter('owner =', user).count() > 0)
       url = users.create_logout_url(self.request.uri)
-      map_ready = Checkin.all().filter('user =', user).count() > 0
       url_linktext = 'Logout'
     else:
-      url = users.create_login_url(self.request.uri)
       map_ready = False
+      url = users.create_login_url(self.request.uri)
       url_linktext = 'Login'
 
     template_values = {
@@ -81,7 +84,7 @@ class MapHandler(webapp.RequestHandler):
 
     if user:
       retreived_token = Token.all().filter('owner =', user).order('-created').get()
-      checkins = Checkin.all().filter('user =', user).order('-created').fetch(1000)
+      checkins = provider.get_user_data(user=user)
 
       response = client.make_request("http://api.foursquare.com/v1/user.json", token = retreived_token.token, secret = retreived_token.secret)
       user_info = json.loads(response.content)
@@ -113,7 +116,7 @@ class DeleteHandler(webapp.RequestHandler):
       tokens = Token.all().filter('owner =', user).fetch(1000)
       db.delete(tokens)
 
-      checkins = Checkin.all().filter('user =', user).fetch(1000)
+      checkins = provider.get_user_data(user=user)
       db.delete(checkins)
 
     self.redirect('/')

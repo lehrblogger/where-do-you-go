@@ -6,6 +6,7 @@ import logging
 import gmerc
 import math
 
+from google.appengine.api import users
 log = logging.getLogger('space_level')
 
 # This is the provider of data and interfaced to data interface
@@ -46,8 +47,9 @@ class Tile(object):
       self.zoom_step = [ self.georange_next[0] - self.georange[0], self.georange_next[1] - self.georange[1]]
 
       # Get the points and start plotting data
+
       self.tile_img = self.plot_image(
-          provider.get_data(self.zoom, self.layer,
+          provider.get_user_data(users.get_current_user(), #self.layer,
                             self.temp_georange[0], self.temp_georange[1],
                             self.temp_zoom_step[0], self.temp_zoom_step[1]))
 
