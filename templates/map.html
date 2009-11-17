@@ -23,7 +23,7 @@ function initialize() {
 
 function addPlaceMarks(map) {
   {% for checkin in checkins %}
-    var point = new GLatLng({{ checkin.venue.geolat }}, {{ checkin.venue.geolong }});
+    var point = new GLatLng({{ checkin.location }});
     map.addOverlay(new GMarker(point));
   {% endfor %}
 }
@@ -59,7 +59,7 @@ function addHeatMap(map) {
 
     <ol>
     {% for checkin in checkins %}
-      <li><strong>{{ checkin.venue.name }}</strong> at {{ checkin.venue.geolat }},{{ checkin.venue.geolong }}</li>
+      <li><strong>{{ checkin.venue.name }}</strong> at {{ checkin.location }}</li>
     {% endfor %}
     </ol>
   {% endif %}

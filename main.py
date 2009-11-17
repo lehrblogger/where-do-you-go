@@ -85,11 +85,11 @@ class MapHandler(webapp.RequestHandler):
     if user:
       retreived_token = Token.all().filter('owner =', user).order('-created').get()
       checkins = provider.get_user_data(user=user)
+      logging.warning(checkins)
 
       response = client.make_request("http://api.foursquare.com/v1/user.json", token = retreived_token.token, secret = retreived_token.secret)
       user_info = json.loads(response.content)
 
-      logging.debug(user_info)
       user_lat = user_info['user']['city']['geolat']
       user_long = user_info['user']['city']['geolong']
     else:
