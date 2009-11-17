@@ -35,23 +35,30 @@ class Tile(object):
     #self.tile_dump = self.__get_cached_image()
     if True: # not self.tile_dump: #TODO consider turning caching back on!!!
       # Get the bounds of this tile
-      logging.debug("x,y and zoom = %d,%d and %d" % (self.x, self.y, self.zoom))
+      # logging.debug("x,y and zoom = %d,%d and %d" % (self.x, self.y, self.zoom))
+      #  
+      # self.width, self.height = gmerc.ll2px(-90, 180, self.zoom)
+      # logging.debug("width,height = %d, %d" % (self.width, self.height))
+      # 
+      # self.numcols = int(math.ceil(self.width / 256.0))
+      # self.numrows = int(math.ceil(self.height / 256.0))
+      # logging.debug("numcols,numrows = %d, %d" % (self.numcols, self.numrows))
+      # 
+      # self.zoom_step = [ 180. / self.numrows, 360. / self.numcols ]
+      # logging.debug(self.zoom_step)
+      # 
+      # self.georange = ( min(90, max(-90, 90 - 180. / self.numrows * y)), min(180, max(-180, 360. / self.numcols * x - 180 )))
+      # logging.debug("georange: %f, %f" % (self.georange[0], self.georange[1]))
+      # 
+      # self.georange = ( 40.73542135862957, min(180, max(-180, 360. / self.numcols * x - 180 )))
 
-      self.width, self.height = gmerc.ll2px(-90, 180, self.zoom)
-      logging.debug("width,height = %d, %d" % (self.width, self.height))
-
-      self.numcols = int(math.ceil(self.width / 256.0))
-      self.numrows = int(math.ceil(self.height / 256.0))
-
-      logging.debug("numcols,numrows = %d, %d" % (self.numcols, self.numrows))
-
-      self.zoom_step = [ 180. / self.numrows, 360. / self.numcols ]
-      logging.debug(self.zoom_step)
-
-      self.georange = ( min(90, max(-90, -180. / self.numrows * y + 90)), min(180, max(-180, 360. / self.numcols * x - 180 )))
+      self.georange = gmerc.px2ll(x * 256, y * 256, zoom)
+      self.georange_next = gmerc.px2ll((x + 1) * 256, (y + 1) * 256, zoom) #TODO fix this in case we're at the edge of the map!
+      self.zoom_step = [ self.georange_next[0] - self.georange[0], self.georange_next[1] - self.georange[1]]
+      
       logging.debug("georange: %f, %f" % (self.georange[0], self.georange[1]))
-
-      self.georange = ( 40.73542135862957, min(180, max(-180, 360. / self.numcols * x - 180 )))
+      logging.debug("zoom_step: %f, %f" % (self.zoom_step[0], self.zoom_step[1]))
+        
       # Get the points and start plotting data
       self.tile_img = self.plot_image(
           provider.get_data(self.zoom, self.layer,
@@ -110,6 +117,9 @@ class Tile(object):
     color_scheme = []
     for i in range(LEVEL_MAX):
       color_scheme.append(self.color_scheme.canvas[cache_levels[i]][0])
+    logging.debug("--------")
+    logging.debug(color_scheme)
+    logging.debug("--------")
     for y in xrange(len(space_level[0])):
       for x in xrange(len(space_level[0])):
         tile.canvas[y][x] = color_scheme[min(len(color_scheme) - 1, int(space_level[y][x]))]
