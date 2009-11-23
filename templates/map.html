@@ -1,10 +1,10 @@
-<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;sensor=false&amp;key=ABQIAAAAwA6oEsCLgzz6I150wm3ELBQO7aMTgd18mR6eRdj9blrVCeGU7BS14EnkGH_2LpNpZ8DJW0u7G5ocLQ" type="text/javascript"></script>
+<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;sensor=false&amp;key={{ apikey }}" type="text/javascript"></script>
 <script type="text/javascript">
 
 function initialize() {
   if (GBrowserIsCompatible()) {
     var map = new GMap2(document.getElementById("map_canvas"));
-    map.setCenter(new GLatLng({{ centerlat }}, {{ centerlong }}), 14);
+    map.setCenter(new GLatLng({{ centerlat }}, {{ centerlong }}), {{ zoomlevel }});
 
     var customUI = map.getDefaultUI();
     customUI.maptypes.satellite  = false;

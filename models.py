@@ -14,7 +14,7 @@ class Venue(db.Model):
   crossstreet = db.StringProperty()
   city = db.StringProperty()
   state = db.StringProperty()
-  zipcode = db.IntegerProperty()
+  zipcode = db.StringProperty()
   geolat = db.FloatProperty()
   geolong = db.FloatProperty()
   phone = db.PhoneNumberProperty()
@@ -26,3 +26,7 @@ class Checkin(GeoModel):
   venue =  db.ReferenceProperty(Venue)
   weight = db.IntegerProperty()
   range = db.IntegerProperty()
+
+class MapImage(db.Model):
+  user = db.UserProperty()
+  img = db.BlobProperty()

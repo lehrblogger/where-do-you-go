@@ -18,7 +18,7 @@
 import wsgiref.handlers
 import oauth
 from get_recent_checkins import fetch_and_store_n_recent_checkins_for_token
-from models import Token, Venue, Checkin
+from models import Token, Venue, Checkin, MapImage
 from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext import db
@@ -31,6 +31,8 @@ import logging
 import tile
 from gheatae import provider
 
+from google.appengine.api import images
+
 provider = provider.DBProvider()
 
 class MainHandler(webapp.RequestHandler):
@@ -38,16 +40,19 @@ class MainHandler(webapp.RequestHandler):
     user = users.get_current_user()
 
     if user:
-      map_ready = (Checkin.all().filter('user =', user).count() > 0) and (Token.all().filter('owner =', user).count() > 0)
+      data_ready = (Checkin.all().filter('user =', user).count() > 0) and (Token.all().filter('owner =', user).count() > 0)
+      map_ready = (MapImage.all().filter('user =', user).count() > 0) and (Token.all().filter('owner =', user).count() > 0)
       url = users.create_logout_url(self.request.uri)
       url_linktext = 'Logout'
     else:
+      data_ready = False
       map_ready = False
       url = users.create_login_url(self.request.uri)
       url_linktext = 'Login'
 
     template_values = {
       'user': user,
+      'data_ready': data_ready,
       'map_ready': map_ready,
       'url': url,
       'url_linktext': url_linktext,
@@ -69,9 +74,9 @@ class AuthHandler(webapp.RequestHandler):
         new_token = Token(owner = user, token = credentials['token'], secret = credentials['secret'])
         new_token.put()
 
-        fetch_and_store_n_recent_checkins_for_token(new_token, 50, client)
+        fetch_and_store_n_recent_checkins_for_token(new_token, 250, client)
 
-        self.redirect("/map")
+        self.redirect("/jsmap")
       else:
         self.redirect(client.get_authorization_url())
 
@@ -79,13 +84,12 @@ class AuthHandler(webapp.RequestHandler):
       self.redirect(users.create_login_url(self.request.uri))
 
 class MapHandler(webapp.RequestHandler):
-  def get(self):
+  def get_map_data(self):
     user = users.get_current_user()
 
     if user:
       retreived_token = Token.all().filter('owner =', user).order('-created').get()
       checkins = provider.get_user_data(user=user)
-      logging.warning(checkins)
 
       response = client.make_request("http://api.foursquare.com/v1/user.json", token = retreived_token.token, secret = retreived_token.secret)
       user_info = json.loads(response.content)
@@ -97,16 +101,48 @@ class MapHandler(webapp.RequestHandler):
       user_long = -73.8732
 
     template_values = {
+      'apikey': 'ABQIAAAAwA6oEsCLgzz6I150wm3ELBQO7aMTgd18mR6eRdj9blrVCeGU7BS14EnkGH_2LpNpZ8DJW0u7G5ocLQ',
       'user': user,
       'checkins': checkins,
       'centerlat': user_lat,
       'centerlong': user_long,
+      'zoomlevel': 14,
     }
+    return template_values
 
+
+class JsMapHandler(MapHandler):
+  def get(self):
+    template_values = self.get_map_data()
     os_path = os.path.dirname(__file__)
     self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), None))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/map.html')   , template_values))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/footer.html'), None))
+
+class GenerateMapHandler(MapHandler):
+  def get(self):
+    data = self.get_map_data()
+
+
+    "http://maps.google.com/maps/api/staticmap?center=" + data['centerlat'] + "," + data['centerlong'] + "&zoom=1&size=500x500&key=" + data['apikey'] + "&sensor=false&format=png"
+
+
+    input_tuples = []
+    # input_tuples.append()
+
+    img = images.composite(inputs=input_tuples, width=500, height=500, color=0, output_encoding=PNG)
+
+    map_image = MapImage()
+    map_image.user = data['user']
+    map_image.img = db.Blob(img)
+    map_image.put()
+
+    self.redirect('/')
+
+class StaticMapHandler(webapp.RequestHandler):
+  def get(self):
+    logging.debug('return .png file here')
+
 
 class DeleteHandler(webapp.RequestHandler):
   def get(self):
@@ -121,13 +157,16 @@ class DeleteHandler(webapp.RequestHandler):
 
     self.redirect('/')
 
+
 def main():
   application = webapp.WSGIApplication(
                                        [('/', MainHandler),
                                         ('/go_to_foursquare', AuthHandler),
                                         ('/authenticated', AuthHandler),
                                         ('/delete_all_my_data', DeleteHandler),
-                                        ('/map', MapHandler),
+                                        ('/jsmap', JsMapHandler),
+                                        ('/generate_staticmap', GenerateMapHandler),
+                                        #('/jsmap', MapHandler),
                                         ('/tile/.*', tile.GetTile)],
                                        debug=True)
 

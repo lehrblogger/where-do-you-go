@@ -151,6 +151,7 @@ class OAuthClient():
 
     # Construct and fetch the URL and return the result object.
     url = "%s?%s" % (url, urlencode(params))
+    logging.warning("make_request url = " + url)
 
     headers = {}
     if protected:
@@ -170,7 +171,7 @@ class OAuthClient():
 
   def get_credentials(self, auth_token, auth_verifier=""):
     """Gets credentials
-    
+
     Exchanges the auth token for an access token and returns it for storage elsewhere.
     """
 
@@ -347,7 +348,7 @@ class FoursquareClient(OAuthClient):
     user_info["picture"] = data["user"]["photo"]
 
     return user_info
-        
+
 class TwitterClient(OAuthClient):
   """Twitter Client.
 

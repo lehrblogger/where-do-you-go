@@ -9,9 +9,8 @@ import time
 def fetch_and_store_n_recent_checkins_for_token(token, limit, client):
   response = client.make_request("http://api.foursquare.com/v1/history.json", token = token.token, secret = token.secret, additional_params = {'l':limit})
   #ad7zy4hiv4yi temp random password
-  # try:
-  history = json.loads(response.content)
   try:
+    history = json.loads(response.content)
     for checkin in history['checkins']:
       if 'venue' in checkin:
         json_venue = checkin['venue']
@@ -31,14 +30,18 @@ def fetch_and_store_n_recent_checkins_for_token(token, limit, client):
           if 'state' in json_venue:
             venue.state       = json_venue['state']
           if 'zip' in json_venue:
-            venue.zipcode     = int(json_venue['zip'])
+            venue.zipcode     = json_venue['zip']
           if 'geolat' in json_venue:
             venue.geolat      = json_venue['geolat']
           if 'geolong' in json_venue:
             venue.geolong     = json_venue['geolong']
           if 'phone' in json_venue:
             venue.phone       = json_venue['phone']
-          venue.put()
+
+          if venue.geolong == None or venue.geolat == None:
+            continue # nothing to be done without a latlon
+          else:
+            venue.put()
         else:
           # otherwise grab it
           venue = Venue.all().filter('venue_id =', json_venue['id']).get()
@@ -56,7 +59,7 @@ def fetch_and_store_n_recent_checkins_for_token(token, limit, client):
           new_checkin.put()
         # else
           #it's already there and we're good
-  except:
+  except KeyError:
     logging.error("There was a problem with the response: " + response.content)
 
 
