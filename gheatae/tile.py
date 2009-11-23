@@ -35,19 +35,18 @@ class Tile(object):
     # attempt to get a cached object
     #self.tile_dump = self.__get_cached_image()
     if True: # not self.tile_dump: #TODO consider turning caching back on!!!
-      logging.debug("len(dot[self.zoom]) %d" % len(dot[self.zoom]))
-      dot_radius = len(dot[self.zoom])
+
+      dot_radius = len(dot[self.zoom]) #TODO maybe this is twice what it needs to be???
       self.temp_georange      = gmerc.px2ll((x    ) * 256 - dot_radius, (y    ) * 256 - dot_radius, zoom)
-      self.georange_next = gmerc.px2ll((x + 1) * 256 + dot_radius, (y + 1) * 256 + dot_radius, zoom) #TODO fix this in case we're at the edge of the map!
+      self.georange_next = gmerc.px2ll((x + 1) * 256 + dot_radius, (y + 1) * 256 + dot_radius, zoom)
       self.temp_zoom_step = [ self.georange_next[0] - self.temp_georange[0], self.georange_next[1] - self.temp_georange[1]]
 
-      # make these normal otherwise we mess up the display
+      # calculate the real values for these without the offsets, otherwise it messes up the get_dot calculations
       self.georange      = gmerc.px2ll((x    ) * 256, (y    ) * 256, zoom)
-      self.georange_next = gmerc.px2ll((x + 1) * 256, (y + 1) * 256, zoom)
+      self.georange_next = gmerc.px2ll((x + 1) * 256, (y + 1) * 256, zoom) #TODO fix this in case we're at the edge of the map!
       self.zoom_step = [ self.georange_next[0] - self.georange[0], self.georange_next[1] - self.georange[1]]
 
       # Get the points and start plotting data
-
       self.tile_img = self.plot_image(
           provider.get_user_data(users.get_current_user(), #self.layer,
                             self.temp_georange[0], self.temp_georange[1],
