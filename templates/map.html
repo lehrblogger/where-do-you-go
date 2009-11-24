@@ -22,8 +22,9 @@ function initialize() {
 }
 
 function addPlaceMarks(map) {
+	var point;
   {% for checkin in checkins %}
-    var point = new GLatLng({{ checkin.location }});
+    point = new GLatLng({{ checkin.location }});
     map.addOverlay(new GMarker(point));
   {% endfor %}
 }

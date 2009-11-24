@@ -15,7 +15,7 @@ cache = None
 
 rdm = Random()
 
-LEVEL_MAX = 1500
+LEVEL_MAX = 2000
 
 cache_levels = []
 
