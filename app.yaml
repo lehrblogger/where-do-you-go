@@ -1,12 +1,20 @@
 application: where-do-you-go
-version: 2
+version: 2-1
 runtime: python
 api_version: 1
 
 handlers:
-- url: /get_recent_checkins
-  script: get_recent_checkins.py
+- url: /fetch_all_recent_checkins
+  script: scripts/fetch_all_recent_checkins.py.py
+  login: admin
+
+- url: /delete_all_data
+  script: scripts/delete_all_data.py
+  login: admin
+
+- url: /clear_authtokens
+  script: scripts/clear_authtokens.py
   login: admin
 
 - url: .*
-  script: main.py
+  script: handlers.py

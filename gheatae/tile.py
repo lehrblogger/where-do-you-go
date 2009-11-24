@@ -1,3 +1,4 @@
+import globalvars
 from gheatae import color_scheme
 from gheatae.dot import dot
 from pngcanvas import PNGCanvas
@@ -9,14 +10,11 @@ import math
 from google.appengine.api import users
 log = logging.getLogger('space_level')
 
-# This is the provider of data and interfaced to data interface
-provider = None
-cache = None
-
 rdm = Random()
 
 LEVEL_MAX = 2000
 
+cache = None
 cache_levels = []
 
 for i in range(LEVEL_MAX):
@@ -48,7 +46,7 @@ class Tile(object):
 
       # Get the points and start plotting data
       self.tile_img = self.plot_image(
-          provider.get_user_data(users.get_current_user(), #self.layer,
+          globalvars.provider.get_user_data(users.get_current_user(), #self.layer,
                             self.temp_georange[0], self.temp_georange[1],
                             self.temp_zoom_step[0], self.temp_zoom_step[1]))
 
@@ -139,7 +137,7 @@ class Tile(object):
     if self.tile_img:
       self.tile_dump = self.tile_img.dump()
       # attempt to cache this
-      self.__cache_image(self.tile_dump)
+      # self.__cache_image(self.tile_dump)
 
     if self.tile_dump:
       return self.tile_dump

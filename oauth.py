@@ -54,6 +54,7 @@ from time import time
 from urllib import urlencode
 from urllib import quote as urlquote
 from urllib import unquote as urlunquote
+from models import AuthToken
 
 import logging
 
@@ -76,20 +77,20 @@ def get_oauth_client(service, key, secret, callback_url):
     raise Exception, "Unknown OAuth service %s" % service
 
 
-class AuthToken(db.Model):
-  """Auth Token.
-
-  A temporary auth token that we will use to authenticate a user with a
-  third party website. (We need to store the data while the user visits
-  the third party website to authenticate themselves.)
-
-  TODO: Implement a cron to clean out old tokens periodically.
-  """
-
-  service = db.StringProperty(required=True)
-  token = db.StringProperty(required=True)
-  secret = db.StringProperty(required=True)
-  created = db.DateTimeProperty(auto_now_add=True)
+# moved to models.py
+# class AuthToken(db.Model):
+#   """AuthToken.
+#
+#   A temporary auth token that we will use to authenticate a user with a
+#   third party website. (We need to store the data while the user visits
+#   the third party website to authenticate themselves.)
+#
+#   """
+#
+#   service = db.StringProperty(required=True)
+#   token = db.StringProperty(required=True)
+#   secret = db.StringProperty(required=True)
+#   created = db.DateTimeProperty(auto_now_add=True)
 
 
 class OAuthClient():
@@ -191,7 +192,7 @@ class OAuthClient():
 
       if not result:
         logging.error("The auth token %s was not found in our db" % auth_token)
-        raise Exception, "Could not find Auth Token in database"
+        raise Exception, "Could not find AuthToken in database"
       else:
         auth_secret = result.secret
 
@@ -221,7 +222,7 @@ class OAuthClient():
     return user_info
 
   def _get_auth_token(self):
-    """Get Authorization Token.
+    """Get AuthorizationToken.
 
     Actually gets the authorization token and secret from the service. The
     token and secret are stored in our database, and the auth token is

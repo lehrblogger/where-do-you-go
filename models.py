@@ -1,7 +1,13 @@
 from google.appengine.ext import db
 from geo.geomodel import GeoModel
 
-class Token(db.Model):
+class AuthToken(db.Model):
+  service = db.StringProperty(required=True)
+  token = db.StringProperty(required=True)
+  secret = db.StringProperty(required=True)
+  created = db.DateTimeProperty(auto_now_add=True)
+
+class AccessToken(db.Model):
   owner = db.UserProperty()
   created = db.DateTimeProperty(auto_now_add=True)
   token = db.StringProperty()
@@ -29,4 +35,10 @@ class Checkin(GeoModel):
 
 class MapImage(db.Model):
   user = db.UserProperty()
+  centerlat = db.FloatProperty()
+  centerlong = db.FloatProperty()
+  zoomlevel = db.IntegerProperty()
+  width = db.IntegerProperty()
+  height = db.IntegerProperty()
   img = db.BlobProperty()
+

@@ -1,5 +1,5 @@
 indexes:
-- kind: Token
+- kind: AccessToken
   properties:
   - name: owner
   - name: created

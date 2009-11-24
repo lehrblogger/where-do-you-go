@@ -1,5 +1,8 @@
 cron:
 - description: get most recent user checkins
-  url: /get_recent_checkins
+  url: /fetch_all_recent_checkins
   schedule: every 2 hours
 
+- description: clear old authtokens
+  url: /clear_authtokens
+  schedule: every 30 minutes
