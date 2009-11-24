@@ -152,7 +152,6 @@ class OAuthClient():
 
     # Construct and fetch the URL and return the result object.
     url = "%s?%s" % (url, urlencode(params))
-    logging.warning("make_request url = " + url)
 
     headers = {}
     if protected:

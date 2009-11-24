@@ -8,7 +8,8 @@
       <p><a href="/js_map">look at your map</a></p>
 
       {% if map_ready %}
-        <p><a href="/staticmap/user.png">http://where-do-you-go.appspot.com/staticmap/user.png</a></p>
+        <p><a href="{{ map_relative_url }}">http://where-do-you-go.appspot.com/{{ map_relative_url }}</a></p>
+        <p><a href="/generate_static_map">re-generate static map image</a></p>
       {% else %}
         <p><a href="/generate_static_map">generate static map image</a></p>
       {% endif %}

@@ -13,10 +13,14 @@ from google.appengine.api import images
 
 import data
 import oauth
-
 from gheatae import consts, color_scheme, dot, tile, cache, provider
 from os import environ
 from models import AccessToken, Venue, Checkin, MapImage
+
+from google.appengine.api import urlfetch
+import urllib
+
+
 
 
 class IndexHandler(webapp.RequestHandler):
@@ -24,8 +28,9 @@ class IndexHandler(webapp.RequestHandler):
     user = users.get_current_user()
 
     if user:
-      data_ready = (Checkin.all().filter('user =', user).count() > 0) and (AccessToken.all().filter('owner =', user).count() > 0)
-      map_ready = (MapImage.all().filter('user =', user).count() > 0) and (AccessToken.all().filter('owner =', user).count() > 0)
+      auth_ready = AccessToken.all().filter('owner =', user).count() > 0
+      data_ready = (Checkin.all().filter('user =', user).count() > 0) and auth_ready
+      map_ready = (MapImage.all().filter('userid =', user.user_id()).count() > 0) and auth_ready
       url = users.create_logout_url(self.request.uri)
       url_linktext = 'Logout'
     else:
@@ -38,6 +43,7 @@ class IndexHandler(webapp.RequestHandler):
       'user': user,
       'data_ready': data_ready,
       'map_ready': map_ready,
+      'map_relative_url': 'map/' + user.user_id() + '.png',
       'url': url,
       'url_linktext': url_linktext,
       }
@@ -79,12 +85,14 @@ class MapHandler(webapp.RequestHandler):
       user_latlong = (40.7778, -73.8732)
 
     template_values = {
-      'apikey': 'ABQIAAAAwA6oEsCLgzz6I150wm3ELBQO7aMTgd18mR6eRdj9blrVCeGU7BS14EnkGH_2LpNpZ8DJW0u7G5ocLQ',
+      'key': 'ABQIAAAAwA6oEsCLgzz6I150wm3ELBQO7aMTgd18mR6eRdj9blrVCeGU7BS14EnkGH_2LpNpZ8DJW0u7G5ocLQ',
       'user': user,
       'checkins': checkins,
       'centerlat': user_latlong[0],
       'centerlong': user_latlong[1],
-      'zoomlevel': 14,
+      'zoom': 14,
+      'width': 500,
+      'height': 500,
     }
     return template_values
 
@@ -99,25 +107,65 @@ class JsMapHandler(MapHandler):
 
 class GenerateMapHandler(MapHandler):
   def get(self):
-    data = self.get_map_data()
+    user = users.get_current_user()
 
-    "http://maps.google.com/maps/api/staticmap?center=" + data['centerlat'] + "," + data['centerlong'] + "&zoom=1&size=500x500&key=" + data['apikey'] + "&sensor=false&format=png"
+    if user:
+      data = self.get_map_data()
+      google_data = {
+        'key': data['key'],
+        'zoom': data['zoom'],
+        'center': str(data['centerlat']) + "," + str(data['centerlong']),
+        'size': str(data['width']) + "x" + str(data['height']),
+        'sensor':'false',
+        'format':'png',
+      }
+      result = urlfetch.fetch(url="http://maps.google.com/maps/api/staticmap?" + urllib.urlencode(google_data),
+                              method=urlfetch.GET)
+      input_tuples = []
+      input_tuples.append((result.content, 0, 0, 1.0, images.TOP_LEFT))
 
-    input_tuples = []
-    # input_tuples.append()
+      result = urlfetch.fetch(url="http://where-do-you-go.appspot.com/tile/classic/13/3079,2412.png",
+                              method=urlfetch.GET)
+      input_tuples.append((result.content, 0, 0, 1.0, images.CENTER_CENTER))
 
-    img = images.composite(inputs=input_tuples, width=500, height=500, color=0, output_encoding=PNG)
+      img = images.composite(inputs=input_tuples, width=data['width'], height=data['height'], color=0, output_encoding=images.PNG)
 
-    map_image = MapImage()
-    map_image.user = data['user']
-    map_image.img = db.Blob(img)
-    map_image.put()
+      mapimages = MapImage.all().filter('userid =', user.user_id()).fetch(1000)
+      db.delete(mapimages)
+
+      mapimage = MapImage()
+      mapimage.userid = user.user_id()
+      mapimage.centerlat = data['centerlat']
+      mapimage.centerlong = data['centerlong']
+      mapimage.zoom = data['zoom']
+      mapimage.height = data['height']
+      mapimage.width = data['width']
+      mapimage.img = db.Blob(img)
+      mapimage.put()
 
     self.redirect('/')
 
 class StaticMapHandler(webapp.RequestHandler):
   def get(self):
-    logging.debug('return .png file here')
+    path = environ['PATH_INFO']
+    if path.endswith('.png'):
+      raw = path[:-4] # strip extension
+      try:
+        assert raw.count('/') == 2, "%d /'s" % raw.count('/')
+        foo, bar, userid = raw.split('/')
+      except AssertionError, err:
+        logging.error(err.args[0])
+        return
+    else:
+      logging.error("Invalid path: " + path)
+      return
+
+    mapimage = MapImage.all().filter('userid =', userid).get()
+    if mapimage:
+      self.response.headers['Content-Type'] = 'image/png'
+      self.response.out.write(mapimage.img)
+    else:
+      logging.info("No image for " + userid)
 
 
 class DeleteHandler(webapp.RequestHandler):
@@ -127,6 +175,9 @@ class DeleteHandler(webapp.RequestHandler):
     if user:
       tokens = AccessToken.all().filter('owner =', user).fetch(1000)
       db.delete(tokens)
+
+      mapimages = MapImage.all().filter('userid =', user.user_id()).fetch(1000)
+      db.delete(mapimages)
 
       checkins = globalvars.provider.get_user_data(user=user)
       db.delete(checkins)
@@ -180,17 +231,16 @@ class TileHandler(webapp.RequestHandler):
     self.response.out.write(img_data)
     # logging.info("Start-End: %2.2f" % (time.clock() - st))
 
-
-
 def main():
   application = webapp.WSGIApplication([('/', IndexHandler),
                                         ('/go_to_foursquare', AuthHandler),
                                         ('/authenticated', AuthHandler),
                                         ('/delete_all_my_data', DeleteHandler),
+                                        ('/tile/.*', TileHandler),
                                         ('/js_map', JsMapHandler),
-                                        ('/generate_static_map', GenerateMapHandler),
-                                        ('/tile/.*', TileHandler)],
-                                       debug=True)
+                                        ('/map/.*', StaticMapHandler),
+                                        ('/generate_static_map', GenerateMapHandler)],
+                                      debug=True)
 
   globalvars.client = oauth.FoursquareClient(globalvars.consumer_key, globalvars.consumer_secret, globalvars.callback_url)
   globalvars.provider = provider.DBProvider()
@@ -198,8 +248,3 @@ def main():
 
 if __name__ == '__main__':
   main()
-
-
-
-
-

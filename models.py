@@ -34,10 +34,10 @@ class Checkin(GeoModel):
   range = db.IntegerProperty()
 
 class MapImage(db.Model):
-  user = db.UserProperty()
+  userid = db.StringProperty()
   centerlat = db.FloatProperty()
   centerlong = db.FloatProperty()
-  zoomlevel = db.IntegerProperty()
+  zoom = db.IntegerProperty()
   width = db.IntegerProperty()
   height = db.IntegerProperty()
   img = db.BlobProperty()
