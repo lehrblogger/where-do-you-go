@@ -124,7 +124,8 @@ class GenerateMapHandler(MapHandler):
       input_tuples = []
       input_tuples.append((result.content, 0, 0, 1.0, images.TOP_LEFT))
 
-      result = urlfetch.fetch(url="http://where-do-you-go.appspot.com/tile/classic/13/3079,2412.png",
+      # http://code.google.com/appengine/docs/python/images/functions.html
+      result = urlfetch.fetch(url="http://lehrblogger.com/share/3079,2412.png",
                               method=urlfetch.GET)
       input_tuples.append((result.content, 0, 0, 1.0, images.CENTER_CENTER))
 
