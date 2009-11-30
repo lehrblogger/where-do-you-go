@@ -12,16 +12,18 @@ log = logging.getLogger('space_level')
 
 rdm = Random()
 
-LEVEL_MAX = 500
+LEVEL_MAX = 450
 
 cache = None
 cache_levels = []
-for i in range(LEVEL_MAX):
+for i in range(LEVEL_MAX - 1, -1, -1):
   cache_levels.append(int(((-(pow(float(i) - LEVEL_MAX, 2))/LEVEL_MAX) + LEVEL_MAX) / LEVEL_MAX * 255))
 
 class BasicTile(object):
 
   def __init__(self, lat_north, lng_west, range_lat, range_lng):
+    self.color_scheme = color_scheme.sjl_classic#classic#cyan_red
+
     self.tile_img = self.plot_image(globalvars.provider.get_user_data(users.get_current_user(), #self.layer,
                             lat_north, lng_west,range_lat, range_lng))
 
@@ -67,24 +69,19 @@ class BasicTile(object):
       #     logging.debug("incrementing space_level[%d][%d] to %f" % (x,y,space_level[y - y_off][x - x_off]))
 
   def scale_space_level(self, space_level, x, y):
-    logs = math.log(max(space_level[y][x] / 50, 1), 1.01)
-    return int(logs)
+    #ret_float = math.log(max((space_level[y][x] + 50) / 50, 1), 1.01) + 30
+    ret_float = math.log(max((space_level[y][x] + 30) / 40, 1), 1.01) + 30
+    return int(ret_float)
 
   def convert_image(self, space_level):
     tile = PNGCanvas(len(space_level[0]), len(space_level), bgcolor=[0xff,0xff,0xff,0])
     color_scheme = []
+    logging.warning(self.color_scheme.canvas)
     for i in range(LEVEL_MAX):
       color_scheme.append(self.color_scheme.canvas[cache_levels[i]][0])
-
-    spacemax = 0
     for y in xrange(len(space_level[0])):
       for x in xrange(len(space_level[0])):
         tile.canvas[y][x] = color_scheme[min(len(color_scheme) - 1, self.scale_space_level(space_level, x, y))]
-
-        if self.scale_space_level(space_level, x, y) > spacemax: spacemax = self.scale_space_level(space_level, x, y)
-
-    logging.warning("spacemax=" + str(spacemax))
-    logging.warning("len of color_scheme=" + str(len(color_scheme)))
 
     return tile
 
@@ -125,7 +122,6 @@ class BasicTile(object):
 class CustomTile(BasicTile):
   def __init__(self, zoom, lat_north, lng_west, offset_x_px, offset_y_px):
     self.zoom = zoom
-    self.color_scheme = color_scheme.cyan_red
     self.decay = 0.5
     dot_radius = int(math.ceil(len(dot[self.zoom]) / 2))
 
@@ -148,7 +144,6 @@ class GoogleTile(BasicTile):
   def __init__(self, layer, zoom, x_tile, y_tile):
     self.layer = layer
     self.zoom = zoom
-    self.color_scheme = color_scheme.cyan_red
     self.decay = 0.5
     dot_radius = int(math.ceil(len(dot[self.zoom]) / 2))
 

@@ -198,6 +198,7 @@ class PNGCanvas:
           j = 0
           for x in range(width):
             pixel = rgb[j:j+3]
+            pixel.append(100)
             row.append(pixel)
             j = j + 3
           self.canvas.append(row)
@@ -251,8 +252,9 @@ class PNGCanvas:
         crc = struct.unpack("!i",f.read(4))[0]
       except:
         return
-      if zlib.crc32(tag + data) != crc:
-        raise IOError
+      #SJL http://conceptualadvantage.com/grow-your-concept/using-google-appengine-and-the-pure-python-pngcanvas/
+      # if zlib.crc32(tag + data) != crc:
+      #   raise IOError
       yield [tag,data]
 
 if __name__ == '__main__':

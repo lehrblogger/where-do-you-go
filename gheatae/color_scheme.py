@@ -1,8 +1,10 @@
 import pngcanvas
+from google.appengine.api import urlfetch
+import os
 
 TRANSPARENCY = 100
 
-def createScheme(steps=255, r_start=255, g_start=255, b_start=255, 
+def createScheme(steps=255, r_start=255, g_start=255, b_start=255,
     r_step=-3.0, g_step=-1.0, b_step=-1.0):
   img = pngcanvas.PNGCanvas(30, steps)
   r_cur = r_start
@@ -22,4 +24,21 @@ def createScheme(steps=255, r_start=255, g_start=255, b_start=255,
     if b_cur < 0: b_step *= -1; b_cur = 0 + b_step;
   return img
 
-cyan_red = createScheme()
+def loadScheme(name, steps=255):
+  ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
+  file_loc = os.path.join(ROOT_DIR, 'color-schemes/' + name + '.png')
+  f = open(file_loc, "rb")
+  img = pngcanvas.PNGCanvas(24, steps, bgcolor=[0xff,0xff,0xff,TRANSPARENCY])
+  img.load(f)
+  f.close()
+  return img
+
+
+cyan_red    = createScheme()
+classic     = loadScheme("classic")
+fire        = loadScheme("fire")
+omg         = loadScheme("omg")
+pbj         = loadScheme("pbj")
+pgaitch     = loadScheme("pgaitch")
+sjl_classic = loadScheme("sjl_classic")
+sjl_fire    = loadScheme("sjl_fire")

@@ -233,7 +233,7 @@ class TileHandler(webapp.RequestHandler):
     # color_scheme = color_schemes[color_scheme]
     # try:
     new_tile = tile.GoogleTile(layer, zoom, x, y)
-    logging.info("Start-B1: %2.2f" % (time.clock() - st))
+    #logging.info("Start-B1: %2.2f" % (time.clock() - st))
     # except Exception, err:
     #   self.respondError(err)
     #   raise err
