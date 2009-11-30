@@ -20,37 +20,12 @@ cache_levels = []
 for i in range(LEVEL_MAX):
   cache_levels.append(int(((-(pow(float(i) - LEVEL_MAX, 2))/LEVEL_MAX) + LEVEL_MAX) / LEVEL_MAX * 255))
 
-class Tile(object):
 
-  def __init__(self, layer, zoom, x, y):
-    self.layer = layer
-    self.zoom = zoom
-    self.x = x
-    self.y = y
-    self.color_scheme = color_scheme.cyan_red
-    self.decay = 0.5
+class BasicTile(object):
 
-    # attempt to get a cached object
-    #self.tile_dump = self.__get_cached_image()
-    if True: # not self.tile_dump: #TODO consider turning caching back on!!!
-
-      dot_radius = len(dot[self.zoom]) #TODO maybe this is twice what it needs to be???
-      self.temp_georange      = gmerc.px2ll((x    ) * 256 - dot_radius, (y    ) * 256 - dot_radius, zoom)
-      self.georange_next = gmerc.px2ll((x + 1) * 256 + dot_radius, (y + 1) * 256 + dot_radius, zoom)
-      self.temp_zoom_step = [ self.georange_next[0] - self.temp_georange[0], self.georange_next[1] - self.temp_georange[1]]
-
-      # calculate the real values for these without the offsets, otherwise it messes up the get_dot calculations
-      self.georange      = gmerc.px2ll((x    ) * 256, (y    ) * 256, zoom)
-      self.georange_next = gmerc.px2ll((x + 1) * 256, (y + 1) * 256, zoom) #TODO fix this in case we're at the edge of the map!
-      self.zoom_step = [ self.georange_next[0] - self.georange[0], self.georange_next[1] - self.georange[1]]
-
-      # Get the points and start plotting data
-      self.tile_img = self.plot_image(
-          globalvars.provider.get_user_data(users.get_current_user(), #self.layer,
-                            self.temp_georange[0], self.temp_georange[1],
-                            self.temp_zoom_step[0], self.temp_zoom_step[1]))
-
-
+  def __init__(self, lat_north, lng_west, range_lat, range_lng):
+    self.tile_img = self.plot_image(globalvars.provider.get_user_data(users.get_current_user(), #self.layer,
+                            lat_north, lng_west,range_lat, range_lng))
 
   def plot_image(self, points):
     #logging.debug("len(points) is %d" % len(points))
@@ -112,10 +87,10 @@ class Tile(object):
   def get_dot(self, point):
     #return dot[20], rdm.randint(-20, 260), rdm.randint(-20, 260)
     cur_dot = dot[self.zoom]
-    y_off = int(math.ceil((-1 * self.georange[0] + point.location.lat) / self.zoom_step[0] * 256. - len(cur_dot) / 2))
-    x_off = int(math.ceil((-1 * self.georange[1] + point.location.lon) / self.zoom_step[1] * 256. - len(cur_dot[0]) / 2))
+    y_off = int(math.ceil((-1 * self.northwest_ll[0] + point.location.lat) / self.latlong_diff[0] * 256. - len(cur_dot) / 2))
+    x_off = int(math.ceil((-1 * self.northwest_ll[1] + point.location.lon) / self.latlong_diff[1] * 256. - len(cur_dot[0]) / 2))
     log.info("lat, lng  dist_lng, dist_lng  Y_off, X_off: (%6.4f, %6.4f) (%6.4f, %6.4f) (%4d, %4d)" % (point.location.lat, point.location.lon,
-                                                                                        (-1 * self.georange[0] + point.location.lat) / self.zoom_step[0] * 256, (-1 * self.georange[1] + point.location.lon) / self.zoom_step[1] * 256,
+                                                                                        (-1 * self.northwest_ll[0] + point.location.lat) / self.latlong_diff[0] * 256, (-1 * self.northwest_ll[1] + point.location.lon) / self.latlong_diff[1] * 256,
                                                                                         y_off, x_off))
     return cur_dot, x_off, y_off
 
@@ -125,13 +100,13 @@ class Tile(object):
       space.append( [0.] * 256 )
     return space
 
-  def __get_cached_image(self):
-    if cache.is_available(self.layer, self.x, self.y):
-      return cache.get_image(self.layer, self.x, self.y)
-    return None
-
-  def __cache_image(self, tile_dump):
-    return cache.store_image(self.layer, self.x, self.y, tile_dump)
+  # def __get_cached_image(self):
+  #   if cache.is_available(self.layer, self.x, self.y):
+  #     return cache.get_image(self.layer, self.x, self.y)
+  #   return None
+  #
+  # def __cache_image(self, tile_dump):
+  #   return cache.store_image(self.layer, self.x, self.y, tile_dump)
 
   def image_out(self):
     if self.tile_img:
@@ -143,3 +118,75 @@ class Tile(object):
       return self.tile_dump
     else:
       raise Exception("Failure in generation of image.")
+
+class CustomTile(BasicTile):
+  def __init__(self, zoom, lat_north, lng_west, offset_x_px, offset_y_px):
+    self.zoom = zoom
+    self.color_scheme = color_scheme.cyan_red
+    self.decay = 0.5
+    dot_radius = int(math.ceil(len(dot[self.zoom]) / 2))
+
+    # convert to pixel first so we can factor in the dot radius and get the tile bounds
+    northwest_px = gmerc.ll2px(lat_north, lng_west, zoom)
+
+    self.northwest_ll_buffered = gmerc.px2ll(northwest_px[0] + offset_x_px       - dot_radius, northwest_px[1] + offset_y_px       - dot_radius, zoom)
+    self.northwest_ll          = gmerc.px2ll(northwest_px[0] + offset_x_px                   , northwest_px[1] + offset_y_px                   , zoom)
+
+    self.southeast_ll_buffered = gmerc.px2ll(northwest_px[0] + offset_x_px + 256 + dot_radius, northwest_px[1] + offset_y_px + 256 + dot_radius, zoom)
+    self.southeast_ll          = gmerc.px2ll(northwest_px[0] + offset_x_px + 256             , northwest_px[1] + offset_y_px + 256             , zoom) # THIS IS IMPORTANT TO PROPERLY CALC latlong_diff
+
+    self.latlong_diff_buffered = [ self.southeast_ll_buffered[0] - self.northwest_ll_buffered[0], self.southeast_ll_buffered[1] - self.northwest_ll_buffered[1]]
+    self.latlong_diff          = [ self.southeast_ll[0]          - self.northwest_ll[0]         , self.southeast_ll[1]          - self.northwest_ll[1]]
+
+    BasicTile.__init__(self, self.northwest_ll_buffered[0], self.northwest_ll_buffered[1], self.latlong_diff_buffered[0], self.latlong_diff_buffered[1])
+
+
+class GoogleTile(BasicTile):
+  def __init__(self, layer, zoom, x_tile, y_tile):
+    self.layer = layer
+    self.zoom = zoom
+    self.color_scheme = color_scheme.cyan_red
+    self.decay = 0.5
+    dot_radius = int(math.ceil(len(dot[self.zoom]) / 2))
+
+    # attempt to get a cached object
+    #self.tile_dump = self.__get_cached_image()
+
+    self.northwest_ll_buffered = gmerc.px2ll((x_tile    ) * 256 - dot_radius, (y_tile    ) * 256 - dot_radius, zoom)
+    self.northwest_ll          = gmerc.px2ll((x_tile    ) * 256             , (y_tile    ) * 256             , zoom)
+
+    self.southeast_ll_buffered = gmerc.px2ll((x_tile + 1) * 256 + dot_radius, (y_tile + 1) * 256 + dot_radius, zoom) #TODO fix this in case we're at the edge of the map!
+    self.southeast_ll          = gmerc.px2ll((x_tile + 1) * 256             , (y_tile + 1) * 256             , zoom)
+
+    # calculate the real values for these without the offsets, otherwise it messes up the get_dot calculations
+    self.latlong_diff_buffered = [ self.southeast_ll_buffered[0] - self.northwest_ll_buffered[0], self.southeast_ll_buffered[1] - self.northwest_ll_buffered[1]]
+    self.latlong_diff          = [ self.southeast_ll[0]          - self.northwest_ll[0]         , self.southeast_ll[1]          - self.northwest_ll[1]]
+
+    BasicTile.__init__(self, self.northwest_ll_buffered[0], self.northwest_ll_buffered[1], self.latlong_diff_buffered[0], self.latlong_diff_buffered[1])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

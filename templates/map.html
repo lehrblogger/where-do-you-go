@@ -1,49 +1,59 @@
+<script src='http://code.jquery.com/jquery-latest.js'></script>
 <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;sensor=false&amp;key={{ key }}" type="text/javascript"></script>
 <script type="text/javascript">
+  var map;
+  function initialize() {
+    if (GBrowserIsCompatible()) {
+      map = new GMap2(document.getElementById("map_canvas"));
+      map.setCenter(new GLatLng({{ centerlat }}, {{ centerlong }}), {{ zoom }});
 
-function initialize() {
-  if (GBrowserIsCompatible()) {
-    var map = new GMap2(document.getElementById("map_canvas"));
-    map.setCenter(new GLatLng({{ centerlat }}, {{ centerlong }}), {{ zoom }});
+      var customUI = map.getDefaultUI();
+      customUI.maptypes.satellite  = false;
+      customUI.maptypes.hybrid  = false;
+      customUI.maptypes.physical  = false;
+      customUI.maptypes.normal = true;
+      customUI.zoom.scrollwheel = false;
+      customUI.controls.smallzoomcontrol3d = true;
+      customUI.controls.scalecontrol   = false;
+      map.setUI(customUI);
 
-    var customUI = map.getDefaultUI();
-    customUI.maptypes.satellite  = false;
-    customUI.maptypes.hybrid  = false;
-    customUI.maptypes.physical  = false;
-    customUI.maptypes.normal = true;
-    customUI.zoom.scrollwheel = false;
-    customUI.controls.smallzoomcontrol3d = true;
-    customUI.controls.scalecontrol   = false;
-    map.setUI(customUI);
-
-    //addPlaceMarks(map);
-    addHeatMap(map);
+      //addPlaceMarks(map);
+      addHeatMap(map);
+    }
   }
-}
 
-function addPlaceMarks(map) {
-  var point;
-  {% for checkin in checkins %}
-    point = new GLatLng({{ checkin.location }});
-    map.addOverlay(new GMarker(point));
-  {% endfor %}
-}
+  function addPlaceMarks(map) {
+    var point;
+    {% for checkin in checkins %}
+      point = new GLatLng({{ checkin.location }});
+      map.addOverlay(new GMarker(point));
+    {% endfor %}
+  }
 
-function addHeatMap(map) {
-  // Set up the copyright information. Each image used should indicate its copyright permissions
-  var myCopyright = new GCopyrightCollection("© ");
-  myCopyright.addCopyright(new GCopyright('lala', new GLatLngBounds(new GLatLng(-90,-180), new GLatLng(90,180)), 0,'la la la'));
+  function addHeatMap(map) {
+    // Set up the copyright information. Each image used should indicate its copyright permissions
+    var myCopyright = new GCopyrightCollection("© ");
+    myCopyright.addCopyright(new GCopyright('lala', new GLatLngBounds(new GLatLng(-90,-180), new GLatLng(90,180)), 0,'la la la'));
 
-  // Create the tile layer overlay and implement the three abstract methods
-  var tilelayer = new GTileLayer(myCopyright);
-  tilelayer.getTileUrl = function(point, zoom) { return "tile/classic/" + zoom + "/" + point.y + "," + point.x +".png" };
-  tilelayer.isPng = function() { return true;};
-  tilelayer.getOpacity = function() { return 1.0; }
+    // Create the tile layer overlay and implement the three abstract methods
+    var tilelayer = new GTileLayer(myCopyright);
+    tilelayer.getTileUrl = function(point, zoom) { return "tile/classic/" + zoom + "/" + point.y + "," + point.x +".png" };
+    tilelayer.isPng = function() { return true;};
+    tilelayer.getOpacity = function() { return 1.0; }
 
-  var myTileLayer = new GTileLayerOverlay(tilelayer);
-  map.addOverlay(myTileLayer);
-}
+    var myTileLayer = new GTileLayerOverlay(tilelayer);
+    map.addOverlay(myTileLayer);
+  }
 
+  function generateStaticMap() {
+    var bounds = map.getBounds();
+    var north = bounds.getNorthEast().lat();
+    var west = bounds.getSouthWest().lng();
+
+    var zoom = map.getZoom();
+
+    $.get("generate_static_map/" + zoom + "/" + north + "," + west);
+  }
 </script>
 
 <body onload="initialize()" onunload="GUnload()">
@@ -51,12 +61,11 @@ function addHeatMap(map) {
   <a href="/">go back to main</a>
   <br/><br/>
 
-  <div id="map_canvas" style="width: 500px; height: 500px"></div>
+  <img src="http://where-do-you-go.appspot.com/map/115067722227773763022.png">
+  <div id="map_canvas" style="width: {{ width }}px; height: {{ height }}px"></div>
 
   {% if user %}
-      </body>
-    </html>
-
+    <a href="" onclick="generateStaticMap()">generate a static image of this map view</a>
 
     <ol>
     {% for checkin in checkins %}

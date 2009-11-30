@@ -21,8 +21,6 @@ from google.appengine.api import urlfetch
 import urllib
 
 
-
-
 class IndexHandler(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
@@ -33,17 +31,19 @@ class IndexHandler(webapp.RequestHandler):
       map_ready = (MapImage.all().filter('userid =', user.user_id()).count() > 0) and auth_ready
       url = users.create_logout_url(self.request.uri)
       url_linktext = 'Logout'
+      map_relative_url = 'map/' + user.user_id() + '.png'
     else:
       data_ready = False
       map_ready = False
       url = users.create_login_url(self.request.uri)
       url_linktext = 'Login'
+      map_relative_url = ''
 
     template_values = {
       'user': user,
       'data_ready': data_ready,
       'map_ready': map_ready,
-      'map_relative_url': 'map/' + user.user_id() + '.png',
+      'map_relative_url': map_relative_url,
       'url': url,
       'url_linktext': url_linktext,
       }
@@ -77,6 +77,8 @@ class MapHandler(webapp.RequestHandler):
   def get_map_data(self):
     user = users.get_current_user()
 
+    self.width = self.height = 500
+
     if user:
       retreived_token = AccessToken.all().filter('owner =', user).order('-created').get()
       checkins = globalvars.provider.get_user_data(user=user)
@@ -91,8 +93,8 @@ class MapHandler(webapp.RequestHandler):
       'centerlat': user_latlong[0],
       'centerlong': user_latlong[1],
       'zoom': 14,
-      'width': 500,
-      'height': 500,
+      'width': self.width,
+      'height': self.height,
     }
     return template_values
 
@@ -110,6 +112,18 @@ class GenerateMapHandler(MapHandler):
     user = users.get_current_user()
 
     if user:
+      raw = environ['PATH_INFO']
+      try:
+        assert raw.count('/') == 3, "%d /'s" % raw.count('/')
+        foo, bar, zoom, northwest, = raw.split('/')
+        assert zoom.isdigit(), "not digits"
+        zoom = int(zoom)
+        assert northwest.count(',') == 1, "%d /'s" % northeast.count(',')
+        north, west = northwest.split(',')
+      except AssertionError, err:
+        logging.error(err.args[0])
+        return
+
       data = self.get_map_data()
       google_data = {
         'key': data['key'],
@@ -124,10 +138,12 @@ class GenerateMapHandler(MapHandler):
       input_tuples = []
       input_tuples.append((result.content, 0, 0, 1.0, images.TOP_LEFT))
 
-      # http://code.google.com/appengine/docs/python/images/functions.html
-      result = urlfetch.fetch(url="http://lehrblogger.com/share/3079,2412.png",
-                              method=urlfetch.GET)
-      input_tuples.append((result.content, 0, 0, 1.0, images.CENTER_CENTER))
+      for offset_x_px in range (0, self.width, 256):
+        for offset_y_px in range (0, self.height, 256):
+          logging.warning(str(offset_x_px) + ", " + str(offset_y_px))
+          new_tile = tile.CustomTile(int(zoom), float(north), float(west), offset_x_px, offset_y_px)
+          input_tuples.append((new_tile.image_out(), offset_x_px, offset_y_px, 1.0, images.TOP_LEFT))
+          # http://code.google.com/appengine/docs/python/images/functions.html
 
       img = images.composite(inputs=input_tuples, width=data['width'], height=data['height'], color=0, output_encoding=images.PNG)
 
@@ -136,6 +152,7 @@ class GenerateMapHandler(MapHandler):
 
       mapimage = MapImage()
       mapimage.userid = user.user_id()
+      mapimage.cityid = 42 #TODO fix this to be real
       mapimage.centerlat = data['centerlat']
       mapimage.centerlong = data['centerlong']
       mapimage.zoom = data['zoom']
@@ -143,8 +160,6 @@ class GenerateMapHandler(MapHandler):
       mapimage.width = data['width']
       mapimage.img = db.Blob(img)
       mapimage.put()
-
-    self.redirect('/')
 
 class StaticMapHandler(webapp.RequestHandler):
   def get(self):
@@ -217,7 +232,7 @@ class TileHandler(webapp.RequestHandler):
 
     # color_scheme = color_schemes[color_scheme]
     # try:
-    new_tile = tile.Tile(layer, zoom, x, y)
+    new_tile = tile.GoogleTile(layer, zoom, x, y)
     logging.info("Start-B1: %2.2f" % (time.clock() - st))
     # except Exception, err:
     #   self.respondError(err)
@@ -240,7 +255,7 @@ def main():
                                         ('/tile/.*', TileHandler),
                                         ('/js_map', JsMapHandler),
                                         ('/map/.*', StaticMapHandler),
-                                        ('/generate_static_map', GenerateMapHandler)],
+                                        ('/generate_static_map/.*', GenerateMapHandler)],
                                       debug=True)
 
   globalvars.client = oauth.FoursquareClient(globalvars.consumer_key, globalvars.consumer_secret, globalvars.callback_url)

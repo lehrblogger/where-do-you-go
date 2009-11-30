@@ -35,6 +35,7 @@ class Checkin(GeoModel):
 
 class MapImage(db.Model):
   userid = db.StringProperty()
+  cityid = db.IntegerProperty()
   centerlat = db.FloatProperty()
   centerlong = db.FloatProperty()
   zoom = db.IntegerProperty()

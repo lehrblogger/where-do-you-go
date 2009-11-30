@@ -1,11 +1,11 @@
 application: where-do-you-go
-version: 2-1
+version: 2-3
 runtime: python
 api_version: 1
 
 handlers:
 - url: /fetch_all_recent_checkins
-  script: scripts/fetch_all_recent_checkins.py.py
+  script: scripts/fetch_all_recent_checkins.py
   login: admin
 
 - url: /delete_all_data
@@ -18,3 +18,4 @@ handlers:
 
 - url: .*
   script: handlers.py
+
