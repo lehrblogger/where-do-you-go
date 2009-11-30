@@ -12,14 +12,12 @@ log = logging.getLogger('space_level')
 
 rdm = Random()
 
-LEVEL_MAX = 2000
+LEVEL_MAX = 500
 
 cache = None
 cache_levels = []
-
 for i in range(LEVEL_MAX):
   cache_levels.append(int(((-(pow(float(i) - LEVEL_MAX, 2))/LEVEL_MAX) + LEVEL_MAX) / LEVEL_MAX * 255))
-
 
 class BasicTile(object):
 
@@ -32,11 +30,6 @@ class BasicTile(object):
     space_level = self.__create_empty_space()
     for point in points:
       self.__merge_point_in_space(space_level, point)
-
-    # for row in space_level:
-    #     for cell in row:
-    #         if cell > 0:
-    #           logging.debug(cell)
 
     return self.convert_image(space_level)
 
@@ -73,25 +66,35 @@ class BasicTile(object):
       #     space_level[y - y_off][x - x_off] += dot_level
       #     logging.debug("incrementing space_level[%d][%d] to %f" % (x,y,space_level[y - y_off][x - x_off]))
 
+  def scale_space_level(self, space_level, x, y):
+    logs = math.log(max(space_level[y][x] / 50, 1), 1.01)
+    return int(logs)
 
   def convert_image(self, space_level):
     tile = PNGCanvas(len(space_level[0]), len(space_level), bgcolor=[0xff,0xff,0xff,0])
     color_scheme = []
     for i in range(LEVEL_MAX):
       color_scheme.append(self.color_scheme.canvas[cache_levels[i]][0])
+
+    spacemax = 0
     for y in xrange(len(space_level[0])):
       for x in xrange(len(space_level[0])):
-        tile.canvas[y][x] = color_scheme[min(len(color_scheme) - 1, int(space_level[y][x]))]
+        tile.canvas[y][x] = color_scheme[min(len(color_scheme) - 1, self.scale_space_level(space_level, x, y))]
+
+        if self.scale_space_level(space_level, x, y) > spacemax: spacemax = self.scale_space_level(space_level, x, y)
+
+    logging.warning("spacemax=" + str(spacemax))
+    logging.warning("len of color_scheme=" + str(len(color_scheme)))
+
     return tile
 
   def get_dot(self, point):
-    #return dot[20], rdm.randint(-20, 260), rdm.randint(-20, 260)
     cur_dot = dot[self.zoom]
     y_off = int(math.ceil((-1 * self.northwest_ll[0] + point.location.lat) / self.latlong_diff[0] * 256. - len(cur_dot) / 2))
     x_off = int(math.ceil((-1 * self.northwest_ll[1] + point.location.lon) / self.latlong_diff[1] * 256. - len(cur_dot[0]) / 2))
-    log.info("lat, lng  dist_lng, dist_lng  Y_off, X_off: (%6.4f, %6.4f) (%6.4f, %6.4f) (%4d, %4d)" % (point.location.lat, point.location.lon,
-                                                                                        (-1 * self.northwest_ll[0] + point.location.lat) / self.latlong_diff[0] * 256, (-1 * self.northwest_ll[1] + point.location.lon) / self.latlong_diff[1] * 256,
-                                                                                        y_off, x_off))
+    # log.info("lat, lng  dist_lng, dist_lng  Y_off, X_off: (%6.4f, %6.4f) (%6.4f, %6.4f) (%4d, %4d)" % (point.location.lat, point.location.lon,
+    #                                                                                     (-1 * self.northwest_ll[0] + point.location.lat) / self.latlong_diff[0] * 256, (-1 * self.northwest_ll[1] + point.location.lon) / self.latlong_diff[1] * 256,
+    #                                                                                     y_off, x_off))
     return cur_dot, x_off, y_off
 
   def __create_empty_space(self):

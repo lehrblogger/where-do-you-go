@@ -18,4 +18,3 @@ handlers:
 
 - url: .*
   script: handlers.py
-
