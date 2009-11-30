@@ -50,9 +50,13 @@
     var north = bounds.getNorthEast().lat();
     var west = bounds.getSouthWest().lng();
 
+    var center = map.getCenter();
+    var center_lat = center.lat();
+    var center_long = center.lng();
+
     var zoom = map.getZoom();
 
-    $.get("generate_static_map/" + zoom + "/" + north + "," + west);
+    $.get("generate_static_map/" + zoom + "/" + center_lat + "," + center_long + "/" + north + "," + west);
   }
 </script>
 
@@ -61,11 +65,17 @@
   <a href="/">go back to main</a>
   <br/><br/>
 
-  <img src="http://where-do-you-go.appspot.com/map/115067722227773763022.png">
   <div id="map_canvas" style="width: {{ width }}px; height: {{ height }}px"></div>
 
+
   {% if user %}
-    <a href="" onclick="generateStaticMap()">generate a static image of this map view</a>
+
+    {% if map_ready %}
+      <p><a href="{{ map_relative_url }}">http://where-do-you-go.appspot.com/{{ map_relative_url }}</a></p>
+      <p><a href="" onclick="generateStaticMap()">re-generate a static image of the current map view</a></p>
+    {% else %}
+     <p><a href="" onclick="generateStaticMap()">generate a static image of the current map view</a></p>
+    {% endif %}
 
     <ol>
     {% for checkin in checkins %}
@@ -74,7 +84,4 @@
     </ol>
   {% endif %}
 
-
-  <br/><br/>
-  <object width="640" height="505"><param name="movie" value="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="640" height="505"></embed></object>
 

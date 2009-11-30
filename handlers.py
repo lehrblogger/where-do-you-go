@@ -83,6 +83,8 @@ class MapHandler(webapp.RequestHandler):
       retreived_token = AccessToken.all().filter('owner =', user).order('-created').get()
       checkins = globalvars.provider.get_user_data(user=user)
       user_latlong = data.fetch_user_latlong(user, retreived_token)
+      map_ready = MapImage.all().filter('userid =', user.user_id()).count() > 0
+      map_relative_url = 'map/' + user.user_id() + '.png'
     else:
       user_latlong = (40.7778, -73.8732)
 
@@ -95,6 +97,8 @@ class MapHandler(webapp.RequestHandler):
       'zoom': 14,
       'width': self.width,
       'height': self.height,
+      'map_ready': map_ready,
+      'map_relative_url': map_relative_url,
     }
     return template_values
 
@@ -114,10 +118,12 @@ class GenerateMapHandler(MapHandler):
     if user:
       raw = environ['PATH_INFO']
       try:
-        assert raw.count('/') == 3, "%d /'s" % raw.count('/')
-        foo, bar, zoom, northwest, = raw.split('/')
+        assert raw.count('/') == 4, "%d /'s" % raw.count('/')
+        foo, bar, zoom, centerpoint, northwest, = raw.split('/')
         assert zoom.isdigit(), "not digits"
         zoom = int(zoom)
+        assert centerpoint.count(',') == 1, "%d /'s" % centerpoint.count(',')
+        center_lat, center_long = centerpoint.split(',')
         assert northwest.count(',') == 1, "%d /'s" % northeast.count(',')
         north, west = northwest.split(',')
       except AssertionError, err:
@@ -128,7 +134,7 @@ class GenerateMapHandler(MapHandler):
       google_data = {
         'key': data['key'],
         'zoom': data['zoom'],
-        'center': str(data['centerlat']) + "," + str(data['centerlong']),
+        'center': str(center_lat) + "," + str(center_long),
         'size': str(data['width']) + "x" + str(data['height']),
         'sensor':'false',
         'format':'png',
