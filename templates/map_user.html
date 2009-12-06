@@ -1,0 +1,13 @@
+<script type="text/javascript">
+  var global_centerlat = {{ centerlat }};
+  var global_centerlong = {{ centerlong }};
+  var global_zoom= {{ zoom }};
+</script>
+<div id="js_map">
+  <div id="map_canvas" style="width: {{ width }}px; height: {{ height }}px">
+  </div>
+  <div id="map_controls">
+    <p><a href="{{ map_relative_url }}">http://where-do-you-go.appspot.com/{{ map_relative_url }}</a></p>
+    <p><a href="" onclick="generateStaticMap()">generate a static image of the current map view</a></p>
+  </div>
+</div>

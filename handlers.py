@@ -20,11 +20,40 @@ from models import AccessToken, Venue, Checkin, MapImage
 from google.appengine.api import urlfetch
 import urllib
 
-
-class IndexHandler(webapp.RequestHandler):
-  def get(self):
+class MapHandler(webapp.RequestHandler):
+  def get_map_data(self):
     user = users.get_current_user()
 
+    self.width = self.height = 500
+
+    if user:
+      retreived_token = AccessToken.all().filter('owner =', user).order('-created').get()
+      #checkins = globalvars.provider.get_user_data(user=user)
+      user_latlong = data.fetch_user_latlong(user, retreived_token)
+    else:
+      user_latlong = (40.7778, -73.8732)
+      #checkins = []
+
+    template_values = {
+      'user': user,
+      #'checkins': checkins,
+      'centerlat': user_latlong[0],
+      'centerlong': user_latlong[1],
+      'zoom': 14,
+      'width': self.width,
+      'height': self.height,
+    }
+    return template_values
+
+class IndexHandler(MapHandler):
+  def get(self):
+    data_ready = False
+    map_ready = False
+    url = users.create_login_url(self.request.uri)
+    url_linktext = 'Login'
+    map_relative_url = ''
+
+    user = users.get_current_user()
     if user:
       auth_ready = AccessToken.all().filter('owner =', user).count() > 0
       data_ready = (Checkin.all().filter('user =', user).count() > 0) and auth_ready
@@ -32,14 +61,9 @@ class IndexHandler(webapp.RequestHandler):
       url = users.create_logout_url(self.request.uri)
       url_linktext = 'Logout'
       map_relative_url = 'map/' + user.user_id() + '.png'
-    else:
-      data_ready = False
-      map_ready = False
-      url = users.create_login_url(self.request.uri)
-      url_linktext = 'Login'
-      map_relative_url = ''
 
     template_values = {
+      'key': globalvars.google_maps_apikey,
       'user': user,
       'data_ready': data_ready,
       'map_ready': map_ready,
@@ -49,9 +73,13 @@ class IndexHandler(webapp.RequestHandler):
       }
 
     os_path = os.path.dirname(__file__)
-    self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), None))
-    self.response.out.write(template.render(os.path.join(os_path, 'templates/index.html')  , template_values))
-    self.response.out.write(template.render(os.path.join(os_path, 'templates/footer.html'), None))
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/index_header.html'), template_values))
+    if user and auth_ready and data_ready and map_ready:
+        self.response.out.write(template.render(os.path.join(os_path, 'templates/map_user.html'), self.get_map_data()))
+    else:
+        self.response.out.write(template.render(os.path.join(os_path, 'templates/map_none.html'), self.get_map_data()))
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/index_footer.html'), template_values))
+
 
 class AuthHandler(webapp.RequestHandler):
   def get(self):
@@ -66,53 +94,13 @@ class AuthHandler(webapp.RequestHandler):
 
         data.fetch_and_store_n_recent_checkins_for_token(new_token, 250)
 
-        self.redirect("/js_map")
+        self.redirect("/")
       else:
         self.redirect(globalvars.client.get_authorization_url())
 
     else:
       self.redirect(users.create_login_url(self.request.uri))
 
-class MapHandler(webapp.RequestHandler):
-  def get_map_data(self):
-    user = users.get_current_user()
-
-    self.width = self.height = 500
-
-    if user:
-      retreived_token = AccessToken.all().filter('owner =', user).order('-created').get()
-      checkins = globalvars.provider.get_user_data(user=user)
-      user_latlong = data.fetch_user_latlong(user, retreived_token)
-      map_ready = MapImage.all().filter('userid =', user.user_id()).count() > 0
-      map_relative_url = 'map/' + user.user_id() + '.png'
-    else:
-      user_latlong = (40.7778, -73.8732)
-      checkins = []
-      map_ready = False
-      map_relative_url = ''
-
-    template_values = {
-      'key': globalvars.google_maps_apikey,
-      'user': user,
-      'checkins': checkins,
-      'centerlat': user_latlong[0],
-      'centerlong': user_latlong[1],
-      'zoom': 14,
-      'width': self.width,
-      'height': self.height,
-      'map_ready': map_ready,
-      'map_relative_url': map_relative_url,
-    }
-    return template_values
-
-
-class JsMapHandler(MapHandler):
-  def get(self):
-    template_values = self.get_map_data()
-    os_path = os.path.dirname(__file__)
-    self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), None))
-    self.response.out.write(template.render(os.path.join(os_path, 'templates/map.html')   , template_values))
-    self.response.out.write(template.render(os.path.join(os_path, 'templates/footer.html'), None))
 
 class GenerateMapHandler(MapHandler):
   def get(self):
@@ -262,7 +250,6 @@ def main():
                                         ('/authenticated', AuthHandler),
                                         ('/delete_all_my_data', DeleteHandler),
                                         ('/tile/.*', TileHandler),
-                                        ('/js_map', JsMapHandler),
                                         ('/map/.*', StaticMapHandler),
                                         ('/generate_static_map/.*', GenerateMapHandler)],
                                       debug=True)

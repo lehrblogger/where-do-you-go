@@ -1,0 +1,46 @@
+body {
+  background-color: #32383E;
+  color: #E6E6E6;
+}
+a:link, a:visited, a:active {
+  color: #AFAFAF;
+}
+
+#header, #js_map {
+  width: 90%;
+  margin: 10px auto;
+}
+#title, #map_canvas {
+  float: left;
+  width: 550px;
+  margin: 0;
+  padding: 1em;
+}
+#auth_controls, #map_controls {
+  margin-left: 600px;
+  padding: 1em;
+}
+
+#footer {
+  clear: both;
+  padding: 1em;
+}
+
+#static_maps ul {
+  list-style: none;
+}
+#static_maps ul li {
+  float: left;
+  margin-right: 10px;
+}
+
+#about {
+  clear: both;
+  padding: 1em;
+}
+
+
+/*
+two column layout from http://css.maxdesign.com.au/floatutorial/tutorial0811.htm
+for later: http://www.maxdesign.com.au/presentation/center/
+*/
