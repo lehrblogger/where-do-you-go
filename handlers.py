@@ -87,9 +87,12 @@ class MapHandler(webapp.RequestHandler):
       map_relative_url = 'map/' + user.user_id() + '.png'
     else:
       user_latlong = (40.7778, -73.8732)
+      checkins = []
+      map_ready = False
+      map_relative_url = ''
 
     template_values = {
-      'key': 'ABQIAAAAwA6oEsCLgzz6I150wm3ELBQO7aMTgd18mR6eRdj9blrVCeGU7BS14EnkGH_2LpNpZ8DJW0u7G5ocLQ',
+      'key': globalvars.google_maps_apikey,
       'user': user,
       'checkins': checkins,
       'centerlat': user_latlong[0],
