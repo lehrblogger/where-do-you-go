@@ -33,11 +33,17 @@ class Checkin(GeoModel):
   weight = db.IntegerProperty()
   range = db.IntegerProperty()
 
+  def __str__ (self):
+    return "user:%s checkin_id:%s at:%s venue:%s lat:%s long:%s " % (self.user, self.checkin_id, self.created, self.venue.name, self.venue.geolat, self.venue.geolong)
+
 class MapImage(db.Model):
-  userid = db.StringProperty()
+  user = db.UserProperty() # userid and not a user so that it can be in the URL later on????
+  userid = db.StringProperty() # TODO figure out how to query for UserPropertys by user_id
   cityid = db.IntegerProperty()
   centerlat = db.FloatProperty()
   centerlong = db.FloatProperty()
+  northlat = db.FloatProperty()
+  westlong = db.FloatProperty()
   zoom = db.IntegerProperty()
   width = db.IntegerProperty()
   height = db.IntegerProperty()

@@ -11,7 +11,7 @@ import logging, time
 import globalvars
 from google.appengine.api import images
 
-import data
+from scripts import fetch_foursquare_data
 import oauth
 from gheatae import consts, color_scheme, dot, tile, cache, provider
 from os import environ
@@ -20,32 +20,7 @@ from models import AccessToken, Venue, Checkin, MapImage
 from google.appengine.api import urlfetch
 import urllib
 
-class MapHandler(webapp.RequestHandler):
-  def get_map_data(self):
-    user = users.get_current_user()
-
-    self.width = self.height = 500
-
-    if user:
-      retreived_token = AccessToken.all().filter('owner =', user).order('-created').get()
-      #checkins = globalvars.provider.get_user_data(user=user)
-      user_latlong = data.fetch_user_latlong(user, retreived_token)
-    else:
-      user_latlong = (40.7778, -73.8732)
-      #checkins = []
-
-    template_values = {
-      'user': user,
-      #'checkins': checkins,
-      'centerlat': user_latlong[0],
-      'centerlong': user_latlong[1],
-      'zoom': 14,
-      'width': self.width,
-      'height': self.height,
-    }
-    return template_values
-
-class IndexHandler(MapHandler):
+class IndexHandler(webapp.RequestHandler):
   def get(self):
     data_ready = False
     map_ready = False
@@ -55,14 +30,14 @@ class IndexHandler(MapHandler):
 
     user = users.get_current_user()
     if user:
-      auth_ready = AccessToken.all().filter('owner =', user).count() > 0
-      data_ready = (Checkin.all().filter('user =', user).count() > 0) and auth_ready
-      map_ready = (MapImage.all().filter('userid =', user.user_id()).count() > 0) and auth_ready
+      retreived_token = AccessToken.all().filter('owner =', user).count() > 0
+      data_ready = (Checkin.all().filter('user =', user).count() > 0) and retreived_token
+      map_ready = (MapImage.all().filter('userid =', user.user_id()).count() > 0) and retreived_token
       url = users.create_logout_url(self.request.uri)
       url_linktext = 'Logout'
       map_relative_url = 'map/' + user.user_id() + '.png'
 
-    template_values = {
+    page_data = {
       'key': globalvars.google_maps_apikey,
       'user': user,
       'data_ready': data_ready,
@@ -72,13 +47,28 @@ class IndexHandler(MapHandler):
       'url_linktext': url_linktext,
       }
 
-    os_path = os.path.dirname(__file__)
-    self.response.out.write(template.render(os.path.join(os_path, 'templates/index_header.html'), template_values))
-    if user and auth_ready and data_ready and map_ready:
-        self.response.out.write(template.render(os.path.join(os_path, 'templates/map_user.html'), self.get_map_data()))
+    if retreived_token:
+      retreived_token = AccessToken.all().filter('owner =', user).order('-created').get()
+      user_latlong = fetch_foursquare_data.fetch_user_latlong(user, retreived_token)
     else:
-        self.response.out.write(template.render(os.path.join(os_path, 'templates/map_none.html'), self.get_map_data()))
-    self.response.out.write(template.render(os.path.join(os_path, 'templates/index_footer.html'), template_values))
+      user_latlong = (40.7778, -73.8732)
+    map_data = {
+      'user': user,
+      'centerlat': user_latlong[0],
+      'centerlong': user_latlong[1],
+      'zoom': 14,
+      'width': 640,
+      'height': 640,
+    }
+
+    os_path = os.path.dirname(__file__)
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/index_header.html'), page_data))
+    if user and retreived_token and data_ready:
+
+        self.response.out.write(template.render(os.path.join(os_path, 'templates/map_user.html'), map_data))
+    else:
+        self.response.out.write(template.render(os.path.join(os_path, 'templates/map_none.html'), map_data))
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/index_footer.html'), page_data))
 
 
 class AuthHandler(webapp.RequestHandler):
@@ -92,7 +82,7 @@ class AuthHandler(webapp.RequestHandler):
         new_token = AccessToken(owner = user, token = credentials['token'], secret = credentials['secret'])
         new_token.put()
 
-        data.fetch_and_store_n_recent_checkins_for_token(new_token, 250)
+        fetch_foursquare_data.fetch_and_store_n_recent_checkins_for_token(new_token, 250)
 
         self.redirect("/")
       else:
@@ -102,61 +92,6 @@ class AuthHandler(webapp.RequestHandler):
       self.redirect(users.create_login_url(self.request.uri))
 
 
-class GenerateMapHandler(MapHandler):
-  def get(self):
-    user = users.get_current_user()
-
-    if user:
-      raw = environ['PATH_INFO']
-      try:
-        assert raw.count('/') == 4, "%d /'s" % raw.count('/')
-        foo, bar, zoom, centerpoint, northwest, = raw.split('/')
-        assert zoom.isdigit(), "not digits"
-        zoom = int(zoom)
-        assert centerpoint.count(',') == 1, "%d /'s" % centerpoint.count(',')
-        center_lat, center_long = centerpoint.split(',')
-        assert northwest.count(',') == 1, "%d /'s" % northeast.count(',')
-        north, west = northwest.split(',')
-      except AssertionError, err:
-        logging.error(err.args[0])
-        return
-
-      data = self.get_map_data()
-      google_data = {
-        'key': data['key'],
-        'zoom': data['zoom'],
-        'center': str(center_lat) + "," + str(center_long),
-        'size': str(data['width']) + "x" + str(data['height']),
-        'sensor':'false',
-        'format':'png',
-      }
-      result = urlfetch.fetch(url="http://maps.google.com/maps/api/staticmap?" + urllib.urlencode(google_data),
-                              method=urlfetch.GET)
-      input_tuples = []
-      input_tuples.append((result.content, 0, 0, 1.0, images.TOP_LEFT))
-
-      for offset_x_px in range (0, self.width, 256):
-        for offset_y_px in range (0, self.height, 256):
-          logging.warning(str(offset_x_px) + ", " + str(offset_y_px))
-          new_tile = tile.CustomTile(int(zoom), float(north), float(west), offset_x_px, offset_y_px)
-          input_tuples.append((new_tile.image_out(), offset_x_px, offset_y_px, 1.0, images.TOP_LEFT))
-          # http://code.google.com/appengine/docs/python/images/functions.html
-
-      img = images.composite(inputs=input_tuples, width=data['width'], height=data['height'], color=0, output_encoding=images.PNG)
-
-      mapimages = MapImage.all().filter('userid =', user.user_id()).fetch(1000)
-      db.delete(mapimages)
-
-      mapimage = MapImage()
-      mapimage.userid = user.user_id()
-      mapimage.cityid = 42 #TODO fix this to be real
-      mapimage.centerlat = data['centerlat']
-      mapimage.centerlong = data['centerlong']
-      mapimage.zoom = data['zoom']
-      mapimage.height = data['height']
-      mapimage.width = data['width']
-      mapimage.img = db.Blob(img)
-      mapimage.put()
 
 class StaticMapHandler(webapp.RequestHandler):
   def get(self):
@@ -199,50 +134,61 @@ class DeleteHandler(webapp.RequestHandler):
 
 class TileHandler(webapp.RequestHandler):
   def get(self):
-    logging.info("Running GetTile:GET...")
-    st = time.clock()
-    path = environ['PATH_INFO']
+    user = users.get_current_user()
+    if user:
+      st = time.clock()
+      path = environ['PATH_INFO']
 
-    logging.debug("Path:" + path)
-    if path.endswith('.png'):
-      raw = path[:-4] # strip extension
-      try:
-        assert raw.count('/') == 4, "%d /'s" % raw.count('/')
-        foo, bar, layer, zoom, yx = raw.split('/')
-        # assert color_scheme in color_schemes, ("bad color_scheme: "
-        #                                       + color_scheme
-        #                                        )
-        assert yx.count(',') == 1, "%d /'s" % yx.count(',')
-        y, x = yx.split(',')
-        assert zoom.isdigit() and x.isdigit() and y.isdigit(), "not digits"
-        zoom = int(zoom)
-        x = int(x)
-        y = int(y)
-        assert 0 <= zoom <= (consts.MAX_ZOOM - 1), "bad zoom: %d" % zoom
-      except AssertionError, err:
-        logging.error(err.args[0])
-        self.respondError(err)
+      # logging.debug("Path:" + path)
+      if path.endswith('.png'):
+        raw = path[:-4] # strip extension
+        try:
+          assert raw.count('/') == 4, "%d /'s" % raw.count('/')
+          foo, bar, layer, zoom, yx = raw.split('/')
+          # assert color_scheme in color_schemes, ("bad color_scheme: "
+          #                                       + color_scheme
+          #                                        )
+          assert yx.count(',') == 1, "%d /'s" % yx.count(',')
+          y, x = yx.split(',')
+          assert zoom.isdigit() and x.isdigit() and y.isdigit(), "not digits"
+          zoom = int(zoom)
+          x = int(x)
+          y = int(y)
+          assert 0 <= zoom <= (consts.MAX_ZOOM - 1), "bad zoom: %d" % zoom
+        except AssertionError, err:
+          logging.error(err.args[0])
+          self.respondError(err)
+          return
+      else:
+        self.respondError("Invalid path")
         return
-    else:
-      self.respondError("Invalid path")
-      return
 
-    # color_scheme = color_schemes[color_scheme]
-    # try:
-    new_tile = tile.GoogleTile(layer, zoom, x, y)
-    #logging.info("Start-B1: %2.2f" % (time.clock() - st))
-    # except Exception, err:
-    #   self.respondError(err)
-    #   raise err
-    #   return
+      # color_scheme = color_schemes[color_scheme]
+      # try:
+      new_tile = tile.GoogleTile(user, layer, zoom, x, y)
+      #logging.info("Start-B1: %2.2f" % (time.clock() - st))
+      # except Exception, err:
+      #   self.respondError(err)
+      #   raise err
+      #   return
 
-    self.response.headers['Content-Type'] = "image/png"
-    # logging.info("Building image...")
-    img_data = new_tile.image_out()
-    # logging.info("Start-B2: %2.2f" % (time.clock() - st))
-    # logging.info("Writing out image...")
-    self.response.out.write(img_data)
-    # logging.info("Start-End: %2.2f" % (time.clock() - st))
+      self.response.headers['Content-Type'] = "image/png"
+      # logging.info("Building image...")
+      img_data = new_tile.image_out()
+      # logging.info("Start-B2: %2.2f" % (time.clock() - st))
+      # logging.info("Writing out image...")
+      self.response.out.write(img_data)
+      # logging.info("Start-End: %2.2f" % (time.clock() - st))
+
+class CheckinViewer(webapp.RequestHandler):
+  def get(self):
+    user = users.get_current_user()
+    if user:
+      # globalvars.provider = provider.DBProvider()
+      checkins = globalvars.provider.get_user_data(user=user)
+      os_path = os.path.dirname(__file__)
+      for checkin in checkins:
+        self.response.out.write("<li>" + str(checkin) + "</li>")
 
 def main():
   application = webapp.WSGIApplication([('/', IndexHandler),
@@ -251,7 +197,7 @@ def main():
                                         ('/delete_all_my_data', DeleteHandler),
                                         ('/tile/.*', TileHandler),
                                         ('/map/.*', StaticMapHandler),
-                                        ('/generate_static_map/.*', GenerateMapHandler)],
+                                        ('/view_checkins', CheckinViewer)],
                                       debug=True)
 
   globalvars.client = oauth.FoursquareClient(globalvars.consumer_key, globalvars.consumer_secret, globalvars.callback_url)

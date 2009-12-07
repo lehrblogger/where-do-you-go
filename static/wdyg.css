@@ -1,23 +1,20 @@
-body {
-  background-color: #32383E;
-  color: #E6E6E6;
-}
-a:link, a:visited, a:active {
-  color: #AFAFAF;
-}
-
 #header, #js_map {
   width: 90%;
   margin: 10px auto;
 }
-#title, #map_canvas {
+#title, #map_container {
   float: left;
-  width: 550px;
+  width: 670px;
   margin: 0;
   padding: 1em;
 }
+#map_bounds {
+  background-color: gray;
+  width: 640px;
+  height: 640px;
+}
 #auth_controls, #map_controls {
-  margin-left: 600px;
+  margin-left: 700px;
   padding: 1em;
 }
 

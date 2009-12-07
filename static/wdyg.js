@@ -46,5 +46,59 @@ function generateStaticMap() {
 
   var zoom = map.getZoom();
 
-  $.get("generate_static_map/" + zoom + "/" + center_lat + "," + center_long + "/" + north + "," + west);
+  var size = map.getSize();
+
+  $.get("generate_static_map/" + size.width + "x" + size.height + "/" + zoom + "/" + center_lat + "," + center_long + "/" + north + "," + west);
 }
+
+// http://net.tutsplus.com/tutorials/javascript-ajax/submit-a-form-without-page-refresh-using-jquery/
+$(function() {
+  $('.error').hide();
+  $('#submit_btn').click(function() {
+    $('.error').hide();
+    var width = $("input#width").val();
+    if ((0 >= parseInt(width)) || (640 < parseInt(width))) {
+      $("label#width_error").show();
+      $("input#width").focus();
+      return false;
+    }
+    var height = $("input#height").val();
+    if ((0 >= parseInt(height)) || (640 < parseInt(height))) {
+      $("label#height_error").show();
+      $("input#height").focus();
+      return false;
+    }
+
+    var style_str = $("#map_canvas").attr('style');
+    style_str = style_str.replace(/width: (\d+)px/, 'width: ' + width + 'px');
+    style_str = style_str.replace(/height: (\d+)px/, 'height: ' + height + 'px');
+    $("#map_canvas").attr('style', style_str);
+    map.checkResize();
+    return false;
+  });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

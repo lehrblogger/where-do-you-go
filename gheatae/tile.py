@@ -1,5 +1,5 @@
 import globalvars
-from gheatae import color_scheme
+from gheatae import color_scheme, dot, provider
 from gheatae.dot import dot
 from pngcanvas import PNGCanvas
 from random import random, Random
@@ -21,10 +21,13 @@ for i in range(LEVEL_MAX - 1, -1, -1):
 
 class BasicTile(object):
 
-  def __init__(self, lat_north, lng_west, range_lat, range_lng):
+  def __init__(self, user, lat_north, lng_west, range_lat, range_lng):
     self.color_scheme = color_scheme.sjl_classic#classic#cyan_red
 
-    self.tile_img = self.plot_image(globalvars.provider.get_user_data(users.get_current_user(), #self.layer,
+    if not globalvars.provider:
+      globalvars.provider = provider.DBProvider()
+
+    self.tile_img = self.plot_image(globalvars.provider.get_user_data(user, #self.layer,
                             lat_north, lng_west,range_lat, range_lng))
 
   def plot_image(self, points):
@@ -76,7 +79,7 @@ class BasicTile(object):
   def convert_image(self, space_level):
     tile = PNGCanvas(len(space_level[0]), len(space_level), bgcolor=[0xff,0xff,0xff,0])
     color_scheme = []
-    logging.warning(self.color_scheme.canvas)
+    #logging.warning(self.color_scheme.canvas)
     for i in range(LEVEL_MAX):
       color_scheme.append(self.color_scheme.canvas[cache_levels[i]][0])
     for y in xrange(len(space_level[0])):
@@ -120,7 +123,7 @@ class BasicTile(object):
       raise Exception("Failure in generation of image.")
 
 class CustomTile(BasicTile):
-  def __init__(self, zoom, lat_north, lng_west, offset_x_px, offset_y_px):
+  def __init__(self, user, zoom, lat_north, lng_west, offset_x_px, offset_y_px):
     self.zoom = zoom
     self.decay = 0.5
     dot_radius = int(math.ceil(len(dot[self.zoom]) / 2))
@@ -137,11 +140,11 @@ class CustomTile(BasicTile):
     self.latlong_diff_buffered = [ self.southeast_ll_buffered[0] - self.northwest_ll_buffered[0], self.southeast_ll_buffered[1] - self.northwest_ll_buffered[1]]
     self.latlong_diff          = [ self.southeast_ll[0]          - self.northwest_ll[0]         , self.southeast_ll[1]          - self.northwest_ll[1]]
 
-    BasicTile.__init__(self, self.northwest_ll_buffered[0], self.northwest_ll_buffered[1], self.latlong_diff_buffered[0], self.latlong_diff_buffered[1])
+    BasicTile.__init__(self, user, self.northwest_ll_buffered[0], self.northwest_ll_buffered[1], self.latlong_diff_buffered[0], self.latlong_diff_buffered[1])
 
 
 class GoogleTile(BasicTile):
-  def __init__(self, layer, zoom, x_tile, y_tile):
+  def __init__(self, user, layer, zoom, x_tile, y_tile):
     self.layer = layer
     self.zoom = zoom
     self.decay = 0.5
@@ -160,7 +163,7 @@ class GoogleTile(BasicTile):
     self.latlong_diff_buffered = [ self.southeast_ll_buffered[0] - self.northwest_ll_buffered[0], self.southeast_ll_buffered[1] - self.northwest_ll_buffered[1]]
     self.latlong_diff          = [ self.southeast_ll[0]          - self.northwest_ll[0]         , self.southeast_ll[1]          - self.northwest_ll[1]]
 
-    BasicTile.__init__(self, self.northwest_ll_buffered[0], self.northwest_ll_buffered[1], self.latlong_diff_buffered[0], self.latlong_diff_buffered[1])
+    BasicTile.__init__(self, user, self.northwest_ll_buffered[0], self.northwest_ll_buffered[1], self.latlong_diff_buffered[0], self.latlong_diff_buffered[1])
 
 
 
