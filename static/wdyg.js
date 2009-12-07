@@ -1,6 +1,27 @@
 var map;
 
-function initialize() {
+function addHeatMap(map) {
+  // Set up the copyright information. Each image used should indicate its copyright permissions
+  var myCopyright = new GCopyrightCollection("© ");
+  myCopyright.addCopyright(new GCopyright('lala', new GLatLngBounds(new GLatLng(-90,-180), new GLatLng(90,180)), 0,'la la la'));
+
+  // Create the tile layer overlay and implement the three abstract methods
+  var tilelayer = new GTileLayer(myCopyright);
+  tilelayer.getTileUrl = function(point, zoom) { return "tile/classic/" + zoom + "/" + point.y + "," + point.x +".png"; };
+  tilelayer.isPng = function() { return true; };
+  tilelayer.getOpacity = function() { return 1.0; };
+
+  var myTileLayer = new GTileLayerOverlay(tilelayer);
+  map.addOverlay(myTileLayer);
+}
+
+$(document).ready(function() {
+  $('.error').hide();
+  $.get("static_map_html", function(data){
+    $("#current_map").html(data);
+    return false;
+  });
+
   if (GBrowserIsCompatible()) {
     map = new GMap2(document.getElementById("map_canvas"));
     map.setCenter(new GLatLng(global_centerlat, global_centerlong), global_zoom);
@@ -15,46 +36,20 @@ function initialize() {
     customUI.controls.scalecontrol   = false;
     map.setUI(customUI);
 
-    //addPlaceMarks(map);
     addHeatMap(map);
   }
-}
 
-function addHeatMap(map) {
-  // Set up the copyright information. Each image used should indicate its copyright permissions
-  var myCopyright = new GCopyrightCollection("© ");
-  myCopyright.addCopyright(new GCopyright('lala', new GLatLngBounds(new GLatLng(-90,-180), new GLatLng(90,180)), 0,'la la la'));
+  $('#delete_link').click(function() {
+    $('#delete_link').html("Deleting data... please wait.");
+    $.get("/delete_data/user", function(){
+      map.clearOverlays();
+      $("#current_map").html("");
+      return false;
+    });
+    return false;
+  });
 
-  // Create the tile layer overlay and implement the three abstract methods
-  var tilelayer = new GTileLayer(myCopyright);
-  tilelayer.getTileUrl = function(point, zoom) { return "tile/classic/" + zoom + "/" + point.y + "," + point.x +".png" };
-  tilelayer.isPng = function() { return true;};
-  tilelayer.getOpacity = function() { return 1.0; }
-
-  var myTileLayer = new GTileLayerOverlay(tilelayer);
-  map.addOverlay(myTileLayer);
-}
-
-function generateStaticMap() {
-  var bounds = map.getBounds();
-  var north = bounds.getNorthEast().lat();
-  var west = bounds.getSouthWest().lng();
-
-  var center = map.getCenter();
-  var center_lat = center.lat();
-  var center_long = center.lng();
-
-  var zoom = map.getZoom();
-
-  var size = map.getSize();
-
-  $.get("generate_static_map/" + size.width + "x" + size.height + "/" + zoom + "/" + center_lat + "," + center_long + "/" + north + "," + west);
-}
-
-// http://net.tutsplus.com/tutorials/javascript-ajax/submit-a-form-without-page-refresh-using-jquery/
-$(function() {
-  $('.error').hide();
-  $('#submit_btn').click(function() {
+  $('#submit_btn').click(function() { // http://net.tutsplus.com/tutorials/javascript-ajax/submit-a-form-without-page-refresh-using-jquery/
     $('.error').hide();
     var width = $("input#width").val();
     if ((0 >= parseInt(width)) || (640 < parseInt(width))) {
@@ -76,29 +71,26 @@ $(function() {
     map.checkResize();
     return false;
   });
+
+  $('#generate_map').click(function() {
+    var bounds = map.getBounds();
+    var north = bounds.getNorthEast().lat();
+    var west = bounds.getSouthWest().lng();
+
+    var center = map.getCenter();
+    var center_lat = center.lat();
+    var center_long = center.lng();
+
+    var zoom = map.getZoom();
+    var size = map.getSize();
+
+    $.get("generate_static_map/" + size.width + "x" + size.height + "/" + zoom + "/" + center_lat + "," + center_long + "/" + north + "," + west, function() {
+      $.get("static_map_html", function(data){
+        $("#current_map").html(data);
+        return false;
+      });
+      return false;
+    });
+    return false;
+  });
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

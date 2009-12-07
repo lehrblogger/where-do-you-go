@@ -2,36 +2,38 @@
   width: 90%;
   margin: 10px auto;
 }
-#title, #map_container {
+#header-left, #map_container {
   float: left;
   width: 670px;
   margin: 0;
   padding: 1em;
 }
 #map_bounds {
-  background-color: gray;
+  background-color: #cdcdcd;
   width: 640px;
   height: 640px;
 }
 #auth_controls, #map_controls {
   margin-left: 700px;
+  padding: 3em 0em 1em 1em;
+}
+
+#video {
+  float: left;
+}
+#title {
+  margin-left: 200px;
   padding: 1em;
 }
 
 #footer {
+  width: 90%;
   clear: both;
   padding: 1em;
 }
 
-#static_maps ul {
-  list-style: none;
-}
-#static_maps ul li {
-  float: left;
-  margin-right: 10px;
-}
-
 #about {
+  width: 90%;
   clear: both;
   padding: 1em;
 }

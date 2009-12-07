@@ -15,7 +15,6 @@ import urllib
 
 
 def update_map_image(user, google_data, width, height, northlat, westlong):
-  logging.warning("Here inside update_map_image")
   result = urlfetch.fetch(url="http://maps.google.com/maps/api/staticmap?" + urllib.urlencode(google_data),
                           method=urlfetch.GET)
   input_tuples = []
@@ -27,9 +26,7 @@ def update_map_image(user, google_data, width, height, northlat, westlong):
       input_tuples.append((new_tile.image_out(), offset_x_px, offset_y_px, 1.0, images.TOP_LEFT))
       # http://code.google.com/appengine/docs/python/images/functions.html
 
-  logging.warning("  almost done")
-  img =  images.composite(inputs=input_tuples, width=height, height=height, color=0, output_encoding=images.PNG)
-  logging.warning("w00t done")
+  img = images.composite(inputs=input_tuples, width=width, height=height, color=0, output_encoding=images.PNG)
   return img
 
 def create_map_file(user, path=''):
@@ -57,7 +54,7 @@ def create_map_file(user, path=''):
     'format':'png',
   }
 
-  mapimages = MapImage.all().filter('user =', user).fetch(1000)
+  mapimages = MapImage.all().filter('user =', user).fetch(500)
   db.delete(mapimages)
 
   img = update_map_image(user, google_data, int(width), int(height), float(northlat), float(westlong))
@@ -83,7 +80,11 @@ if __name__ == '__main__':
     foo, bar, rest, = raw.split('/')
     try:
       assert rest == 'all', "rest is: %s " % rest
-      mapimages = MapImage.all().fetch(1000)
+
+      mapimages = []
+      while(len(MapImage.all().fetch(1000, len(mapimages))) > 0):
+        mapimages.extend(MapImage.all().fetch(1000, len(mapimages)))
+
       for mapimage in mapimages:
         google_data = {
           'key': globalvars.google_maps_apikey,

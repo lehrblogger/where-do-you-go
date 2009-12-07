@@ -1,24 +1,18 @@
     <div id="footer">
-      <div id="static_maps">
-        <ul>
-          <li>
-            <object width="128" height="101"><param name="movie" value="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/Uc0moUPBJnM&hl=en&fs=1&rel=0" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="128" height="101"></embed></object>
-          </li>
-  {% if user %}
-    {% if map_ready %}
-          <li>
-            <a href="{{ map_relative_url }}">
-              <img width="128" src="http://where-do-you-go.appspot.com/{{ map_relative_url }}"><br/>
-              http://where-do-you-go.appspot.com/{{ map_relative_url }}
-            </a>
-          </li>
-    {% endif %}
+      <div id="current_map">
+<!-- {% if user %}
+  {% if map_ready %}
+        <h3>You can now embed your static map image anywhere!</h3>
+        <a href="{{ map_relative_url }}">
+          <img src="http://where-do-you-go.appspot.com/{{ map_relative_url }}"><br/>
+          http://where-do-you-go.appspot.com/{{ map_relative_url }}
+        </a>
   {% endif %}
-        </ul>
+{% endif %} -->
       </div>
-      <div id="about">
+      <!-- <div id="about">
         <a>Privacy disclaimer</a> | by <a href="http://lehrblogger.com">Steven Lehrburger</a></p>
-      </div>
+      </div> -->
     </div>
   </body>
 </html>

@@ -11,26 +11,23 @@
     </div>
   </div>
   <div id="map_controls">
-    <p><a href="" onclick="generateStaticMap(); return false;">generate a static image of the current map view</a></p>
 
     <div id="size_form">
       <form name="size" action="">
         <fieldset>
           <label for="width" id="width_label">Width (px)</label>
           <input type="text" name="width" id="width" size="10" value="" class="text-input" />
-          <label class="error" for="width" id="height_error">The width must be between 0 and 640 pixels.</label>
+          <label class="error" for="width" id="width_error">The width must be between 0 and 640 pixels.</label>
           <br />
           <label for="height" id="height_label">Height (px))</label>
           <input type="text" name="height" id="height" size="10" value="" class="text-input" />
           <label class="error" for="height" id="height_error">The height must be between 0 and 640 pixels.</label>
           <br />
-          <input type="submit" name="submit" class="button" id="submit_btn" value="Update" />
+          <input type="submit" name="submit" class="button" id="submit_btn" value="Update Map Dimensions" />
         </fieldset>
       </form>
     </div>
 
-
-    CURRENT CITY
-
+    <p><a href="" id="generate_map">(re)generate your image with the current map view</a></p>
   </div>
 </div>

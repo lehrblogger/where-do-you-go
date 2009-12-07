@@ -1,0 +1,10 @@
+<ol>
+{% for checkin in checkins %}
+  <li><strong>{{ checkin.venue.name }}</strong>
+    <ul>
+      <li>created at: {{ checkin.created }}</li>
+      <li>located at: {{ checkin.venue.geolat }}, {{ checkin.venue.geolong }}</li>
+    </ul>
+  </li>
+{% endfor %}
+</ol>

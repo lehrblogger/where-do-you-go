@@ -16,7 +16,7 @@ class Provider(object):
 
 class DBProvider(Provider):
 
-    def get_user_data(self, user=None, lat_north=90, lng_west=-180, range_lat=-180, range_lng=360):
+    def get_user_data(self, user=None, lat_north=90, lng_west=-180, range_lat=-180, range_lng=360, max_results=1000):
       # log.info("GeoRange: (%6.4f, %6.4f) ZoomStep: (%6.4f, %6.4f)" % (lat_north, lng_west, range_lat, range_lng))
       # log.info("Range: (%6.4f - %6.4f), (%6.4f - %6.4f)" % (min(90, max(-90, lat_north + range_lat)), lat_north, min(180, max(-180, lng_west + range_lng)), lng_west))
 
@@ -26,14 +26,21 @@ class DBProvider(Provider):
               min(180, max(-180, lng_west + range_lng)),
               lat_north,
               lng_west),
-          max_results=1000, )
+          max_results, )
       else:
         return []
 
-    def get_all_data(self, lat_north=90, lng_west=-180, range_lat=-180, range_lng=360):
-      return Checkin.bounding_box_fetch(Checkin.all(),
+    def get_all_data(self, user=None, lat_north=90, lng_west=-180, range_lat=-180, range_lng=360, max_results=1000):
+      if user: Checkin.bounding_box_fetch(Checkin.all().filter('user =', user),
         geotypes.Box(min(90, max(-90, lat_north + range_lat)),
             min(180, max(-180, lng_west + range_lng)),
             lat_north,
             lng_west),
-        max_results=1000, )
+        max_results, )
+      else:
+        return Checkin.bounding_box_fetch(Checkin.all(),
+          geotypes.Box(min(90, max(-90, lat_north + range_lat)),
+              min(180, max(-180, lng_west + range_lng)),
+              lat_north,
+              lng_west),
+          max_results, )

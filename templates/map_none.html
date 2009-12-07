@@ -4,6 +4,12 @@
   var global_zoom= {{ zoom }};
 </script>
 <div id="js_map">
-  <div id="map_canvas" style="width: 600px; height: 400px">
+  <div id="map_container">
+    <div id="map_bounds">
+      <div id="map_canvas" style="width: {{ width }}px; height: {{ height }}px">
+      </div>
+    </div>
+  </div>
+  <div id="map_controls">
   </div>
 </div>

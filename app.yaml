@@ -1,5 +1,5 @@
 application: where-do-you-go
-version: 2-6
+version: 2-7
 runtime: python
 api_version: 1
 
@@ -8,17 +8,14 @@ handlers:
 #   script: scripts/fetch_all_recent_checkins.py
 #   login: admin
 
-- url: /delete_all_data
-  script: scripts/delete_all_data.py
+- url: /delete_data/all
+  script: scripts/delete_data.py
   login: admin
 
-- url: /clear_authtokens
-  script: scripts/clear_authtokens.py
-  login: admin
+- url: /delete_data/user
+  script: scripts/delete_data.py
+  login: required
 
-- url: /fetch_foursquare_data
-  script: scripts/fetch_foursquare_data.py
-  login: admin
 
 - url: /generate_static_map/all
   script: scripts/update_user_maps.py
@@ -27,6 +24,15 @@ handlers:
 - url: /generate_static_map/.*
   script: scripts/update_user_maps.py
   login: required
+
+
+- url: /fetch_foursquare_data
+  script: scripts/fetch_foursquare_data.py
+  login: admin
+
+- url: /clear_authtokens
+  script: scripts/clear_authtokens.py
+  login: admin
 
 - url: /view_checkins
   script: handlers.py
