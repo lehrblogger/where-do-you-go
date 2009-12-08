@@ -18,9 +18,15 @@
         </div>
         <div id="auth_controls">
 {% if user %}
-          Welcome {{ user }}! You have {{ num_checkins }} checkins in WDYG<br/>
-          <a href="/go_to_foursquare">Authenticate on Foursquare with OAuth</a><br/>
-          <a href="" id="delete_link">Delete your data from WDYG</a><br/>
+          Welcome {{ user }}!<br />
+					<div id="status_info">
+	{% if auth_ready %}
+						You have {{ num_checkins }} checkins stored<br/>
+          	<a href="" id="delete_link">Delete your WDYG data</a><br/>
+	{% else %}
+						<a href="/go_to_foursquare">OAuth with Foursquare</a><br/>
+	{% endif %}
+					</div>
 {% endif %}
           <a href="{{ url }}">{{ url_linktext }}</a><br/>
         </div>

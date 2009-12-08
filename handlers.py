@@ -23,28 +23,30 @@ import urllib
 class IndexHandler(webapp.RequestHandler):
   def get(self):
 
+    retrieved_token = None
     url = users.create_login_url(self.request.uri)
     url_linktext = 'Login'
     num_checkins = 0;
 
     user = users.get_current_user()
     if user:
+      retrieved_token = AccessToken.all().filter('owner =', user).order('-created').get()
       url = users.create_logout_url(self.request.uri)
       url_linktext = 'Logout'
       while (len(Checkin.all().fetch(1000, num_checkins)) > 0):
         num_checkins = num_checkins + len(Checkin.all().fetch(1000, num_checkins))
-
+      
     page_data = {
       'key': globalvars.google_maps_apikey,
       'user': user,
+      'auth_ready': retrieved_token,
       'num_checkins': num_checkins,
       'url': url,
       'url_linktext': url_linktext,
       }
-
-    retreived_token = AccessToken.all().filter('owner =', user).order('-created').get()
-    if retreived_token:
-      user_latlong = fetch_foursquare_data.fetch_user_latlong(user, retreived_token)
+    
+    if retrieved_token:
+      user_latlong = fetch_foursquare_data.fetch_user_latlong(user, retrieved_token)
     else:
       user_latlong = (40.728397037445006, -73.99429321289062)
     map_data = {
@@ -58,7 +60,7 @@ class IndexHandler(webapp.RequestHandler):
 
     os_path = os.path.dirname(__file__)
     self.response.out.write(template.render(os.path.join(os_path, 'templates/index_header.html'), page_data))
-    if user and retreived_token:
+    if user and retrieved_token:
         self.response.out.write(template.render(os.path.join(os_path, 'templates/map_user.html'), map_data))
     else:
         self.response.out.write(template.render(os.path.join(os_path, 'templates/map_none.html'), map_data))

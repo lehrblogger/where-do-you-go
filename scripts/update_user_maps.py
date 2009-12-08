@@ -97,7 +97,6 @@ if __name__ == '__main__':
         img = update_map_image(mapimage.user, google_data, mapimage.width, mapimage.height, mapimage.northlat, mapimage.westlong)
         mapimage.img = db.Blob(img)
         mapimage.put()
-        logging.warning("yay it got put!")
     except AssertionError, err:
       logging.error(err.args[0])
   else:

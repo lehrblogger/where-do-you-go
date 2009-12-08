@@ -39,11 +39,13 @@ $(document).ready(function() {
     addHeatMap(map);
   }
 
+  var orig_delete_string = $('#delete_link').html();
   $('#delete_link').click(function() {
     $('#delete_link').html("Deleting data... please wait.");
     $.get("/delete_data/user", function(){
       map.clearOverlays();
       $("#current_map").html("");
+      $('#status_info').html('<a href="/go_to_foursquare">OAuth with Foursquare</a><br/>');
       return false;
     });
     return false;

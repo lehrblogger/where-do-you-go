@@ -1,12 +1,12 @@
 #header, #js_map {
-  width: 90%;
+  width: 95%;
   margin: 10px auto;
 }
 #header-left, #map_container {
   float: left;
   width: 670px;
   margin: 0;
-  padding: 1em;
+  padding: 1em 1em 1em 0;
 }
 #map_bounds {
   background-color: #cdcdcd;
@@ -14,8 +14,8 @@
   height: 640px;
 }
 #auth_controls, #map_controls {
-  margin-left: 700px;
-  padding: 3em 0em 1em 1em;
+  margin-left: 670px;
+  padding: 2.5em 0 1em 1em;
 }
 
 #video {
@@ -27,13 +27,13 @@
 }
 
 #footer {
-  width: 90%;
+  width: 95%;
   clear: both;
-  padding: 1em;
+  padding: 0 0 0 2em;
 }
 
 #about {
-  width: 90%;
+  width: 95%;
   clear: both;
   padding: 1em;
 }

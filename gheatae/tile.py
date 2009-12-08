@@ -1,4 +1,4 @@
-import globalvars
+i   mport globalvars
 from gheatae import color_scheme, dot, provider
 from gheatae.dot import dot
 from pngcanvas import PNGCanvas
