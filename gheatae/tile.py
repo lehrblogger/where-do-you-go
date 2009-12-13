@@ -30,7 +30,7 @@ class BasicTile(object):
                             lat_north, lng_west,range_lat, range_lng))
 
   def plot_image(self, points):
-    #logging.debug("len(points) is %d" % len(points))
+    logging.debug("len(points) is %d" % len(points))
     space_level = self.__create_empty_space()
     for point in points:
       self.__merge_point_in_space(space_level, point)
@@ -41,9 +41,7 @@ class BasicTile(object):
     # By default, multiply per color point
     dot_levels, x_off, y_off = self.get_dot(point)
 
-    #logging.debug("len(dot_levels), x_off, y_off = %s, %f, %f" % (len(dot_levels), x_off, y_off))
-
-    for y in range(y_off, y_off + len(dot_levels)): #TODO make sure i'm getting stuff from just outside of the tile
+    for y in range(y_off, y_off + len(dot_levels)):
       if y < 0 or y >= len(space_level):
         continue
       for x in range(x_off, x_off + len(dot_levels[0])):
@@ -53,22 +51,6 @@ class BasicTile(object):
         if dot_level <= 0.:
           continue
         space_level[y][x] += dot_level
-        #logging.debug("incrementing space_level[%d][%d] to %f" % (x,y,space_level[y][x]))
-
-      # for y in range(y_off, y_off + len(dot_levels)):
-      #   if y < 0 or y >= len(space_level):
-      #     logging.debug("continue due to: if y < 0 or y >= len(space_level):")
-      #     continue
-      #   for x in range(x_off, x_off + len(dot_levels[0])):
-      #     if x < 0 or x >= len(space_level[0]):
-      #       logging.debug("continue due to: if x < 0 or x >= len(space_level[0]):")
-      #       continue
-      #     dot_level = dot_levels[y - y_off][x - x_off]
-      #     if dot_level <= 0.:
-      #       logging.debug("continue due to: if dot_level <= 0.:")
-      #       continue
-      #     space_level[y - y_off][x - x_off] += dot_level
-      #     logging.debug("incrementing space_level[%d][%d] to %f" % (x,y,space_level[y - y_off][x - x_off]))
 
   def scale_space_level(self, space_level, x, y):
     #ret_float = math.log(max((space_level[y][x] + 50) / 50, 1), 1.01) + 30
@@ -78,7 +60,6 @@ class BasicTile(object):
   def convert_image(self, space_level):
     tile = PNGCanvas(len(space_level[0]), len(space_level), bgcolor=[0xff,0xff,0xff,0])
     color_scheme = []
-    #logging.warning(self.color_scheme.canvas)
     for i in range(LEVEL_MAX):
       color_scheme.append(self.color_scheme.canvas[cache_levels[i]][0])
     for y in xrange(len(space_level[0])):
@@ -91,9 +72,6 @@ class BasicTile(object):
     cur_dot = dot[self.zoom]
     y_off = int(math.ceil((-1 * self.northwest_ll[0] + point.location.lat) / self.latlong_diff[0] * 256. - len(cur_dot) / 2))
     x_off = int(math.ceil((-1 * self.northwest_ll[1] + point.location.lon) / self.latlong_diff[1] * 256. - len(cur_dot[0]) / 2))
-    # log.info("lat, lng  dist_lng, dist_lng  Y_off, X_off: (%6.4f, %6.4f) (%6.4f, %6.4f) (%4d, %4d)" % (point.location.lat, point.location.lon,
-    #                                                                                     (-1 * self.northwest_ll[0] + point.location.lat) / self.latlong_diff[0] * 256, (-1 * self.northwest_ll[1] + point.location.lon) / self.latlong_diff[1] * 256,
-    #                                                                                     y_off, x_off))
     return cur_dot, x_off, y_off
 
   def __create_empty_space(self):
