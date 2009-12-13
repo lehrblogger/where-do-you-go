@@ -12,7 +12,7 @@ log = logging.getLogger('space_level')
 
 rdm = Random()
 
-LEVEL_MAX = 450
+LEVEL_MAX = 350
 ZOOM_MAX = 20 # NOTE that this must also be in the static wdyg.js file
 DOT_MULT = 3
 
@@ -23,7 +23,7 @@ for i in range(LEVEL_MAX - 1, -1, -1):
 class BasicTile(object):
 
   def __init__(self, user, lat_north, lng_west, range_lat, range_lng):
-    self.color_scheme = color_scheme.sjl_fire#classic#cyan_red
+    self.color_scheme = color_scheme.pgaitch
 
     if not globalvars.provider:
       globalvars.provider = provider.DBProvider()
@@ -54,8 +54,10 @@ class BasicTile(object):
         space_level[y][x] += dot_level
 
   def scale_value(self, value):
-    ret_float = math.log(max((value + 50) / 50, 1), 1.01) + 30
+    #ret_float = math.log(max((value + 50) / 50, 1), 1.01) + 30
     #ret_float = math.log(max((value + 30) / 40, 1), 1.01) + 30
+    #ret_float = math.log(max((value + 40) / 20, 1), 1.01)
+    ret_float = math.log(max(value, 1), 1.1) * 4
     return int(ret_float)
 
   max = 0
