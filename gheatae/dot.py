@@ -1,13 +1,12 @@
 import math
 import logging
 
-MAX_ZOOM = 20 # NOTE that this must also be in the static wdyg.js file
+ZOOM_MAX = 20 # NOTE that this must also be in the static wdyg.js file
 
 def createDot(rad, max_alpha = 100):
   level = []
   for i in range(int(rad * 2)):
     level.append([0.] * int(rad * 2))
-  #level = [ [0., ] * int(rad * 2) ] * int(rad * 2)
   try:
     for y in range(0, int(rad * 2)):
       for x in range(0, int(rad * 2)):
@@ -24,6 +23,6 @@ def createDot(rad, max_alpha = 100):
   return level
 
 dot = []
-for i in range(1, MAX_ZOOM + 1):
-  logging.warning(i)
+for i in range(1, ZOOM_MAX + 1):
+  #logging.warning(i)
   dot.append(createDot(3 * i))

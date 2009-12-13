@@ -1,6 +1,6 @@
 import globalvars
-from gheatae import color_scheme, dot, provider
-from gheatae.dot import dot
+from gheatae import color_scheme, provider#, dot
+#from gheatae.dot import dot
 from pngcanvas import PNGCanvas
 from random import random, Random
 import logging
@@ -13,6 +13,8 @@ log = logging.getLogger('space_level')
 rdm = Random()
 
 LEVEL_MAX = 450
+ZOOM_MAX = 20 # NOTE that this must also be in the static wdyg.js file
+DOT_MULT = 3
 
 cache_levels = []
 for i in range(LEVEL_MAX - 1, -1, -1):
@@ -21,7 +23,7 @@ for i in range(LEVEL_MAX - 1, -1, -1):
 class BasicTile(object):
 
   def __init__(self, user, lat_north, lng_west, range_lat, range_lng):
-    self.color_scheme = color_scheme.sjl_classic#classic#cyan_red
+    self.color_scheme = color_scheme.fire#classic#cyan_red
 
     if not globalvars.provider:
       globalvars.provider = provider.DBProvider()
@@ -30,7 +32,6 @@ class BasicTile(object):
                             lat_north, lng_west,range_lat, range_lng))
 
   def plot_image(self, points):
-    logging.debug("len(points) is %d" % len(points))
     space_level = self.__create_empty_space()
     for point in points:
       self.__merge_point_in_space(space_level, point)
@@ -47,16 +48,17 @@ class BasicTile(object):
       for x in range(x_off, x_off + len(dot_levels[0])):
         if x < 0 or x >= len(space_level[0]):
           continue
-        dot_level = dot_levels[y_off - y][x_off - x] * len(point.checkin_list)
+        dot_level = dot_levels[y_off - y][x_off - x]
         if dot_level <= 0.:
           continue
         space_level[y][x] += dot_level
 
   def scale_value(self, value):
-    #ret_float = math.log(max((value + 50) / 50, 1), 1.01) + 30
-    ret_float = math.log(max((value + 30) / 40, 1), 1.01) + 30
+    ret_float = math.log(max((value + 50) / 50, 1), 1.01) + 30
+    #ret_float = math.log(max((value + 30) / 40, 1), 1.01) + 30
     return int(ret_float)
 
+  max = 0
   def convert_image(self, space_level):
     tile = PNGCanvas(len(space_level[0]), len(space_level), bgcolor=[0xff,0xff,0xff,0])
     color_scheme = []
@@ -64,12 +66,35 @@ class BasicTile(object):
       color_scheme.append(self.color_scheme.canvas[cache_levels[i]][0])
     for y in xrange(len(space_level[0])):
       for x in xrange(len(space_level[0])):
+        if self.scale_value(space_level[y][x]) > self.max:
+          self.max = self.scale_value(space_level[y][x])
+          logging.warning(self.max)
         tile.canvas[y][x] = color_scheme[min(len(color_scheme) - 1, self.scale_value(space_level[y][x]))]
 
     return tile
 
+  def calc_point(self, rad, pt_rad, weight):
+    max_alpha = 100
+    fraction = (rad - pt_rad) / rad
+    #return max_alpha * math.pow(fraction, math.pow(weight, fraction)) * weight
+    return max_alpha * math.pow(fraction, math.pow(weight, 0.25)) * weight
+
   def get_dot(self, point):
-    cur_dot = dot[self.zoom]
+    #cur_dot = dot[self.zoom]
+    cur_dot = []
+    rad = int(self.zoom * DOT_MULT)
+    for i in range(int(rad * 2)):
+      cur_dot.append([0.] * int(rad * 2))
+    for y in range(0, int(rad * 2)):
+      for x in range(0, int(rad * 2)):
+        y_adj = math.pow((y - rad), 2) # * len(point.checkin_list)
+        x_adj = math.pow((x - rad), 2) # * len(point.checkin_list)
+        pt_rad = math.sqrt(y_adj + x_adj)
+        temp_rad = rad  #* len(point.checkin_list)
+        if pt_rad > temp_rad:
+          cur_dot[y][x] = 0.
+          continue
+        cur_dot[y][x] = self.calc_point(rad, pt_rad, len(point.checkin_list))
     y_off = int(math.ceil((-1 * self.northwest_ll[0] + point.location.lat) / self.latlong_diff[0] * 256. - len(cur_dot) / 2))
     x_off = int(math.ceil((-1 * self.northwest_ll[1] + point.location.lon) / self.latlong_diff[1] * 256. - len(cur_dot[0]) / 2))
     return cur_dot, x_off, y_off
@@ -93,7 +118,8 @@ class CustomTile(BasicTile):
   def __init__(self, user, zoom, lat_north, lng_west, offset_x_px, offset_y_px):
     self.zoom = zoom
     self.decay = 0.5
-    dot_radius = int(math.ceil(len(dot[self.zoom]) / 2))
+    #dot_radius = int(math.ceil(len(dot[self.zoom]) / 2))
+    dot_radius = int(math.ceil((self.zoom + 1) * DOT_MULT)) #TODO double check that this is + 1 - because range started from 1 in old dot array?!
 
     # convert to pixel first so we can factor in the dot radius and get the tile bounds
     northwest_px = gmerc.ll2px(lat_north, lng_west, zoom)
@@ -115,7 +141,8 @@ class GoogleTile(BasicTile):
     self.layer = layer
     self.zoom = zoom
     self.decay = 0.5
-    dot_radius = int(math.ceil(len(dot[self.zoom]) / 2))
+    #dot_radius = int(math.ceil(len(dot[self.zoom]) / 2))
+    dot_radius = int(math.ceil((self.zoom + 1) * DOT_MULT))
 
     self.northwest_ll_buffered = gmerc.px2ll((x_tile    ) * 256 - dot_radius, (y_tile    ) * 256 - dot_radius, zoom)
     self.northwest_ll          = gmerc.px2ll((x_tile    ) * 256             , (y_tile    ) * 256             , zoom)

@@ -13,7 +13,7 @@ from google.appengine.api import images
 
 from scripts import fetch_foursquare_data
 import oauth
-from gheatae import consts, color_scheme, dot, tile, provider
+from gheatae import consts, color_scheme, tile, provider#, dot
 from os import environ
 from models import UserInfo, UserVenue, MapImage
 

@@ -10,9 +10,9 @@ def fetch_and_store_checkins(user):
   userinfo = UserInfo.all().filter('user =', user).get()
   if userinfo.last_checkin:
     logging.warning("userinfo.last_checkin = " + str(userinfo.last_checkin))
-    params = {'l':100, 'sinceid':userinfo.last_checkin}
+    params = {'l':250, 'sinceid':userinfo.last_checkin}
   else:
-    params = {'l':100}
+    params = {'l':250}
   response = globalvars.client.make_request("http://api.foursquare.com/v1/history.json",
                                             token = userinfo.token,
                                             secret = userinfo.secret,
