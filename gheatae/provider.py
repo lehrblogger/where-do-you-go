@@ -1,6 +1,6 @@
 from geo import geotypes
 from gheatae import consts
-from models import Checkin
+from models import UserVenue
 from google.appengine.api.datastore_types import GeoPt
 import logging
 
@@ -21,7 +21,7 @@ class DBProvider(Provider):
       # log.info("Range: (%6.4f - %6.4f), (%6.4f - %6.4f)" % (min(90, max(-90, lat_north + range_lat)), lat_north, min(180, max(-180, lng_west + range_lng)), lng_west))
 
       if user:
-        return Checkin.bounding_box_fetch(Checkin.all().filter('user =', user).order('-created'), #TODO find a way to specify this elsewhere!!
+        return UserVenue.bounding_box_fetch(UserVenue.all().filter('user =', user), #TODO find a way to specify this elsewhere!!
           geotypes.Box(min(90, max(-90, lat_north + range_lat)),
               min(180, max(-180, lng_west + range_lng)),
               lat_north,
@@ -31,14 +31,10 @@ class DBProvider(Provider):
         return []
 
     def get_all_data(self, user=None, lat_north=90, lng_west=-180, range_lat=-180, range_lng=360, max_results=1000):
-      if user: Checkin.bounding_box_fetch(Checkin.all().filter('user =', user),
-        geotypes.Box(min(90, max(-90, lat_north + range_lat)),
-            min(180, max(-180, lng_west + range_lng)),
-            lat_north,
-            lng_west),
-        max_results, )
+      if user:
+        self.get_user_data(user, lat_north, lng_west, range_lat, range_lng, max_results)
       else:
-        return Checkin.bounding_box_fetch(Checkin.all(),
+        return UserVenue.bounding_box_fetch(UserVenue.all(),
           geotypes.Box(min(90, max(-90, lat_north + range_lat)),
               min(180, max(-180, lng_west + range_lng)),
               lat_north,

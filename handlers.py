@@ -15,7 +15,7 @@ from scripts import fetch_foursquare_data
 import oauth
 from gheatae import consts, color_scheme, dot, tile, provider
 from os import environ
-from models import AccessToken, Venue, Checkin, MapImage
+from models import UserInfo, UserVenue, MapImage
 
 from google.appengine.api import urlfetch
 import urllib
@@ -30,23 +30,24 @@ class IndexHandler(webapp.RequestHandler):
 
     user = users.get_current_user()
     if user:
-      retrieved_token = AccessToken.all().filter('owner =', user).order('-created').get()
+      userinfo = UserInfo.all().filter('user =', user).order('-created').get()
       url = users.create_logout_url(self.request.uri)
       url_linktext = 'Logout'
-      while (len(Checkin.all().fetch(1000, num_checkins)) > 0):
-        num_checkins = num_checkins + len(Checkin.all().fetch(1000, num_checkins))
+      uservenues = UserVenue.all().filter('user =', user).fetch(1000)
+      for uservenue in uservenues:
+        num_checkins = num_checkins + len(uservenue.checkin_list)
 
     page_data = {
       'key': globalvars.google_maps_apikey,
       'user': user,
-      'auth_ready': retrieved_token,
+      'auth_ready': userinfo,
       'num_checkins': num_checkins,
       'url': url,
       'url_linktext': url_linktext,
       }
 
-    if retrieved_token:
-      user_latlong = fetch_foursquare_data.fetch_user_latlong(user, retrieved_token)
+    if userinfo:
+      user_latlong = fetch_foursquare_data.fetch_user_latlong(userinfo)
     else:
       user_latlong = (40.728397037445006, -73.99429321289062)
     map_data = {
@@ -60,7 +61,7 @@ class IndexHandler(webapp.RequestHandler):
 
     os_path = os.path.dirname(__file__)
     self.response.out.write(template.render(os.path.join(os_path, 'templates/index_header.html'), page_data))
-    if user and retrieved_token:
+    if user and userinfo:
         self.response.out.write(template.render(os.path.join(os_path, 'templates/map_user.html'), map_data))
     else:
         self.response.out.write(template.render(os.path.join(os_path, 'templates/map_none.html'), map_data))
@@ -75,10 +76,10 @@ class AuthHandler(webapp.RequestHandler):
       auth_token = self.request.get("oauth_token")
       if auth_token:
         credentials= globalvars.client.get_credentials(auth_token)
-        new_token = AccessToken(owner = user, token = credentials['token'], secret = credentials['secret'])
-        new_token.put()
+        new_userinfo = UserInfo(user = user, token = credentials['token'], secret = credentials['secret'])
+        new_userinfo.put()
 
-        fetch_foursquare_data.fetch_and_store_n_recent_checkins_for_token(new_token, 250)
+        fetch_foursquare_data.fetch_and_store_checkins(user)
 
         self.redirect("/")
       else:
@@ -94,7 +95,7 @@ class StaticMapHandler(webapp.RequestHandler):
       raw = path[:-4] # strip extension
       try:
         assert raw.count('/') == 2, "%d /'s" % raw.count('/')
-        foo, bar, userid = raw.split('/')
+        foo, bar, user_id = raw.split('/')
       except AssertionError, err:
         logging.error(err.args[0])
         return
@@ -102,12 +103,12 @@ class StaticMapHandler(webapp.RequestHandler):
       logging.error("Invalid path: " + path)
       return
 
-    mapimage = MapImage.all().filter('userid =', userid).get()
+    mapimage = MapImage.all().filter('user_id =', user_id).get()
     if mapimage:
       self.response.headers['Content-Type'] = 'image/png'
       self.response.out.write(mapimage.img)
     else:
-      logging.info("No image for " + userid)
+      logging.info("No image for " + user_id)
 
 class TileHandler(webapp.RequestHandler):
   def get(self):
@@ -157,13 +158,13 @@ class TileHandler(webapp.RequestHandler):
       self.response.out.write(img_data)
       # logging.info("Start-End: %2.2f" % (time.clock() - st))
 
-class CheckinWriter(webapp.RequestHandler):
+class UserVenueWriter(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
     if user:
-      template_data = { 'checkins': globalvars.provider.get_user_data(user=user)}
+      template_data = { 'uservenues': globalvars.provider.get_user_data(user=user)}
       os_path = os.path.dirname(__file__)
-      self.response.out.write(template.render(os.path.join(os_path, 'templates/checkin_list.html'), template_data))
+      self.response.out.write(template.render(os.path.join(os_path, 'templates/uservenue_list.html'), template_data))
 
 class StaticMapHtmlWriter(webapp.RequestHandler):
   def get(self):
@@ -183,7 +184,7 @@ def main():
                                         ('/tile/.*', TileHandler),
                                         ('/map/.*', StaticMapHandler),
                                         ('/static_map_html', StaticMapHtmlWriter),
-                                        ('/view_checkins', CheckinWriter)],
+                                        ('/view_uservenues', UserVenueWriter)],
                                       debug=True)
 
   globalvars.client = oauth.FoursquareClient(globalvars.consumer_key, globalvars.consumer_secret, globalvars.callback_url)

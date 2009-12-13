@@ -47,14 +47,14 @@ class BasicTile(object):
       for x in range(x_off, x_off + len(dot_levels[0])):
         if x < 0 or x >= len(space_level[0]):
           continue
-        dot_level = dot_levels[y_off - y][x_off - x]
+        dot_level = dot_levels[y_off - y][x_off - x] * len(point.checkin_list)
         if dot_level <= 0.:
           continue
         space_level[y][x] += dot_level
 
-  def scale_space_level(self, space_level, x, y):
-    #ret_float = math.log(max((space_level[y][x] + 50) / 50, 1), 1.01) + 30
-    ret_float = math.log(max((space_level[y][x] + 30) / 40, 1), 1.01) + 30
+  def scale_value(self, value):
+    #ret_float = math.log(max((value + 50) / 50, 1), 1.01) + 30
+    ret_float = math.log(max((value + 30) / 40, 1), 1.01) + 30
     return int(ret_float)
 
   def convert_image(self, space_level):
@@ -64,7 +64,7 @@ class BasicTile(object):
       color_scheme.append(self.color_scheme.canvas[cache_levels[i]][0])
     for y in xrange(len(space_level[0])):
       for x in xrange(len(space_level[0])):
-        tile.canvas[y][x] = color_scheme[min(len(color_scheme) - 1, self.scale_space_level(space_level, x, y))]
+        tile.canvas[y][x] = color_scheme[min(len(color_scheme) - 1, self.scale_value(space_level[y][x]))]
 
     return tile
 

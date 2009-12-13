@@ -1,11 +1,11 @@
 indexes:
-- kind: AccessToken
+- kind: UserInfo
   properties:
-  - name: owner
+  - name: user
   - name: created
     direction: desc
 
-- kind: Checkin
+- kind: UserVenue
   properties:
   - name: location_geocells
   - name: user

@@ -61,7 +61,7 @@ def create_map_file(user, path=''):
 
   mapimage            = MapImage()
   mapimage.user       = user
-  mapimage.userid     = user.user_id()
+  mapimage.user_id     = user.user_id()
   mapimage.cityid     = 42 # Hard coded to NYC for now
   mapimage.centerlat  = float(centerlat)
   mapimage.centerlong = float(centerlong)
