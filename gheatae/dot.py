@@ -33,4 +33,4 @@ def createDot(rad, max_alpha = 100):
 
 dot = []
 for i in range(1, 31):
-  dot.append(createDot(1.5 * i))
+  dot.append(createDot(2 * i))

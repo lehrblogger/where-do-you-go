@@ -13,7 +13,7 @@ from google.appengine.api import images
 
 from scripts import fetch_foursquare_data
 import oauth
-from gheatae import consts, color_scheme, dot, tile, cache, provider
+from gheatae import consts, color_scheme, dot, tile, provider
 from os import environ
 from models import AccessToken, Venue, Checkin, MapImage
 
@@ -35,7 +35,7 @@ class IndexHandler(webapp.RequestHandler):
       url_linktext = 'Logout'
       while (len(Checkin.all().fetch(1000, num_checkins)) > 0):
         num_checkins = num_checkins + len(Checkin.all().fetch(1000, num_checkins))
-      
+
     page_data = {
       'key': globalvars.google_maps_apikey,
       'user': user,
@@ -44,7 +44,7 @@ class IndexHandler(webapp.RequestHandler):
       'url': url,
       'url_linktext': url_linktext,
       }
-    
+
     if retrieved_token:
       user_latlong = fetch_foursquare_data.fetch_user_latlong(user, retrieved_token)
     else:

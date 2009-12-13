@@ -1,4 +1,4 @@
-i   mport globalvars
+import globalvars
 from gheatae import color_scheme, dot, provider
 from gheatae.dot import dot
 from pngcanvas import PNGCanvas
@@ -14,7 +14,6 @@ rdm = Random()
 
 LEVEL_MAX = 450
 
-cache = None
 cache_levels = []
 for i in range(LEVEL_MAX - 1, -1, -1):
   cache_levels.append(int(((-(pow(float(i) - LEVEL_MAX, 2))/LEVEL_MAX) + LEVEL_MAX) / LEVEL_MAX * 255))
@@ -103,19 +102,9 @@ class BasicTile(object):
       space.append( [0.] * 256 )
     return space
 
-  # def __get_cached_image(self):
-  #   if cache.is_available(self.layer, self.x, self.y):
-  #     return cache.get_image(self.layer, self.x, self.y)
-  #   return None
-  #
-  # def __cache_image(self, tile_dump):
-  #   return cache.store_image(self.layer, self.x, self.y, tile_dump)
-
   def image_out(self):
     if self.tile_img:
       self.tile_dump = self.tile_img.dump()
-      # attempt to cache this
-      # self.__cache_image(self.tile_dump)
 
     if self.tile_dump:
       return self.tile_dump
@@ -149,9 +138,6 @@ class GoogleTile(BasicTile):
     self.zoom = zoom
     self.decay = 0.5
     dot_radius = int(math.ceil(len(dot[self.zoom]) / 2))
-
-    # attempt to get a cached object
-    #self.tile_dump = self.__get_cached_image()
 
     self.northwest_ll_buffered = gmerc.px2ll((x_tile    ) * 256 - dot_radius, (y_tile    ) * 256 - dot_radius, zoom)
     self.northwest_ll          = gmerc.px2ll((x_tile    ) * 256             , (y_tile    ) * 256             , zoom)
