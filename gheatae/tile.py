@@ -23,7 +23,7 @@ for i in range(LEVEL_MAX - 1, -1, -1):
 class BasicTile(object):
 
   def __init__(self, user, lat_north, lng_west, range_lat, range_lng):
-    self.color_scheme = color_scheme.fire#classic#cyan_red
+    self.color_scheme = color_scheme.sjl_fire#classic#cyan_red
 
     if not globalvars.provider:
       globalvars.provider = provider.DBProvider()
