@@ -1,6 +1,6 @@
 cron:
 - description: get most recent user checkins
-  url: /fetch_foursquare_data
+  url: /fetch_foursquare_data/update_everyone
   schedule: every 1 hours
 
 - description: update all the maps

@@ -11,6 +11,7 @@ class UserInfo(db.Model):
   user = db.UserProperty()
   last_checkin = db.IntegerProperty(default=0)
   color_scheme = db.StringProperty(default='fire')
+  level_max = db.IntegerProperty()
   checkin_count = db.IntegerProperty(default=0)
   venue_count = db.IntegerProperty(default=0)
   created = db.DateTimeProperty(auto_now_add=True)
