@@ -1,5 +1,4 @@
 from geo import geotypes
-from gheatae import consts
 from models import UserVenue
 from google.appengine.api.datastore_types import GeoPt
 import logging

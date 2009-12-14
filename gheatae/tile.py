@@ -1,33 +1,35 @@
 import globalvars
-from gheatae import color_scheme, provider#, dot
+from gheatae import color_scheme, provider
 #from gheatae.dot import dot
 from pngcanvas import PNGCanvas
 from random import random, Random
 import logging
 import gmerc
 import math
+from models import UserInfo
 
 from google.appengine.api import users
 log = logging.getLogger('space_level')
 
 rdm = Random()
 
-LEVEL_MAX = 350
-ZOOM_MAX = 20 # NOTE that this must also be in the static wdyg.js file
+LEVEL_CONST = 150.
 DOT_MULT = 3
 
-cache_levels = []
-for i in range(LEVEL_MAX - 1, -1, -1):
-  cache_levels.append(int(((-(pow(float(i) - LEVEL_MAX, 2))/LEVEL_MAX) + LEVEL_MAX) / LEVEL_MAX * 255))
-
 class BasicTile(object):
-
   def __init__(self, user, lat_north, lng_west, range_lat, range_lng):
-    self.color_scheme = color_scheme.pgaitch
+    userinfo = UserInfo.all().filter('user =', user).order('-created').get()
+    logging.info("checkin_count=%d  venue_count=%d  LEVEL_CONST=%d  self.level_max=%d" % (userinfo.checkin_count, userinfo.venue_count, LEVEL_CONST, float(userinfo.checkin_count) / float(userinfo.venue_count) * LEVEL_CONST))
+    self.level_max = float(userinfo.checkin_count) / float(userinfo.venue_count) * LEVEL_CONST
+
+    self.cache_levels = []
+    for i in range(self.level_max - 1, -1, -1):
+      self.cache_levels.append(int(((-(pow(float(i) - self.level_max, 2))/self.level_max) + self.level_max) / self.level_max * 255))
+
+    self.color_scheme = color_scheme.color_schemes[userinfo.color_scheme]
 
     if not globalvars.provider:
       globalvars.provider = provider.DBProvider()
-
     self.tile_img = self.plot_image(globalvars.provider.get_user_data(user, #self.layer,
                             lat_north, lng_west,range_lat, range_lng))
 
@@ -60,17 +62,13 @@ class BasicTile(object):
     ret_float = math.log(max(value, 1), 1.1) * 4
     return int(ret_float)
 
-  max = 0
   def convert_image(self, space_level):
     tile = PNGCanvas(len(space_level[0]), len(space_level), bgcolor=[0xff,0xff,0xff,0])
     color_scheme = []
-    for i in range(LEVEL_MAX):
-      color_scheme.append(self.color_scheme.canvas[cache_levels[i]][0])
+    for i in range(self.level_max):
+      color_scheme.append(self.color_scheme.canvas[self.cache_levels[i]][0])
     for y in xrange(len(space_level[0])):
       for x in xrange(len(space_level[0])):
-        if self.scale_value(space_level[y][x]) > self.max:
-          self.max = self.scale_value(space_level[y][x])
-          logging.warning(self.max)
         tile.canvas[y][x] = color_scheme[min(len(color_scheme) - 1, self.scale_value(space_level[y][x]))]
 
     return tile
@@ -139,8 +137,7 @@ class CustomTile(BasicTile):
 
 
 class GoogleTile(BasicTile):
-  def __init__(self, user, layer, zoom, x_tile, y_tile):
-    self.layer = layer
+  def __init__(self, user, zoom, x_tile, y_tile):
     self.zoom = zoom
     self.decay = 0.5
     #dot_radius = int(math.ceil(len(dot[self.zoom]) / 2))

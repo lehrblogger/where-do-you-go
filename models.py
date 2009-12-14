@@ -10,6 +10,9 @@ class AuthToken(db.Model):
 class UserInfo(db.Model):
   user = db.UserProperty()
   last_checkin = db.IntegerProperty()
+  color_scheme = db.StringProperty(default='fire')
+  checkin_count = db.IntegerProperty(default=0)
+  venue_count = db.IntegerProperty(default=0)
   created = db.DateTimeProperty(auto_now_add=True)
   token = db.StringProperty()
   secret = db.StringProperty()

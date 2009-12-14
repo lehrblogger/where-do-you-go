@@ -1,18 +1,18 @@
 var map;
 
-function addHeatMap(map) {
+function createHeatMap(map) {
   // Set up the copyright information. Each image used should indicate its copyright permissions
   var myCopyright = new GCopyrightCollection("© ");
   myCopyright.addCopyright(new GCopyright('lala', new GLatLngBounds(new GLatLng(-90,-180), new GLatLng(90,180)), 0,'la la la'));
 
   // Create the tile layer overlay and implement the three abstract methods
   var tilelayer = new GTileLayer(myCopyright);
-  tilelayer.getTileUrl = function(point, zoom) { return "tile/classic/" + zoom + "/" + point.y + "," + point.x +".png"; };
+  tilelayer.getTileUrl = function(point, zoom) { return "tile/" + zoom + "/" + point.y + "," + point.x +".png"; };
   tilelayer.isPng = function() { return true; };
   tilelayer.getOpacity = function() { return 1.0; };
 
-  var myTileLayer = new GTileLayerOverlay(tilelayer);
-  map.addOverlay(myTileLayer);
+  var tilelayeroverlay = new GTileLayerOverlay(tilelayer);
+  map.addOverlay(tilelayeroverlay);
 }
 
 $(document).ready(function() {
@@ -36,7 +36,7 @@ $(document).ready(function() {
     customUI.controls.scalecontrol   = false;
     map.setUI(customUI);
 
-    addHeatMap(map);
+    createHeatMap(map);
   }
 
   var orig_delete_string = $('#delete_link').html();
@@ -51,16 +51,37 @@ $(document).ready(function() {
     return false;
   });
 
+
+  $("#color_menu form select").change(function() {
+    map.clearOverlays();
+    $.get("/update_user_color/" + $("#color_menu form select").val(), function(){
+      createHeatMap(map);
+      return false;
+    });
+    return false;
+  });
+
+
   $('#submit_btn').click(function() { // http://net.tutsplus.com/tutorials/javascript-ajax/submit-a-form-without-page-refresh-using-jquery/
     $('.error').hide();
-    var width = $("input#width").val();
-    if ((0 >= parseInt(width)) || (640 < parseInt(width))) {
+
+    var isInt = function(n){
+        var reInt = new RegExp(/^-?\d+$/);
+        if (!reInt.test(n)) {
+            return false;
+        }
+        return true;
+    }
+
+    var width = parseInt($("input#width").val());
+    if (isNaN(width) || (0 >= width) || (640 < width)) {
       $("label#width_error").show();
       $("input#width").focus();
       return false;
     }
-    var height = $("input#height").val();
-    if ((0 >= parseInt(height)) || (640 < parseInt(height))) {
+
+    var height = parseInt($("input#height").val());
+    if (isNaN(height) || (0 >= height) || (640 < height)) {
       $("label#height_error").show();
       $("input#height").focus();
       return false;

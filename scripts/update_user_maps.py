@@ -54,23 +54,23 @@ def create_map_file(user, path=''):
     'format':'png',
   }
 
-  mapimages = MapImage.all().filter('user =', user).fetch(500)
-  db.delete(mapimages)
+
+
+  mapimage = MapImage.all().filter('user =', user).get()
+  if not mapimage:
+    mapimage            = MapImage()
+    mapimage.user       = user
+    mapimage.user_id    = user.user_id()
+    mapimage.centerlat  = float(centerlat)
+    mapimage.centerlong = float(centerlong)
+    mapimage.northlat   = float(northlat)
+    mapimage.westlong   = float(westlong)
+    mapimage.zoom       = int(zoom)
+    mapimage.height     = int(height)
+    mapimage.width      = int(width)
 
   img = update_map_image(user, google_data, int(width), int(height), float(northlat), float(westlong))
-
-  mapimage            = MapImage()
-  mapimage.user       = user
-  mapimage.user_id     = user.user_id()
-  mapimage.cityid     = 42 # Hard coded to NYC for now
-  mapimage.centerlat  = float(centerlat)
-  mapimage.centerlong = float(centerlong)
-  mapimage.northlat   = float(northlat)
-  mapimage.westlong   = float(westlong)
-  mapimage.zoom       = int(zoom)
-  mapimage.height     = int(height)
-  mapimage.width      = int(width)
-  mapimage.img        = db.Blob(img)
+  mapimage.img          = db.Blob(img)
   mapimage.put()
 
 

@@ -13,3 +13,5 @@ callback_url = " http://where-do-you-go.appspot.com/callback/foursquare"
 
 client = None
 provider = None
+
+max_zoom = 20 # NOTE that this must also be in the static wdyg.js file

@@ -20,8 +20,8 @@
 {% if user %}
           Welcome {{ user }}!<br />
           <div id="status_info">
-  {% if auth_ready %}
-            You have {{ num_checkins }} checkins stored<br/>
+  {% if userinfo %}
+            You have {{ userinfo.checkin_count }} checkins stored<br/>
             <a href="" id="delete_link">Delete your WDYG data</a><br/>
   {% else %}
             <a href="/go_to_foursquare">OAuth with Foursquare</a><br/>

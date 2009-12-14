@@ -11,19 +11,32 @@
     </div>
   </div>
   <div id="map_controls">
-
+    <div id="color_menu">
+      <form name="color_form" action="">
+        <fieldset>
+          <label for="color_options">color scheme: </label>
+          <select name="color_options">
+            {% for c in color_scheme_dict %}
+              {% ifequal c color_scheme %}
+                <option selected value="{{ c }}">{{ c }}</option>
+              {% else %}
+                <option value="{{ c }}">{{ c }}</option>
+              {% endifequal %}
+            {% endfor %}
+          </select>
+        </fieldset>
+      </form>
+    </div>
     <div id="size_form">
       <form name="size" action="">
         <fieldset>
-          <label for="width" id="width_label">Width (px)</label>
-          <input type="text" name="width" id="width" size="10" value="" class="text-input" />
-          <label class="error" for="width" id="width_error">The width must be between 0 and 640 pixels.</label>
+          map <label for="width" id="width_label">width</label> x <label for="height" id="height_label">height</label> (px)
+          <input type="text" name="width" id="width" size="10" value="640" class="text-input" />
+          <input type="text" name="height" id="height" size="10" value="640" class="text-input" />
+          <input type="submit" name="submit" class="button" id="submit_btn" value="update" />
           <br />
-          <label for="height" id="height_label">Height (px))</label>
-          <input type="text" name="height" id="height" size="10" value="" class="text-input" />
-          <label class="error" for="height" id="height_error">The height must be between 0 and 640 pixels.</label>
-          <br />
-          <input type="submit" name="submit" class="button" id="submit_btn" value="Update Map Dimensions" />
+          <label class="error" for="width" id="width_error">The width must be a number between 0 and 640 pixels.</label>
+          <label class="error" for="height" id="height_error">The height must be a number between 0 and 640 pixels.</label>
         </fieldset>
       </form>
     </div>

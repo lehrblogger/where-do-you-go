@@ -33,12 +33,12 @@ def loadScheme(name, steps=255):
   f.close()
   return img
 
-
-cyan_red    = createScheme()
-classic     = loadScheme("classic")
-fire        = loadScheme("fire")
-omg         = loadScheme("omg")
-pbj         = loadScheme("pbj")
-pgaitch     = loadScheme("pgaitch")
-sjl_classic = loadScheme("sjl_classic")
-sjl_pgaitch = loadScheme("sjl_pgaitch")
+color_schemes = {'cyan_red': createScheme(),
+                  'classic': loadScheme("classic"),
+                  'fire': loadScheme("fire"),
+                  'omg': loadScheme("omg"),
+                  'pbj': loadScheme("pbj"),
+                  'pgaitch': loadScheme("pgaitch"),
+                  'classic2': loadScheme("classic2"),
+                  'pgaitch2': loadScheme("pgaitch2")
+                }

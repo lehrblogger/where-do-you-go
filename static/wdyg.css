@@ -38,6 +38,9 @@
   padding: 1em;
 }
 
+fieldset {
+  border: none;
+}
 
 /*
 two column layout from http://css.maxdesign.com.au/floatutorial/tutorial0811.htm
