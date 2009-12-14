@@ -20,8 +20,8 @@
         </div>
         <div id="hello" class="span-4 last">
 {% if user %}
-          <strong>Hi, {{ user }}! </strong><br />
-          <a href="{{ url }}">{{ url_linktext }}</a><br/><br />
+          <strong>Hi, {{ user }}! </strong><br/>
+          <h4><a href="{{ url }}">{{ url_linktext }}</a></h4><br/>
           <div id="status_info">
   {% if userinfo %}
             {{ userinfo.checkin_count }} checkins logged<br/>
@@ -31,6 +31,6 @@
   {% endif %}
           </div>
 {% else %}
-          <a href="{{ url }}">{{ url_linktext }}</a><br/><br />
+          <h4><a href="{{ url }}">{{ url_linktext }}</a></h4><br/>
 {% endif %}
         </div>

@@ -2,6 +2,7 @@ import wsgiref.handlers
 from google.appengine.ext import webapp
 from google.appengine.api import users
 from google.appengine.ext import db
+from google.appengine.api.labs import taskqueue
 
 from django.utils import simplejson as json
 import os
@@ -64,7 +65,6 @@ class IndexHandler(webapp.RequestHandler):
         self.response.out.write(template.render(os.path.join(os_path, 'templates/map_none.html'), map_data))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/index_bottom.html'), None))
 
-
 class AuthHandler(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
@@ -77,6 +77,7 @@ class AuthHandler(webapp.RequestHandler):
         userinfo.put()
 
         fetch_foursquare_data.fetch_and_store_checkins(userinfo)
+        taskqueue.add(url='/fetch_foursquare_data/all_for_user/%s' % userinfo.key())#, queue_name='initial-checkin-fetching')
 
         self.redirect("/")
       else:

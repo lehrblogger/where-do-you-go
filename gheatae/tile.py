@@ -19,7 +19,6 @@ DOT_MULT = 3
 class BasicTile(object):
   def __init__(self, user, lat_north, lng_west, range_lat, range_lng):
     userinfo = UserInfo.all().filter('user =', user).order('-created').get()
-    logging.info("checkin_count=%d  venue_count=%d  LEVEL_CONST=%d  self.level_max=%d" % (userinfo.checkin_count, userinfo.venue_count, LEVEL_CONST, float(userinfo.checkin_count) / float(userinfo.venue_count) * LEVEL_CONST))
     self.level_max = int(float(userinfo.checkin_count) / float(userinfo.venue_count) * LEVEL_CONST)
 
     self.cache_levels = []

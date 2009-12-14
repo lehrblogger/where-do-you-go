@@ -60,7 +60,6 @@ def create_map_file(user, path=''):
   if not mapimage:
     mapimage            = MapImage()
     mapimage.user       = user
-    mapimage.user_id    = user.user_id()
     mapimage.centerlat  = float(centerlat)
     mapimage.centerlong = float(centerlong)
     mapimage.northlat   = float(northlat)

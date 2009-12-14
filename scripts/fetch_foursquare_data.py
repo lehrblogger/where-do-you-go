@@ -1,17 +1,18 @@
+from os import environ
 import globalvars
 import oauth
 from models import UserInfo, UserVenue
 from google.appengine.ext import db
+from google.appengine.api.labs import taskqueue
 from django.utils import simplejson as json
 from datetime import datetime, timedelta
 import logging
 
 def fetch_and_store_checkins(userinfo):
-  if userinfo.last_checkin:
-    logging.warning("userinfo.last_checkin = " + str(userinfo.last_checkin))
-    params = {'l':150, 'sinceid':userinfo.last_checkin}
-  else:
-    params = {'l':150}
+  num_added = 0
+  logging.warning("userinfo.last_checkin = " + str(userinfo.last_checkin))
+  params = {'l':50, 'sinceid':userinfo.last_checkin}
+
   response = globalvars.client.make_request("http://api.foursquare.com/v1/history.json",
                                             token = userinfo.token,
                                             secret = userinfo.secret,
@@ -48,8 +49,9 @@ def fetch_and_store_checkins(userinfo):
           uservenue.checkin_list.append(checkin['id'])
           uservenue.put()
           userinfo.checkin_count = userinfo.checkin_count + 1
-          userinfo.last_checkin = checkin['id']
+          if checkin['id'] > userinfo.last_checkin: userinfo.last_checkin = checkin['id'] # because the checkins are ordered with most recent first!
           userinfo.put()
+          num_added = num_added + 1
         else: # there's nothing we can do without a venue id or a lat and a long
           logging.info("Problematic j_venue: " + str(j_venue))
       else:
@@ -57,15 +59,24 @@ def fetch_and_store_checkins(userinfo):
   except KeyError:
     logging.error("There was a KeyError when processing the response: " + response.content)
     raise
+  return num_added
+
+def fetch_and_store_checkins_initial(userinfo):
+  if globalvars.client == None:
+    globalvars.client = oauth.FoursquareClient(globalvars.consumer_key, globalvars.consumer_secret, globalvars.callback_url)
+
+  if fetch_and_store_checkins(userinfo) > 0:
+    logging.info("checkins added so checkins might be remaining, add self to queue")
+    taskqueue.add(url='/fetch_foursquare_data/all_for_user/%s' % userinfo.key())#, queue_name='initial-checkin-fetching')
 
 def fetch_and_store_checkins_for_all():
-    userinfos = UserInfo.all().order('-created').fetch(1000)
-    for userinfo in userinfos:
-      # if userinfo.user in userinfos:
-      #   userinfo.delete() # delete extra older tokens for each user
-      # else:
-      #   user_list.append(userinfo.user)
-      fetch_and_store_checkins(userinfo)
+  userinfos = UserInfo.all().order('-created').fetch(1000)
+  for userinfo in userinfos:
+    # if userinfo.user in userinfos:
+    #   userinfo.delete() # delete extra older tokens for each user
+    # else:
+    #   user_list.append(userinfo.user)
+    fetch_and_store_checkins(userinfo)
 
 def fetch_user_latlong(userinfo):
   response = globalvars.client.make_request("http://api.foursquare.com/v1/user.json", token = userinfo.token, secret = userinfo.secret)
@@ -74,7 +85,17 @@ def fetch_user_latlong(userinfo):
   return (current_info['user']['city']['geolat'], current_info['user']['city']['geolong'])
 
 if __name__ == '__main__':
-  if globalvars.client == None:
-    globalvars.client = oauth.FoursquareClient(globalvars.consumer_key, globalvars.consumer_secret, globalvars.callback_url)
+  raw = environ['PATH_INFO']
+  assert raw.count('/') == 2 or raw.count('/') == 3, "%d /'s" % raw.count('/')
 
-  fetch_and_store_checkins_for_all()
+  if raw.count('/') == 2:
+    foo, bar, rest, = raw.split('/')
+  elif raw.count('/') == 3:
+    foo, bar, rest, userinfo_key = raw.split('/')
+
+  if rest == 'update_everyone':
+    fetch_and_store_checkins_for_all()
+  elif rest == 'all_for_user':
+    logging.warning("userinfo_key " + str(userinfo_key))
+    userinfo = db.get(userinfo_key)
+    fetch_and_store_checkins_initial(userinfo)

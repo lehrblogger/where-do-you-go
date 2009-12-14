@@ -9,7 +9,7 @@ class AuthToken(db.Model):
 
 class UserInfo(db.Model):
   user = db.UserProperty()
-  last_checkin = db.IntegerProperty()
+  last_checkin = db.IntegerProperty(default=0)
   color_scheme = db.StringProperty(default='fire')
   checkin_count = db.IntegerProperty(default=0)
   venue_count = db.IntegerProperty(default=0)
@@ -31,8 +31,7 @@ class UserVenue(GeoModel):
   phone = db.PhoneNumberProperty()
 
 class MapImage(db.Model):
-  user = db.UserProperty() # user_id and not a user so that it can be in the URL later on????
-  user_id = db.StringProperty() # TODO figure out how to query for UserPropertys by user_id
+  user = db.UserProperty()
   centerlat = db.FloatProperty()
   centerlong = db.FloatProperty()
   northlat = db.FloatProperty()

@@ -1,7 +1,7 @@
 cron:
-# - description: get most recent user checkins
-#   url: /fetch_foursquare_data
-#   schedule: every 1 hours
+- description: get most recent user checkins
+  url: /fetch_foursquare_data
+  schedule: every 1 hours
 
 - description: update all the maps
   url: /generate_static_map/all

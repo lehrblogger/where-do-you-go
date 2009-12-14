@@ -1,5 +1,5 @@
 application: where-do-you-go
-version: 3-0
+version: 4-2
 runtime: python
 api_version: 1
 
@@ -28,9 +28,14 @@ handlers:
   login: required
 
 
-- url: /fetch_foursquare_data
+- url: /fetch_foursquare_data/update_everyone
   script: scripts/fetch_foursquare_data.py
   login: admin
+
+- url: /fetch_foursquare_data/all_for_user/.*
+  script: scripts/fetch_foursquare_data.py
+  login: admin
+
 
 - url: /clear_authtokens
   script: scripts/clear_authtokens.py
