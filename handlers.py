@@ -57,12 +57,12 @@ class IndexHandler(webapp.RequestHandler):
     }
 
     os_path = os.path.dirname(__file__)
-    self.response.out.write(template.render(os.path.join(os_path, 'templates/index_header.html'), page_data))
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/index_top.html'), page_data))
     if user and userinfo:
         self.response.out.write(template.render(os.path.join(os_path, 'templates/map_user.html'), map_data))
     else:
         self.response.out.write(template.render(os.path.join(os_path, 'templates/map_none.html'), map_data))
-    self.response.out.write(template.render(os.path.join(os_path, 'templates/index_footer.html'), None))
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/index_bottom.html'), None))
 
 
 class AuthHandler(webapp.RequestHandler):
@@ -173,7 +173,7 @@ class StaticMapHtmlWriter(webapp.RequestHandler):
         os_path = os.path.dirname(__file__)
         self.response.out.write(template.render(os.path.join(os_path, 'templates/static_map.html'), template_data))
       else:
-        self.response.out.write("No map for the user %s" % user)
+        self.response.out.write("")
 
 def main():
   application = webapp.WSGIApplication([('/', IndexHandler),

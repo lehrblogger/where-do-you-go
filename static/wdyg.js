@@ -16,9 +16,13 @@ function createHeatMap(map) {
 }
 
 $(document).ready(function() {
-  $('.error').hide();
+  $('#dimension_error').hide();
+  $("#regenerate_status").hide();
   $.get("static_map_html", function(data){
-    $("#current_map").html(data);
+    if (data != "") {
+      $('#static_instructions').show();
+      $("#static_map").html(data);
+    }
     return false;
   });
 
@@ -41,10 +45,12 @@ $(document).ready(function() {
 
   var orig_delete_string = $('#delete_link').html();
   $('#delete_link').click(function() {
-    $('#delete_link').html("Deleting data... please wait.");
+    $('#delete_link').html("<img src='static/spinner-small.gif'/> deleting your data...");
     $.get("/delete_data/user", function(){
       map.clearOverlays();
-      $("#current_map").html("");
+      $("#options").html("");
+      $("#regenerate").html("");
+      $("#static_map").html("");
       $('#status_info').html('<a href="/go_to_foursquare">OAuth with Foursquare</a><br/>');
       return false;
     });
@@ -52,9 +58,9 @@ $(document).ready(function() {
   });
 
 
-  $("#color_menu form select").change(function() {
+  $("#color_form select").change(function() {
     map.clearOverlays();
-    $.get("/update_user_color/" + $("#color_menu form select").val(), function(){
+    $.get("/update_user_color/" + $("#color_form select").val(), function(){
       createHeatMap(map);
       return false;
     });
@@ -62,27 +68,19 @@ $(document).ready(function() {
   });
 
 
-  $('#submit_btn').click(function() { // http://net.tutsplus.com/tutorials/javascript-ajax/submit-a-form-without-page-refresh-using-jquery/
-    $('.error').hide();
-
-    var isInt = function(n){
-        var reInt = new RegExp(/^-?\d+$/);
-        if (!reInt.test(n)) {
-            return false;
-        }
-        return true;
-    }
+  $('#size_button').click(function() { // http://net.tutsplus.com/tutorials/javascript-ajax/submit-a-form-without-page-refresh-using-jquery/
+    $('#dimension_error').hide();
 
     var width = parseInt($("input#width").val());
     if (isNaN(width) || (0 >= width) || (640 < width)) {
-      $("label#width_error").show();
+      $("label#dimension_error").show();
       $("input#width").focus();
       return false;
     }
 
     var height = parseInt($("input#height").val());
     if (isNaN(height) || (0 >= height) || (640 < height)) {
-      $("label#height_error").show();
+      $("label#dimension_error").show();
       $("input#height").focus();
       return false;
     }
@@ -95,7 +93,7 @@ $(document).ready(function() {
     return false;
   });
 
-  $('#generate_map').click(function() {
+  $('#regenerate a').click(function() {
     var bounds = map.getBounds();
     var north = bounds.getNorthEast().lat();
     var west = bounds.getSouthWest().lng();
@@ -107,9 +105,13 @@ $(document).ready(function() {
     var zoom = map.getZoom();
     var size = map.getSize();
 
+    $("#regenerate_link").hide();
+    $("#regenerate_status").show();
     $.get("generate_static_map/" + size.width + "x" + size.height + "/" + zoom + "/" + center_lat + "," + center_long + "/" + north + "," + west, function() {
       $.get("static_map_html", function(data){
-        $("#current_map").html(data);
+        $("#static_map").html(data);
+        $("#regenerate_link").show()
+        $("#regenerate_status").hide();
         return false;
       });
       return false;

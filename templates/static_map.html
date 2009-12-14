@@ -1,7 +1,14 @@
-<br />
-<br />
-<h3>You can now embed your static map image anywhere!</h3>
-<a href="{{ map_relative_url }}">
-  http://where-do-you-go.appspot.com/{{ map_relative_url }}<br/>
-</a>
-<img src="http://where-do-you-go.appspot.com/{{ map_relative_url }}">
+<div id="first_instruction" class="span-8">
+  <p>That link over there ------------------------------------------></p>
+</div >
+<div id="static_map_url" class="span-16 last">
+  <p><a href="{{ map_relative_url }}">http://where-do-you-go.appspot.com/{{ map_relative_url }}</a></p>
+</div>
+<div id="first_instruction" class="span-8">
+  <p>is intended for use <strong>anywhere</strong> on the internet where you might want to display a map of the places you tend to go. Use it as the source of an &#60;img src=""/&#62; HTML tag on your homepage or blog, and watch it update in the background as you check in to new places.</p>
+  <p>To change the color scheme, zoom level, size, or center location just modify the map above and click to regenerate your static map image.</p>
+  <p>(Note that I hope to let each user have multiple maps in the future (in case someone spends a lot of time in two different cities, for example), but for now just OAauth into the same Foursquare account with a second Google account.)</p>
+</div >
+<div id="static_map_url" class="span-16 last">
+  <img src="http://where-do-you-go.appspot.com/{{ map_relative_url }}"/>
+</div>

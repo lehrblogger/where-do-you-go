@@ -1,48 +1,31 @@
-#header, #js_map {
-  width: 95%;
-  margin: 10px auto;
+#size_form {
+  padding-top: 1em;
 }
-#header-left, #map_container {
-  float: left;
-  width: 670px;
+#first_instruction, #static_map_url  {
+    padding-top: 2em;
+}
+.container, .regenerate, #options, #static_map {
+    padding-top: 3em;
+}
+#options, #regenerate, #privacy_note, #about {
+  padding-top: 5em;
+}
+
+fieldset {
+  border: none;
   margin: 0;
-  padding: 1em 1em 1em 0;
+  padding: 0;
 }
+
 #map_bounds {
   background-color: #cdcdcd;
   width: 640px;
   height: 640px;
 }
-#auth_controls, #map_controls {
-  margin-left: 670px;
-  padding: 2.5em 0 1em 1em;
-}
 
-#video {
-  float: left;
+#regenerate {
+  text-align: right;
 }
-#title {
-  margin-left: 200px;
-  padding: 1em;
+#regenerate_link a {
+  text-decoration: none;
 }
-
-#footer {
-  width: 95%;
-  clear: both;
-  padding: 0 0 0 2em;
-}
-
-#about {
-  width: 95%;
-  clear: both;
-  padding: 1em;
-}
-
-fieldset {
-  border: none;
-}
-
-/*
-two column layout from http://css.maxdesign.com.au/floatutorial/tutorial0811.htm
-for later: http://www.maxdesign.com.au/presentation/center/
-*/
