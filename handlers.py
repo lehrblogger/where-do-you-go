@@ -119,7 +119,7 @@ class TileHandler(webapp.RequestHandler):
         raw = path[:-4] # strip extension
         try:
           assert raw.count('/') == 4, "%d /'s" % raw.count('/')
-          foo, bar, tile, zoom, yx = raw.split('/') #tile is ignored, is just here to prevent caching
+          foo, bar, layer, zoom, yx = raw.split('/') #tile is ignored, is just here to prevent caching
           # assert color_scheme in color_schemes, ("bad color_scheme: "
           #                                       + color_scheme
           #                                        )

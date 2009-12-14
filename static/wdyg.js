@@ -15,6 +15,14 @@ function createHeatMap(map) {
   map.addOverlay(tilelayeroverlay);
 }
 
+function resizeMapToWidthHeight(width, height) {
+  var style_str = $("#map_canvas").attr('style');
+  style_str = style_str.replace(/width: (\d+)px/, 'width: ' + width + 'px');
+  style_str = style_str.replace(/height: (\d+)px/, 'height: ' + height + 'px');
+  $("#map_canvas").attr('style', style_str);
+  map.checkResize();
+}
+
 $(document).ready(function() {
   $('#dimension_error').hide();
   $("#regenerate_status").hide();
@@ -49,6 +57,7 @@ $(document).ready(function() {
       map.clearOverlays();
       $("#options").html("");
       $("#regenerate").html("");
+      resizeMapToWidthHeight(640, 640);
       $("#static_map").html("");
       $('#status_info').html('<a href="/go_to_foursquare">OAuth with Foursquare</a><br/>');
       return false;
@@ -84,11 +93,7 @@ $(document).ready(function() {
       return false;
     }
 
-    var style_str = $("#map_canvas").attr('style');
-    style_str = style_str.replace(/width: (\d+)px/, 'width: ' + width + 'px');
-    style_str = style_str.replace(/height: (\d+)px/, 'height: ' + height + 'px');
-    $("#map_canvas").attr('style', style_str);
-    map.checkResize();
+    resizeMapToWidthHeight(width, height);
     return false;
   });
 
