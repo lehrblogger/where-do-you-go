@@ -118,8 +118,8 @@ class TileHandler(webapp.RequestHandler):
       if path.endswith('.png'):
         raw = path[:-4] # strip extension
         try:
-          assert raw.count('/') == 3, "%d /'s" % raw.count('/')
-          foo, bar, zoom, yx = raw.split('/')
+          assert raw.count('/') == 4, "%d /'s" % raw.count('/')
+          foo, bar, tile, zoom, yx = raw.split('/') #tile is ignored, is just here to prevent caching
           # assert color_scheme in color_schemes, ("bad color_scheme: "
           #                                       + color_scheme
           #                                        )

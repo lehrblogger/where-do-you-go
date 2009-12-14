@@ -25,7 +25,7 @@
           <div id="status_info">
   {% if userinfo %}
             {{ userinfo.checkin_count }} checkins stored<br/>
-            <a href="/" id="delete_link">Delete your WDYG data</a><br/>
+            <div id="delete_link"><a href="/">Delete your WDYG data</a></div><br/>
   {% else %}
             <a href="/go_to_foursquare">OAuth with Foursquare</a><br/>
   {% endif %}

@@ -7,7 +7,7 @@ function createHeatMap(map) {
 
   // Create the tile layer overlay and implement the three abstract methods
   var tilelayer = new GTileLayer(myCopyright);
-  tilelayer.getTileUrl = function(point, zoom) { return "tile/" + zoom + "/" + point.y + "," + point.x +".png"; };
+  tilelayer.getTileUrl = function(point, zoom) { return "tile/" + $("#color_form select").val() + "/" + zoom + "/" + point.y + "," + point.x +".png"; };
   tilelayer.isPng = function() { return true; };
   tilelayer.getOpacity = function() { return 1.0; };
 
@@ -43,8 +43,7 @@ $(document).ready(function() {
     createHeatMap(map);
   }
 
-  var orig_delete_string = $('#delete_link').html();
-  $('#delete_link').click(function() {
+  $('#delete_link a').click(function() {
     $('#delete_link').html("<img src='static/spinner-small.gif'/> deleting your data...");
     $.get("/delete_data/user", function(){
       map.clearOverlays();
