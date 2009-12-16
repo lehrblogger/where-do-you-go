@@ -1,6 +1,6 @@
 import os
 from os import environ
-import globalvars
+import constants
 from google.appengine.ext import db
 from google.appengine.api import users
 from models import AuthToken, UserInfo, UserVenue, MapImage
@@ -11,8 +11,8 @@ if __name__ == '__main__':
   assert raw.count('/') == 2, "%d /'s" % raw.count('/')
   foo, bar, rest, = raw.split('/')
 
-  if not globalvars.provider:
-    globalvars.provider = provider.DBProvider()
+  if not constants.provider:
+    constants.provider = provider.DBProvider()
 
   if rest == 'all':
     while(AuthToken.all().count() > 0):

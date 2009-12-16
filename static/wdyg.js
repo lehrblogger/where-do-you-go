@@ -131,7 +131,7 @@ $(document).ready(function() {
 
   $('#level_button').click(updateLevels);
 
-  $('#regenerate a').click(function() {
+  $('#regenerate_button').click(function() {
     var bounds = map.getBounds();
     var north = bounds.getNorthEast().lat();
     var west = bounds.getSouthWest().lng();
@@ -143,12 +143,12 @@ $(document).ready(function() {
     var zoom = map.getZoom();
     var size = map.getSize();
 
-    $("#regenerate_link").hide();
+    $("#regenerate_button").hide();
     $("#regenerate_status").show();
     $.get("generate_static_map/" + size.width + "x" + size.height + "/" + zoom + "/" + center_lat + "," + center_long + "/" + north + "," + west, function() {
       $.get("static_map_html", function(data){
         $("#static_map").html(data);
-        $("#regenerate_link").show()
+        $("#regenerate_button").show()
         $("#regenerate_status").hide();
         return false;
       });
@@ -160,6 +160,6 @@ $(document).ready(function() {
   var mt = map.getMapTypes(); //http://groups.google.com/group/google-maps-api/browse_thread/thread/1fca64809be388a8
   for (var i=0; i<mt.length; i++) {
           mt[i].getMinimumResolution = function() {return 10;}
-          mt[i].getMaximumResolution = function() {return 18;} // note this must also be in globalvars.py
+          mt[i].getMaximumResolution = function() {return 18;} // note this must also be in constants.py
   }
 });

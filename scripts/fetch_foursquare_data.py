@@ -1,5 +1,5 @@
 from os import environ
-import globalvars
+import constants
 import oauth
 from models import UserInfo, UserVenue
 from google.appengine.ext import db
@@ -13,7 +13,7 @@ def fetch_and_store_checkins(userinfo):
   logging.warning("userinfo.last_checkin = " + str(userinfo.last_checkin))
   params = {'l':50, 'sinceid':userinfo.last_checkin}
 
-  response = globalvars.client.make_request("http://api.foursquare.com/v1/history.json",
+  response = constants.client.make_request("http://api.foursquare.com/v1/history.json",
                                             token = userinfo.token,
                                             secret = userinfo.secret,
                                             additional_params = params)
@@ -62,13 +62,13 @@ def fetch_and_store_checkins(userinfo):
   return num_added
 
 def fetch_and_store_checkins_initial(userinfo):
-  if globalvars.client == None:
-    globalvars.client = oauth.FoursquareClient(globalvars.consumer_key, globalvars.consumer_secret, globalvars.callback_url)
+  if constants.client == None:
+    constants.client = oauth.FoursquareClient(constants.consumer_key, constants.consumer_secret, constants.callback_url)
 
   if fetch_and_store_checkins(userinfo) > 0:
     logging.info("checkins added so checkins might be remaining, add self to queue")
     taskqueue.add(url='/fetch_foursquare_data/all_for_user/%s' % userinfo.key())#, queue_name='initial-checkin-fetching')
-  userinfo.level_max = int(userinfo.checkin_count / max(userinfo.venue_count , 1) * globalvars.level_const)
+  userinfo.level_max = int(userinfo.checkin_count / max(userinfo.venue_count , 1) * constants.level_const)
   userinfo.put()
 
 def fetch_and_store_checkins_for_all():
@@ -81,7 +81,7 @@ def fetch_and_store_checkins_for_all():
     fetch_and_store_checkins(userinfo)
 
 def update_user_info(userinfo):
-  response = globalvars.client.make_request("http://api.foursquare.com/v1/user.json", token = userinfo.token, secret = userinfo.secret)
+  response = constants.client.make_request("http://api.foursquare.com/v1/user.json", token = userinfo.token, secret = userinfo.secret)
   current_info = json.loads(response.content)
   if 'user' in current_info:
     userinfo.real_name = current_info['user']['firstname']
@@ -90,13 +90,13 @@ def update_user_info(userinfo):
     if 'photo' in current_info['user']:
       userinfo.photo_url = current_info['user']['photo']
     else:
-      userinfo.photo_url = globalvars.default_photo
+      userinfo.photo_url = constants.default_photo
     if 'city' in current_info['user']:
       userinfo.citylat = current_info['user']['city']['geolat']
       userinfo.citylng = current_info['user']['city']['geolong']
     else:
-      userinfo.citylat = globalvars.default_lat
-      userinfo.citylng = globalvars.default_lng
+      userinfo.citylat = constants.default_lat
+      userinfo.citylng = constants.default_lng
     userinfo.put()
 
 if __name__ == '__main__':

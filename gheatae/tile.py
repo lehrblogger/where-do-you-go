@@ -1,4 +1,4 @@
-import globalvars
+import constants
 from gheatae import color_scheme, provider
 #from gheatae.dot import dot
 from pngcanvas import PNGCanvas
@@ -26,9 +26,9 @@ class BasicTile(object):
 
     self.color_scheme = color_scheme.color_schemes[userinfo.color_scheme]
 
-    if not globalvars.provider:
-      globalvars.provider = provider.DBProvider()
-    self.tile_img = self.plot_image(globalvars.provider.get_user_data(user, lat_north, lng_west, range_lat, range_lng))
+    if not constants.provider:
+      constants.provider = provider.DBProvider()
+    self.tile_img = self.plot_image(constants.provider.get_user_data(user, lat_north, lng_west, range_lat, range_lng))
 
   def plot_image(self, points):
     space_level = self.__create_empty_space()

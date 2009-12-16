@@ -9,7 +9,7 @@ import os
 from os import environ
 from google.appengine.ext.webapp import template
 import logging, time
-import globalvars
+import constants
 from google.appengine.api import images
 
 from scripts import fetch_foursquare_data
@@ -24,21 +24,21 @@ import urllib
 class IndexHandler(webapp.RequestHandler):
   def get(self):
     page_data = {
-      'key': globalvars.get_google_maps_apikey(),
+      'key': constants.get_google_maps_apikey(),
       'user': '',
       'userinfo': '',
       'url': users.create_login_url(self.request.uri),
       'url_linktext': 'Login',
       'real_name': '',
-      'photo_url': globalvars.default_photo,
+      'photo_url': constants.default_photo,
     }
     user_data = {
       'color_scheme_dict': color_scheme.color_schemes,
-      'color_scheme': globalvars.default_color,
+      'color_scheme': constants.default_color,
     }
     map_data = {
-      'centerlat': globalvars.default_lat,
-      'centerlong': globalvars.default_lng,
+      'centerlat': constants.default_lat,
+      'centerlong': constants.default_lng,
       'zoom': 14,
       'width': 640,
       'height': 640,
@@ -73,7 +73,7 @@ class AuthHandler(webapp.RequestHandler):
     if user:
       auth_token = self.request.get("oauth_token")
       if auth_token:
-        credentials= globalvars.client.get_credentials(auth_token)
+        credentials= constants.client.get_credentials(auth_token)
         userinfo = UserInfo(user = user, token = credentials['token'], secret = credentials['secret'])
         userinfo.put()
 
@@ -82,7 +82,7 @@ class AuthHandler(webapp.RequestHandler):
 
         self.redirect("/")
       else:
-        self.redirect(globalvars.client.get_authorization_url())
+        self.redirect(constants.client.get_authorization_url())
 
     else:
       self.redirect(users.create_login_url(self.request.uri))
@@ -131,7 +131,7 @@ class TileHandler(webapp.RequestHandler):
           zoom = int(zoom)
           x = int(x)
           y = int(y)
-          assert 0 <= zoom <= (globalvars.max_zoom - 1), "bad zoom: %d" % zoom
+          assert 0 <= zoom <= (constants.max_zoom - 1), "bad zoom: %d" % zoom
         except AssertionError, err:
           logging.error(err.args[0])
           self.respondError(err)
@@ -161,7 +161,7 @@ class UserVenueWriter(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
     if user:
-      template_data = { 'uservenues': globalvars.provider.get_user_data(user=user)}
+      template_data = { 'uservenues': constants.provider.get_user_data(user=user)}
       os_path = os.path.dirname(__file__)
       self.response.out.write(template.render(os.path.join(os_path, 'templates/uservenue_list.html'), template_data))
 
@@ -187,8 +187,8 @@ def main():
                                         ('/view_uservenues', UserVenueWriter)],
                                       debug=True)
 
-  globalvars.client = oauth.FoursquareClient(globalvars.consumer_key, globalvars.consumer_secret, globalvars.callback_url)
-  globalvars.provider = provider.DBProvider()
+  constants.client = oauth.FoursquareClient(constants.consumer_key, constants.consumer_secret, constants.callback_url)
+  constants.provider = provider.DBProvider()
   wsgiref.handlers.CGIHandler().run(application)
 
 if __name__ == '__main__':

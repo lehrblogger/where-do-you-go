@@ -1,9 +1,9 @@
 .container {
     padding-bottom: 5em;
 }
-#level, #color, #width, #search {
+/*#level, #color, #width, #search {
   padding-top: 1em;
-}
+}*/
 #first_instruction, #static_map_url  {
     padding-top: 2em;
 }
@@ -27,7 +27,7 @@ fieldset {
 }
 
 #regenerate {
-  text-align: right;
+  text-align: center;
 }
 #regenerate_link a {
   text-decoration: none;
