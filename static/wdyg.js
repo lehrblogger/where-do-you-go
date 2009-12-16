@@ -6,7 +6,7 @@ function createHeatMap(map) {
   myCopyright.addCopyright(new GCopyright('', new GLatLngBounds(new GLatLng(-90,-180), new GLatLng(90,180)), 0,''));
 
   var tilelayer = new GTileLayer(myCopyright);
-  tilelayer.getTileUrl = function(point, zoom) { return "tile/" + $("#color_form select").val() + "/" + zoom + "/" + point.y + "," + point.x +".png"; };
+  tilelayer.getTileUrl = function(point, zoom) { return "tile/" + $("#color_select").val() + "/" + zoom + "/" + point.y + "," + point.x +".png"; };
   tilelayer.isPng = function() { return true; };
   tilelayer.getOpacity = function() { return 1.0; };
 
@@ -32,9 +32,7 @@ function updateLevels() {
   map.clearOverlays();
   $.get("/update_user_level/" + north + "," + west + "/" + south + "," + east, function(){
     createHeatMap(map);
-    return false;
   });
-  return false;
 }
 
 $(document).ready(function() {
@@ -45,7 +43,6 @@ $(document).ready(function() {
       $('#static_instructions').show();
       $("#static_map").html(data);
     }
-    return false;
   });
 
   if (GBrowserIsCompatible()) {
@@ -78,12 +75,10 @@ $(document).ready(function() {
           updateLevels();
         }
         $('#search_field').val('');
-        return false;
       });
-    return false;
   });
 
-  $('#delete_link a').click(function() {
+  $('#delete_link').click(function() {
     $('#delete_link').html("<img src='static/spinner-small.gif'/> deleting your data...");
     $.get("/delete_data/user", function(){
       map.clearOverlays();
@@ -92,9 +87,7 @@ $(document).ready(function() {
       resizeMapToWidthHeight(640, 640);
       $("#static_map").html("");
       $('#status_info').html('<a href="/go_to_foursquare">OAuth with Foursquare</a><br/>');
-      return false;
     });
-    return false;
   });
 
 
@@ -102,9 +95,7 @@ $(document).ready(function() {
     map.clearOverlays();
     $.get("/update_user_color/" + $("#color_select").val(), function(){
       createHeatMap(map);
-      return false;
     });
-    return false;
   });
 
 
@@ -115,18 +106,15 @@ $(document).ready(function() {
     if (isNaN(width) || (0 >= width) || (640 < width)) {
       $("label#dimension_error").show();
       $("input#width_field").focus();
-      return false;
     }
 
     var height = parseInt($("input#height_field").val());
     if (isNaN(height) || (0 >= height) || (640 < height)) {
       $("label#dimension_error").show();
       $("input#height_field").focus();
-      return false;
     }
 
     resizeMapToWidthHeight(width, height);
-    return false;
   });
 
   $('#level_button').click(updateLevels);
@@ -150,16 +138,13 @@ $(document).ready(function() {
         $("#static_map").html(data);
         $("#regenerate_button").show()
         $("#regenerate_status").hide();
-        return false;
       });
-      return false;
     });
-    return false;
   });
 
   var mt = map.getMapTypes(); //http://groups.google.com/group/google-maps-api/browse_thread/thread/1fca64809be388a8
   for (var i=0; i<mt.length; i++) {
-          mt[i].getMinimumResolution = function() {return 10;}
-          mt[i].getMaximumResolution = function() {return 18;} // note this must also be in constants.py
+    mt[i].getMinimumResolution = function() {return 10;} // note these must also be in constants.py
+    mt[i].getMaximumResolution = function() {return 18;}
   }
 });

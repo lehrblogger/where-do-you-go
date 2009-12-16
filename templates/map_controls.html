@@ -1,33 +1,38 @@
-  <div id="options" class="span-8 last">
-    <p id="level">
-      <label for="level_button" id="level_label">if things look a little hot or cold:
-      <input type="submit" name="submit" class="button" id="level_button" value="recalculate it!" />
-    </p>
-    <p id="search">
-      <label for="search_field" id="search_label">jump to:
-      <input type="text" name="search_field" id="search_field" size="20" value="" class="text-input" />
-      <input type="submit" name="submit" class="button" id="search_button" value="go!" />
-    </p>
-    <p id="color">
-      <label for="color_select" id="color_label">color scheme</label>:
-      <select id="color_select" name="color_select">
-        {% for c in color_scheme_dict %}
-          {% ifequal c color_scheme %}
-            <option selected value="{{ c }}">{{ c }}</option>
-          {% else %}
-            <option value="{{ c }}">{{ c }}</option>
-          {% endifequal %}
-        {% endfor %}
-      </select>
-    </p>
-    <p id="size">
-      map <label for="width_field" id="width_label">width</label> and <label for="height" id="height_label">height</label> in px:
-      <input type="text" name="width_field" id="width_field" size="2" value="640" class="text-input" />
-      <input type="text" name="height_field" id="height_field" size="2" value="640" class="text-input" />
-      <input type="submit" name="submit" class="button" id="size_button" value="update" />
-    </p>
-  </div>
-  <div id="regenerate" class="span-8 last">
+<div id="options" class="span-8 last">
+  <h2>first, customize your map:</h2>
+  <p id="level">
+    <label for="level_button" id="level_label">things look a little hot or cold?
+    <input type="submit" name="submit" class="button" id="level_button" value="recalculate it!" />
+  </p>
+  <p id="search">
+    <label for="search_field" id="search_label">jump to:
+    <input type="text" name="search_field" id="search_field" size="20" value="" class="text-input" />
+    <input type="submit" name="submit" class="button" id="search_button" value="go!" />
+  </p>
+  <p id="color">
+    <label for="color_select" id="color_label">color scheme</label>:
+    <select id="color_select" name="color_select">
+      {% for c in color_scheme_dict %}
+        {% ifequal c color_scheme %}
+          <option selected value="{{ c }}">{{ c }}</option>
+        {% else %}
+          <option value="{{ c }}">{{ c }}</option>
+        {% endifequal %}
+      {% endfor %}
+    </select>
+  </p>
+  <p id="size">
+    <label for="width_field" id="width_label">width</label> and <label for="height" id="height_label">height</label> in px:
+    <input type="text" name="width_field" id="width_field" size="2" value="640" class="text-input" />
+    <input type="text" name="height_field" id="height_field" size="2" value="640" class="text-input" />
+    <input type="submit" name="submit" class="button" id="size_button" value="update" />
+    <label for="width" id="dimension_error">Must be a number between 0 and 640 pixels.</label>
+  </p>
+</div>
+<div id="regenerate" class="span-8 last">
+  <h2>second, take a snapshot:</h2>
+  <p>
     <input type="submit" name="submit" class="button" id="regenerate_button" value="(re)generate your map with the current view" />
     <div id="regenerate_status">(re)generating map... <img src='static/spinner-small.gif'/></div>
-  </div>
+  </p>
+</div>

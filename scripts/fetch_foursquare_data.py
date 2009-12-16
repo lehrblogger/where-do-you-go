@@ -19,6 +19,9 @@ def fetch_and_store_checkins(userinfo):
                                             additional_params = params)
   try:
     history = json.loads(response.content)
+    if not 'checkins' in history:
+      logging.error("not 'checkins' in history: " + history)
+      return 0
     for checkin in history['checkins']:
       if 'venue' in checkin:
         j_venue = checkin['venue']
@@ -86,7 +89,7 @@ def update_user_info(userinfo):
   if 'user' in current_info:
     userinfo.real_name = current_info['user']['firstname']
     if 'lastname' in current_info['user']:
-      userinfo.real_name = userinfo.real_name + current_info['user']['lastname'][0] + '.'
+      userinfo.real_name = "%s %s" % (current_info['user']['firstname'], current_info['user']['lastname'][0])
     if 'photo' in current_info['user']:
       userinfo.photo_url = current_info['user']['photo']
     else:

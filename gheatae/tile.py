@@ -34,7 +34,6 @@ class BasicTile(object):
     space_level = self.__create_empty_space()
     for point in points:
       self.__merge_point_in_space(space_level, point)
-
     return self.convert_image(space_level)
 
   def __merge_point_in_space(self, space_level, point):
@@ -67,7 +66,6 @@ class BasicTile(object):
     for y in xrange(len(space_level[0])):
       for x in xrange(len(space_level[0])):
         tile.canvas[y][x] = color_scheme[min(len(color_scheme) - 1, self.scale_value(space_level[y][x]))]
-
     return tile
 
   def calc_point(self, rad, pt_rad, weight):

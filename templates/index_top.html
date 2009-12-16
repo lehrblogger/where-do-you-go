@@ -12,8 +12,8 @@
   </head>
   <body onunload="GUnload()">
     <div class="container">
-      <div id="controls" class="span-8">
-        <div id="title"class="span-8s last">
+      <div id="left" class="span-8">
+        <div id="title"class="span-8 last">
           <h1>Where Do You Go</h1>
         </div>
         <div id="video" class="span-4">
@@ -21,19 +21,18 @@
         </div>
         <div id="hello" class="span-4 last">
 {% if user %}
-          <strong>Hi, {{ user }}! </strong><br/>
-          <h4><a href="{{ url }}">{{ url_linktext }}</a></h4><br/>
-          <div id="status_info">
-  {% if userinfo %}
-            {{ userinfo.checkin_count }} checkins logged<br/>
-            <div id="delete_link"><a href="/">Delete your WDYG data</a></div><br/>
-  {% else %}
-            <a href="/go_to_foursquare">OAuth with Foursquare</a><br/>
-  {% endif %}
-          </div>
-{% else %}
-          <h4><a href="{{ url }}">{{ url_linktext }}</a></h4><br/>
-          <strong>THIS IS IN BETA! PLEASE DO NOT PUBLICIZE!</strong>
-{% endif %}
-          {{ userinfo.real_name }}<img src="{{ userinfo.photo_url }}" />
+          <h4>Hi, {{ userinfo.real_name }}! <a href="{{ url }}">{{ url_linktext }}?</a></h4>
+          <img src="{{ userinfo.photo_url }}" />
         </div>
+        <div id="status_info" class="span-8 last">
+  {% if userinfo %}
+          {{ userinfo.checkin_count }} checkins logged - <a id="delete_link" href="/">delete your WDYG data?</a>
+  {% else %}
+          <a href="/go_to_foursquare">Login with Foursquare using OAuth</a><br/>
+  {% endif %}
+        </div>
+{% else %}
+          <h4><a href="{{ url }}">{{ url_linktext }}</a></h4>
+          <br/><strong>THIS IS IN BETA! PLEASE DO NOT PUBLICIZE!</strong>
+        </div>
+{% endif %}

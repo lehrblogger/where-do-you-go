@@ -1,17 +1,17 @@
 .container {
     padding-bottom: 5em;
 }
-/*#level, #color, #width, #search {
-  padding-top: 1em;
-}*/
-#first_instruction, #static_map_url  {
+#options p, #regenerate p {
+  padding-left: 1em;
+}
+#status_info, #first_instruction, #static_map_url, #about  {
     padding-top: 2em;
 }
-.container, .regenerate, #options, #static_map {
+.container, #regenerate, #static_map {
     padding-top: 3em;
 }
-#regenerate, #privacy_note, #about {
-  padding-top: 5em;
+#options, #privacy_note {
+  padding-top: 4em;
 }
 
 fieldset {
@@ -24,11 +24,4 @@ fieldset {
   background-color: #cdcdcd;
   width: 640px;
   height: 640px;
-}
-
-#regenerate {
-  text-align: center;
-}
-#regenerate_link a {
-  text-decoration: none;
 }
