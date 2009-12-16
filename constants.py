@@ -24,7 +24,7 @@ provider = None
 min_zoom = 10
 max_zoom = 18 # note that these must also be in the static wdyg.js file
 
-level_const = 150.
+level_const = 140.
 
 default_photo = '/static/foursquare_girl_icon.png'
 default_color = color_scheme.color_schemes.keys()[0]

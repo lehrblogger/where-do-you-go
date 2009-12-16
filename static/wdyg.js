@@ -144,7 +144,7 @@ $(document).ready(function() {
 
   var mt = map.getMapTypes(); //http://groups.google.com/group/google-maps-api/browse_thread/thread/1fca64809be388a8
   for (var i=0; i<mt.length; i++) {
-    mt[i].getMinimumResolution = function() {return 10;} // note these must also be in constants.py
-    mt[i].getMaximumResolution = function() {return 18;}
+    mt[i].getMinimumResolution = function() {return 10;}; // note these must also be in constants.py
+    mt[i].getMaximumResolution = function() {return 18;};
   }
 });

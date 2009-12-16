@@ -19,6 +19,7 @@ class BasicTile(object):
   def __init__(self, user, lat_north, lng_west, range_lat, range_lng):
     userinfo = UserInfo.all().filter('user =', user).order('-created').get()
     self.level_max = userinfo.level_max
+    logging.warning(userinfo.level_max)
 
     self.cache_levels = []
     for i in range(self.level_max - 1, -1, -1):
