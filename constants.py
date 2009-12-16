@@ -28,7 +28,7 @@ max_zoom = 18 # note that these must also be in the static wdyg.js file
 
 level_const = 140.
 
-default_photo = '/static/foursquare_girl_icon.png'
+default_photo = '/static/foursquare_icon.png'
 default_color = color_scheme.color_schemes.keys()[0]
 default_lat = 40.728397037445006 #NYC
 default_lng = -73.99429321289062
