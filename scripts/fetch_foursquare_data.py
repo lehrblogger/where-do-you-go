@@ -88,9 +88,7 @@ def update_user_info(userinfo):
   current_info = json.loads(response.content)
   if 'user' in current_info:
     userinfo.real_name = current_info['user']['firstname']
-    if 'lastname' in current_info['user']:
-      userinfo.real_name = "%s %s" % (current_info['user']['firstname'], current_info['user']['lastname'][0])
-    if 'photo' in current_info['user']:
+    if 'photo' in current_info['user'] and not current_info['user']['photo'] == '' :
       userinfo.photo_url = current_info['user']['photo']
     else:
       userinfo.photo_url = constants.default_photo

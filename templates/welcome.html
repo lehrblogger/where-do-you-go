@@ -1,0 +1,18 @@
+  <div id="hello" class="span-4 last">
+{% if user %}
+    <h4>hi, {{ real_name }}! <a href="{{ url }}">logout?</a></h4>
+    <img src="{{ photo_url }}" />
+  </div>
+  <div id="status_info" class="span-8 last">
+  {% if userinfo %}
+    {{ userinfo.checkin_count }} checkins logged - <a id="delete_link" href="/">delete your WDYG data?</a>
+  {% else %}
+    <a href="/go_to_foursquare">Login with Foursquare using OAuth</a><br/>
+  {% endif %}
+  </div>
+{% else %}
+    <h4><a href="{{ url }}">login!</a></h4>
+    <img src="{{ photo_url }}" />
+    <br/><strong>THIS IS IN BETA! PLEASE DO NOT PUBLICIZE!</strong>
+  </div>
+{% endif %}

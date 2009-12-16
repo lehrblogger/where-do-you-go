@@ -1,16 +1,16 @@
 .container {
     padding-bottom: 5em;
 }
-#options p, #regenerate p {
+#options p, #regenerate p, .indented {
   padding-left: 1em;
 }
-#status_info, #first_instruction, #static_map_url, #about  {
+#status_info, #static_map_url, #privacy-note, #about {
     padding-top: 2em;
 }
 .container, #regenerate, #static_map {
     padding-top: 3em;
 }
-#options, #privacy_note {
+#options {
   padding-top: 4em;
 }
 
@@ -24,4 +24,16 @@ fieldset {
   background-color: #cdcdcd;
   width: 640px;
   height: 640px;
+}
+
+
+li {
+  padding-top: 0.5em;
+  list-style: none;
+}
+#descriptions ol {
+  list-style: none;
+}
+#urls ol {
+  padding-left: 0;
 }

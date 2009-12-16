@@ -1,19 +1,29 @@
-<div id="regenerate" class="span-8 last">
-  <h2>finally, share it!</h2>
-
-  <div id="first_instruction" class="span-8">
-    <p>That link over there ------------------------------------------></p>
-  </div >
-  <div id="static_map_url" class="span-16 last">
-    <p><a href="{{ map_relative_url }}">http://www.wheredoyougo.net/{{ map_relative_url }}</a></p>
+<div id="static" class="span-24 last">
+  <div class="span-24 last">
+    <h2>finally, share it!</h2>
+    <strong class="indented">you get two links:</strong>
   </div>
-  <div id="first_instruction" class="span-8">
-    <p>is intended for use <strong>anywhere</strong> on the internet where you might want to display a map of the places you tend to go. Use it as the source of an &#60;img src=""/&#62; HTML tag on your homepage or blog, and watch it update in the background as you check in to new places.</p>
-    <p>To change the color scheme, zoom level, size, or center location just modify the map above and click to regenerate your static map image.</p>
-    <p>(Note that I hope to let each user have multiple maps in the future (in case someone spends a lot of time in two different cities, for example), but for now just OAauth into the same Foursquare account with a second Google account.)</p>
+  <div id="descriptions" class="span-8">
+    <ol>
+      <li>send this link to your friends! <a href="">go to Twitter</a>
+      <li>embed this url in an &#60;img&#62; tag on your blog!
+    </ol>
   </div >
-  <div id="static_map_url" class="span-16 last">
-    <img src="http://www.wheredoyougo.net/{{ map_relative_url }}"/>
+  <div id="urls" class="span-16 last">
+    <ol>
+      <li><a href="{{ publicpage_url }}">http://www.wheredoyougo.net/{{ publicpage_url }}</a></li>
+      <li><a href="{{ mapimage_url }}">http://www.wheredoyougo.net/{{ mapimage_url }}</a></li>
+    </ol>
   </div>
-
+  <div id="privacy-note" class="span-8">
+    <h2>important:</h2>
+    <div class="indented">
+      <p>WDYG doesn't store checkins from the past 24 hours, and doesn't store details about individual checkins.</p>
+      <p>Both that public page and that image are visible to <strong><em>anyone on the Internet!</em></strong> If you're not happy about this, you can <a id="delete_map_only">delete them by clicking here</a> or you can delete all of your data by clicking the link above.</p>
+      <p>Each Google user currently only gets one map, but for now feel free OAuth into the same Foursquare account from a second Google account.</p>
+    </div>
+  </div>
+  <div id="static_map_url" class="span-16 last">
+    <img src="http://www.wheredoyougo.net/{{ mapimage_url }}"/>
+  </div>
 </div>

@@ -24,11 +24,9 @@ import urllib
 class IndexHandler(webapp.RequestHandler):
   def get(self):
     page_data = {
-      'key': constants.get_google_maps_apikey(),
       'user': '',
       'userinfo': '',
       'url': users.create_login_url(self.request.uri),
-      'url_linktext': 'Login',
       'real_name': '',
       'photo_url': constants.default_photo,
     }
@@ -48,42 +46,38 @@ class IndexHandler(webapp.RequestHandler):
     if user:
       page_data['user'] = user
       page_data['url'] = users.create_logout_url(self.request.uri)
-      page_data['url_linktext'] = 'Logout'
       userinfo = UserInfo.all().filter('user =', user).order('-created').get()
       if userinfo:
         fetch_foursquare_data.update_user_info(userinfo)
         page_data['userinfo'] = userinfo
-        user_data['real_name'] = userinfo.real_name
-        user_data['photo_url'] = userinfo.photo_url
+        page_data['real_name'] = userinfo.real_name
+        page_data['photo_url'] = userinfo.photo_url
         user_data['color_scheme'] = userinfo.color_scheme
         map_data['citylat'] = userinfo.citylat
         map_data['citylong'] = userinfo.citylng
 
     os_path = os.path.dirname(__file__)
-    self.response.out.write(template.render(os.path.join(os_path, 'templates/index_top.html'), page_data))
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), {'key': constants.get_google_maps_apikey()}))
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/welcome.html'), page_data))
     if user and userinfo:
         self.response.out.write(template.render(os.path.join(os_path, 'templates/map_controls.html'), user_data))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/map_all.html'), map_data))
-    self.response.out.write(template.render(os.path.join(os_path, 'templates/index_bottom.html'), None))
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/footer.html'), None))
 
 class AuthHandler(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
-
     if user:
       auth_token = self.request.get("oauth_token")
       if auth_token:
         credentials= constants.client.get_credentials(auth_token)
         userinfo = UserInfo(user = user, token = credentials['token'], secret = credentials['secret'])
         userinfo.put()
-
         fetch_foursquare_data.fetch_and_store_checkins(userinfo)
         taskqueue.add(url='/fetch_foursquare_data/all_for_user/%s' % userinfo.key())#, queue_name='initial-checkin-fetching')
-
         self.redirect("/")
       else:
         self.redirect(constants.client.get_authorization_url())
-
     else:
       self.redirect(users.create_login_url(self.request.uri))
 
@@ -101,13 +95,12 @@ class StaticMapHandler(webapp.RequestHandler):
     else:
       logging.error("Invalid path: " + path)
       return
-
     mapimage = db.get(map_key)
     if mapimage:
       self.response.headers['Content-Type'] = 'image/png'
       self.response.out.write(mapimage.img)
     else:
-      logging.info("No mapimage with key " + map_key)
+      self.redirect("/")
 
 class TileHandler(webapp.RequestHandler):
   def get(self):
@@ -152,18 +145,49 @@ class StaticMapHtmlWriter(webapp.RequestHandler):
     if user:
       mapimage = MapImage.all().filter('user =', user).get()
       if mapimage:
-        template_data = { 'map_relative_url': 'map/%s.png' % mapimage.key()}
+        template_data = {
+          'mapimage_url': 'mapimage/%s.png' % mapimage.key(),
+          'publicpage_url': 'publicpage/%s.html' % mapimage.key(),
+        }
         os_path = os.path.dirname(__file__)
         self.response.out.write(template.render(os.path.join(os_path, 'templates/static_map.html'), template_data))
       else:
         self.response.out.write("")
+
+class PublicPageHandler(webapp.RequestHandler):
+  def get(self):
+    path = environ['PATH_INFO']
+    if path.endswith('.html'):
+      raw = path[:-5] # strip extension
+      try:
+        assert raw.count('/') == 2, "%d /'s" % raw.count('/')
+        foo, bar, map_key = raw.split('/')
+      except AssertionError, err:
+        logging.error(err.args[0])
+        return
+    else:
+      logging.error("Invalid path: " + path)
+      return
+    mapimage = db.get(map_key)
+    if mapimage:
+      template_data = {
+        'mapimage_url': 'mapimage/%s.png' % mapimage.key(),
+        'publicpage_url': 'publicpage/%s.html' % mapimage.key(),
+      }
+      os_path = os.path.dirname(__file__)
+      self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), {'key': constants.get_google_maps_apikey()}))
+      self.response.out.write(template.render(os.path.join(os_path, 'templates/public_map.html'), template_data))
+      self.response.out.write(template.render(os.path.join(os_path, 'templates/footer.html'), None))
+    else:
+      self.redirect("/")
 
 def main():
   application = webapp.WSGIApplication([('/', IndexHandler),
                                         ('/go_to_foursquare', AuthHandler),
                                         ('/authenticated', AuthHandler),
                                         ('/tile/.*', TileHandler),
-                                        ('/map/.*', StaticMapHandler),
+                                        ('/mapimage/.*', StaticMapHandler),
+                                        ('/publicpage/.*', PublicPageHandler),
                                         ('/static_map_html', StaticMapHtmlWriter),
                                         ('/view_uservenues', UserVenueWriter)],
                                       debug=True)
