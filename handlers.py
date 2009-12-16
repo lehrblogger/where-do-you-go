@@ -23,46 +23,47 @@ import urllib
 
 class IndexHandler(webapp.RequestHandler):
   def get(self):
-    url = users.create_login_url(self.request.uri)
-    url_linktext = 'Login'
-    userinfo = None
-    cur_scheme = None
-    user = users.get_current_user()
-    user_latlong = (40.728397037445006, -73.99429321289062)
-
-    if user:
-      userinfo = UserInfo.all().filter('user =', user).order('-created').get()
-      url = users.create_logout_url(self.request.uri)
-      url_linktext = 'Logout'
-      if userinfo:
-        user_latlong = fetch_foursquare_data.fetch_user_latlong(userinfo)
-        cur_scheme = userinfo.color_scheme
-
     page_data = {
-      'key': globalvars.google_maps_apikey,
-      'user': user,
-      'userinfo': userinfo,
-      'url': url,
-      'url_linktext': url_linktext,
-      }
-
+      'key': globalvars.get_google_maps_apikey(),
+      'user': '',
+      'userinfo': '',
+      'url': users.create_login_url(self.request.uri),
+      'url_linktext': 'Login',
+      'real_name': '',
+      'photo_url': globalvars.default_photo,
+    }
+    user_data = {
+      'color_scheme_dict': color_scheme.color_schemes,
+      'color_scheme': globalvars.default_color,
+    }
     map_data = {
-      'user': user,
-      'centerlat': user_latlong[0],
-      'centerlong': user_latlong[1],
+      'centerlat': globalvars.default_lat,
+      'centerlong': globalvars.default_lng,
       'zoom': 14,
       'width': 640,
       'height': 640,
-      'color_scheme_dict': color_scheme.color_schemes,
-      'color_scheme': cur_scheme,
     }
+
+    user = users.get_current_user()
+    if user:
+      page_data['user'] = user
+      page_data['url'] = users.create_logout_url(self.request.uri)
+      page_data['url_linktext'] = 'Logout'
+      userinfo = UserInfo.all().filter('user =', user).order('-created').get()
+      if userinfo:
+        fetch_foursquare_data.update_user_info(userinfo)
+        page_data['userinfo'] = userinfo
+        user_data['real_name'] = userinfo.real_name
+        user_data['photo_url'] = userinfo.photo_url
+        user_data['color_scheme'] = userinfo.color_scheme
+        map_data['citylat'] = userinfo.citylat
+        map_data['citylong'] = userinfo.citylng
 
     os_path = os.path.dirname(__file__)
     self.response.out.write(template.render(os.path.join(os_path, 'templates/index_top.html'), page_data))
     if user and userinfo:
-        self.response.out.write(template.render(os.path.join(os_path, 'templates/map_user.html'), map_data))
-    else:
-        self.response.out.write(template.render(os.path.join(os_path, 'templates/map_none.html'), map_data))
+        self.response.out.write(template.render(os.path.join(os_path, 'templates/map_controls.html'), user_data))
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/map_all.html'), map_data))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/index_bottom.html'), None))
 
 class AuthHandler(webapp.RequestHandler):

@@ -46,7 +46,7 @@ def create_map_file(user, path=''):
     return
 
   google_data = {
-    'key': globalvars.google_maps_apikey,
+    'key': globalvars.get_google_maps_apikey(),
     'zoom': zoom,
     'center': centerpoint,
     'size': widthxheight,
@@ -86,7 +86,7 @@ if __name__ == '__main__':
 
       for mapimage in mapimages:
         google_data = {
-          'key': globalvars.google_maps_apikey,
+          'key': globalvars.get_google_maps_apikey(),
           'zoom': mapimage.zoom,
           'center': str(mapimage.centerlat) + "," + str(mapimage.centerlong),
           'size': str(mapimage.width) + "x" + str(mapimage.height),

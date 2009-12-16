@@ -68,6 +68,8 @@ def fetch_and_store_checkins_initial(userinfo):
   if fetch_and_store_checkins(userinfo) > 0:
     logging.info("checkins added so checkins might be remaining, add self to queue")
     taskqueue.add(url='/fetch_foursquare_data/all_for_user/%s' % userinfo.key())#, queue_name='initial-checkin-fetching')
+  userinfo.level_max = int(userinfo.checkin_count / max(userinfo.venue_count , 1) * globalvars.level_const)
+  userinfo.put()
 
 def fetch_and_store_checkins_for_all():
   userinfos = UserInfo.all().order('-created').fetch(1000)
@@ -78,11 +80,24 @@ def fetch_and_store_checkins_for_all():
     #   user_list.append(userinfo.user)
     fetch_and_store_checkins(userinfo)
 
-def fetch_user_latlong(userinfo):
+def update_user_info(userinfo):
   response = globalvars.client.make_request("http://api.foursquare.com/v1/user.json", token = userinfo.token, secret = userinfo.secret)
   current_info = json.loads(response.content)
-  logging.info(current_info)
-  return (current_info['user']['city']['geolat'], current_info['user']['city']['geolong'])
+  if 'user' in current_info:
+    userinfo.real_name = current_info['user']['firstname']
+    if 'lastname' in current_info['user']:
+      userinfo.real_name = userinfo.real_name + current_info['user']['lastname'][0] + '.'
+    if 'photo' in current_info['user']:
+      userinfo.photo_url = current_info['user']['photo']
+    else:
+      userinfo.photo_url = globalvars.default_photo
+    if 'city' in current_info['user']:
+      userinfo.citylat = current_info['user']['city']['geolat']
+      userinfo.citylng = current_info['user']['city']['geolong']
+    else:
+      userinfo.citylat = globalvars.default_lat
+      userinfo.citylng = globalvars.default_lng
+    userinfo.put()
 
 if __name__ == '__main__':
   raw = environ['PATH_INFO']

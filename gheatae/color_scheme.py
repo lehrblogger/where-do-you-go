@@ -33,9 +33,9 @@ def loadScheme(name, steps=255):
   f.close()
   return img
 
-color_schemes = {'cyan_red': createScheme(),
+color_schemes = {'fire': loadScheme("fire"),
+                  'cyan_red': createScheme(),
                   'classic': loadScheme("classic"),
-                  'fire': loadScheme("fire"),
                   'omg': loadScheme("omg"),
                   'pbj': loadScheme("pbj"),
                   'pgaitch': loadScheme("pgaitch"),

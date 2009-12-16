@@ -1,7 +1,7 @@
 .container {
     padding-bottom: 5em;
 }
-#size_form {
+#level, #color, #width, #search {
   padding-top: 1em;
 }
 #first_instruction, #static_map_url  {
@@ -10,7 +10,7 @@
 .container, .regenerate, #options, #static_map {
     padding-top: 3em;
 }
-#options, #regenerate, #privacy_note, #about {
+#regenerate, #privacy_note, #about {
   padding-top: 5em;
 }
 

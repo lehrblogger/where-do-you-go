@@ -13,13 +13,12 @@ log = logging.getLogger('space_level')
 
 rdm = Random()
 
-LEVEL_CONST = 150.
 DOT_MULT = 3
 
 class BasicTile(object):
   def __init__(self, user, lat_north, lng_west, range_lat, range_lng):
     userinfo = UserInfo.all().filter('user =', user).order('-created').get()
-    self.level_max = int(float(userinfo.checkin_count) / float(userinfo.venue_count) * LEVEL_CONST)
+    self.level_max = userinfo.level_max
 
     self.cache_levels = []
     for i in range(self.level_max - 1, -1, -1):
@@ -29,8 +28,7 @@ class BasicTile(object):
 
     if not globalvars.provider:
       globalvars.provider = provider.DBProvider()
-    self.tile_img = self.plot_image(globalvars.provider.get_user_data(user, #self.layer,
-                            lat_north, lng_west,range_lat, range_lng))
+    self.tile_img = self.plot_image(globalvars.provider.get_user_data(user, lat_north, lng_west, range_lat, range_lng))
 
   def plot_image(self, points):
     space_level = self.__create_empty_space()
@@ -75,8 +73,8 @@ class BasicTile(object):
   def calc_point(self, rad, pt_rad, weight):
     max_alpha = 100
     fraction = (rad - pt_rad) / rad
-    #return max_alpha * math.pow(fraction, math.pow(weight, fraction)) * weight
     return max_alpha * math.pow(fraction, math.pow(weight, 0.25)) * weight
+    #return max_alpha * math.pow(fraction, math.pow(weight, fraction)) * weight
 
   def get_dot(self, point):
     #cur_dot = dot[self.zoom]

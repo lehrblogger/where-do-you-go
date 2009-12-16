@@ -1,11 +1,10 @@
 var map;
+var geocoder;
 
 function createHeatMap(map) {
-  // Set up the copyright information. Each image used should indicate its copyright permissions
   var myCopyright = new GCopyrightCollection("© ");
-  myCopyright.addCopyright(new GCopyright('lala', new GLatLngBounds(new GLatLng(-90,-180), new GLatLng(90,180)), 0,'la la la'));
+  myCopyright.addCopyright(new GCopyright('', new GLatLngBounds(new GLatLng(-90,-180), new GLatLng(90,180)), 0,''));
 
-  // Create the tile layer overlay and implement the three abstract methods
   var tilelayer = new GTileLayer(myCopyright);
   tilelayer.getTileUrl = function(point, zoom) { return "tile/" + $("#color_form select").val() + "/" + zoom + "/" + point.y + "," + point.x +".png"; };
   tilelayer.isPng = function() { return true; };
@@ -21,6 +20,21 @@ function resizeMapToWidthHeight(width, height) {
   style_str = style_str.replace(/height: (\d+)px/, 'height: ' + height + 'px');
   $("#map_canvas").attr('style', style_str);
   map.checkResize();
+}
+
+function updateLevels() {
+  var bounds = map.getBounds();
+  var north = bounds.getNorthEast().lat();
+  var east = bounds.getNorthEast().lng();
+  var south = bounds.getSouthWest().lat();
+  var west = bounds.getSouthWest().lng();
+
+  map.clearOverlays();
+  $.get("/update_user_level/" + north + "," + west + "/" + south + "," + east, function(){
+    createHeatMap(map);
+    return false;
+  });
+  return false;
 }
 
 $(document).ready(function() {
@@ -49,7 +63,25 @@ $(document).ready(function() {
     map.setUI(customUI);
 
     createHeatMap(map);
+
+    geocoder = new GClientGeocoder();
   }
+
+  $('#search_button').click(function() {
+    geocoder.getLatLng(
+      $('#search_field').val(),
+      function(point) {
+        if (!point) {
+          alert(address + " not found");
+        } else {
+          map.setCenter(point);
+          updateLevels();
+        }
+        $('#search_field').val('');
+        return false;
+      });
+    return false;
+  });
 
   $('#delete_link a').click(function() {
     $('#delete_link').html("<img src='static/spinner-small.gif'/> deleting your data...");
@@ -66,9 +98,9 @@ $(document).ready(function() {
   });
 
 
-  $("#color_form select").change(function() {
+  $("#color_select").change(function() {
     map.clearOverlays();
-    $.get("/update_user_color/" + $("#color_form select").val(), function(){
+    $.get("/update_user_color/" + $("#color_select").val(), function(){
       createHeatMap(map);
       return false;
     });
@@ -79,23 +111,25 @@ $(document).ready(function() {
   $('#size_button').click(function() { // http://net.tutsplus.com/tutorials/javascript-ajax/submit-a-form-without-page-refresh-using-jquery/
     $('#dimension_error').hide();
 
-    var width = parseInt($("input#width").val());
+    var width = parseInt($("input#width_field").val());
     if (isNaN(width) || (0 >= width) || (640 < width)) {
       $("label#dimension_error").show();
-      $("input#width").focus();
+      $("input#width_field").focus();
       return false;
     }
 
-    var height = parseInt($("input#height").val());
+    var height = parseInt($("input#height_field").val());
     if (isNaN(height) || (0 >= height) || (640 < height)) {
       $("label#dimension_error").show();
-      $("input#height").focus();
+      $("input#height_field").focus();
       return false;
     }
 
     resizeMapToWidthHeight(width, height);
     return false;
   });
+
+  $('#level_button').click(updateLevels);
 
   $('#regenerate a').click(function() {
     var bounds = map.getBounds();
@@ -125,7 +159,7 @@ $(document).ready(function() {
 
   var mt = map.getMapTypes(); //http://groups.google.com/group/google-maps-api/browse_thread/thread/1fca64809be388a8
   for (var i=0; i<mt.length; i++) {
-          mt[i].getMinimumResolution = function() {return 3;}
-          mt[i].getMaximumResolution = function() {return 20;}
+          mt[i].getMinimumResolution = function() {return 10;}
+          mt[i].getMaximumResolution = function() {return 18;} // note this must also be in globalvars.py
   }
 });

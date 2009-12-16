@@ -18,6 +18,10 @@ handlers:
   script: scripts/update_user_color.py
   login: required
 
+- url: /update_user_level/.*
+  script: scripts/update_user_level.py
+  login: required
+
 
 - url: /generate_static_map/all
   script: scripts/update_user_maps.py
