@@ -1,7 +1,7 @@
 .container {
     padding-bottom: 5em;
 }
-#options p, #regenerate p, .indented {
+#options p, #regenerate p, #regenerate p, .indented {
   padding-left: 1em;
 }
 #status_info, #static_map_url, #privacy-note, #about {

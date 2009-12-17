@@ -1,25 +1,22 @@
 import wsgiref.handlers
 from google.appengine.ext import webapp
-from google.appengine.api import users
 from google.appengine.ext import db
+from google.appengine.ext.webapp import template
+from google.appengine.api import users
+from google.appengine.api import images
+from google.appengine.api import urlfetch
 from google.appengine.api.labs import taskqueue
-
 from django.utils import simplejson as json
 import os
 from os import environ
-from google.appengine.ext.webapp import template
-import logging, time
-import constants
-from google.appengine.api import images
-
-from scripts import fetch_foursquare_data
-import oauth
-from gheatae import color_scheme, tile, provider
-from os import environ
-from models import UserInfo, UserVenue, MapImage
-
-from google.appengine.api import urlfetch
 import urllib
+import logging
+import time
+import oauth
+import constants
+from scripts import fetch_foursquare_data
+from gheatae import color_scheme, tile, provider
+from models import UserInfo, UserVenue, MapImage
 
 class IndexHandler(webapp.RequestHandler):
   def get(self):
@@ -36,12 +33,11 @@ class IndexHandler(webapp.RequestHandler):
     }
     map_data = {
       'centerlat': constants.default_lat,
-      'centerlong': constants.default_lng,
+      'centerlng': constants.default_lng,
       'zoom': 14,
       'width': 640,
       'height': 640,
     }
-
     user = users.get_current_user()
     if user:
       page_data['user'] = user
@@ -54,8 +50,7 @@ class IndexHandler(webapp.RequestHandler):
         page_data['photo_url'] = userinfo.photo_url
         user_data['color_scheme'] = userinfo.color_scheme
         map_data['citylat'] = userinfo.citylat
-        map_data['citylong'] = userinfo.citylng
-
+        map_data['citylng'] = userinfo.citylng
     os_path = os.path.dirname(__file__)
     self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), {'key': constants.get_google_maps_apikey()}))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/welcome.html'), page_data))
@@ -71,6 +66,8 @@ class AuthHandler(webapp.RequestHandler):
       auth_token = self.request.get("oauth_token")
       if auth_token:
         credentials= constants.client.get_credentials(auth_token)
+        old_userinfos = UserInfo.all().filter('user =', user).fetch(500)
+        db.delete(old_userinfos)
         userinfo = UserInfo(user = user, token = credentials['token'], secret = credentials['secret'])
         userinfo.put()
         fetch_foursquare_data.fetch_and_store_checkins(userinfo)
@@ -131,29 +128,6 @@ class TileHandler(webapp.RequestHandler):
       img_data = new_tile.image_out()
       self.response.out.write(img_data)
 
-class UserVenueWriter(webapp.RequestHandler):
-  def get(self):
-    user = users.get_current_user()
-    if user:
-      template_data = { 'uservenues': constants.provider.get_user_data(user=user)}
-      os_path = os.path.dirname(__file__)
-      self.response.out.write(template.render(os.path.join(os_path, 'templates/uservenue_list.html'), template_data))
-
-class StaticMapHtmlWriter(webapp.RequestHandler):
-  def get(self):
-    user = users.get_current_user()
-    if user:
-      mapimage = MapImage.all().filter('user =', user).get()
-      if mapimage:
-        template_data = {
-          'mapimage_url': 'mapimage/%s.png' % mapimage.key(),
-          'publicpage_url': 'publicpage/%s.html' % mapimage.key(),
-        }
-        os_path = os.path.dirname(__file__)
-        self.response.out.write(template.render(os.path.join(os_path, 'templates/static_map.html'), template_data))
-      else:
-        self.response.out.write("")
-
 class PublicPageHandler(webapp.RequestHandler):
   def get(self):
     path = environ['PATH_INFO']
@@ -181,6 +155,30 @@ class PublicPageHandler(webapp.RequestHandler):
     else:
       self.redirect("/")
 
+class UserVenueWriter(webapp.RequestHandler):
+  def get(self):
+    user = users.get_current_user()
+    if user:
+      template_data = { 'uservenues': constants.provider.get_user_data(user=user)}
+      os_path = os.path.dirname(__file__)
+      self.response.out.write(template.render(os.path.join(os_path, 'templates/uservenue_list.html'), template_data))
+
+class StaticMapHtmlWriter(webapp.RequestHandler):
+  def get(self):
+    user = users.get_current_user()
+    if user:
+      mapimage = MapImage.all().filter('user =', user).get()
+      if mapimage:
+        template_data = {
+          'domain': environ['HTTP_HOST'],
+          'mapimage_url': 'mapimage/%s.png' % mapimage.key(),
+          'publicpage_url': 'publicpage/%s.html' % mapimage.key(),
+        }
+        os_path = os.path.dirname(__file__)
+        self.response.out.write(template.render(os.path.join(os_path, 'templates/static_map.html'), template_data))
+      else:
+        self.response.out.write("")
+
 def main():
   application = webapp.WSGIApplication([('/', IndexHandler),
                                         ('/go_to_foursquare', AuthHandler),
@@ -191,8 +189,8 @@ def main():
                                         ('/static_map_html', StaticMapHtmlWriter),
                                         ('/view_uservenues', UserVenueWriter)],
                                       debug=True)
-
-  constants.client = oauth.FoursquareClient(constants.consumer_key, constants.consumer_secret, constants.callback_url)
+  oauth_strings = constants.get_oauth_strings()
+  constants.client = oauth.FoursquareClient(oauth_strings[0], oauth_strings[1], oauth_strings[2])
   constants.provider = provider.DBProvider()
   wsgiref.handlers.CGIHandler().run(application)
 

@@ -15,13 +15,13 @@ if user:
     assert path.count('/') == 3, "%d /'s" % path.count('/')
     foo, bar, northwest, southeast = path.split('/')
     assert northwest.count(',') == 1, "%d ,'s" % northwest.count(',')
-    northlat, westlong = northwest.split(',')
+    northlat, westlng = northwest.split(',')
     assert southeast.count(',') == 1, "%d ,'s" % southeast.count(',')
-    southlat, eastlong = southeast.split(',')
+    southlat, eastlng = southeast.split(',')
 
     if not constants.provider:
       constants.provider = provider.DBProvider()
-    visible_uservenues = constants.provider.get_user_data(user, float(northlat), float(westlong), float(southlat) - float(northlat), float(eastlong) - float(westlong))
+    visible_uservenues = constants.provider.get_user_data(user, float(northlat), float(westlng), float(southlat) - float(northlat), float(eastlng) - float(westlng))
 
     visible_checkin_count = 0
     for venue in visible_uservenues:

@@ -37,11 +37,16 @@ if __name__ == '__main__':
       while(UserInfo.all().filter('user =', user).count() > 0):
         userinfos = UserInfo.all().filter('user =', user).fetch(500)
         db.delete(userinfos)
-
+      while(MapImage.all().filter('user =', user).count() > 0):
+        mapimages = MapImage.all().filter('user =', user).fetch(500)
+        db.delete(mapimages)
       while(UserVenue.all().filter('user = ', user).count() > 0):
         uservenues = UserVenue.all().filter('user = ', user).fetch(500)
         db.delete(uservenues)
 
+  elif rest == 'mapimage':
+    user = users.get_current_user()
+    if user:
       while(MapImage.all().filter('user =', user).count() > 0):
         mapimages = MapImage.all().filter('user =', user).fetch(500)
         db.delete(mapimages)

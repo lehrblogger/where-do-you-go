@@ -12,13 +12,13 @@
   <p id="color">
     <label for="color_select" id="color_label">color scheme</label>:
     <select id="color_select" name="color_select">
-      {% for c in color_scheme_dict %}
-        {% ifequal c color_scheme %}
+{% for c in color_scheme_dict %}
+  {% ifequal c color_scheme %}
           <option selected value="{{ c }}">{{ c }}</option>
-        {% else %}
+  {% else %}
           <option value="{{ c }}">{{ c }}</option>
-        {% endifequal %}
-      {% endfor %}
+  {% endifequal %}
+{% endfor %}
     </select>
   </p>
   <p id="size">
@@ -33,6 +33,10 @@
   <h2>then take a snapshot:</h2>
   <p>
     <input type="submit" name="submit" class="button" id="regenerate_button" value="(re)generate your map with the current view" />
-    <div id="regenerate_status">(re)generating map... <img src='static/spinner-small.gif'/></div>
+    <span id="regenerate_status">(re)generating map... <img src='static/spinner-small.gif'/></span>
+  </p>
+  <p>
+    <input type="submit" name="submit" class="button" id="delete_map_button" value="delete your public map and personalized page" />
+    <span id="delete_map_status">deleting map... <img src='static/spinner-small.gif'/></span>
   </p>
 </div>

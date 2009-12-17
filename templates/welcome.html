@@ -5,7 +5,9 @@
   </div>
   <div id="status_info" class="span-8 last">
   {% if userinfo %}
-    {{ userinfo.checkin_count }} checkins logged - <a id="delete_link" href="/">delete your WDYG data?</a>
+    <span id="checkin_count" class="span-4">{{ userinfo.checkin_count }} checkins logged!</span>
+
+    <span id="delete_all_span" class="span-4 last"><input type="submit" name="submit" class="button" id="delete_all_button" value="delete your WDYG data" /></span>
   {% else %}
     <a href="/go_to_foursquare">Login with Foursquare using OAuth</a><br/>
   {% endif %}

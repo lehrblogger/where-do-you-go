@@ -9,10 +9,13 @@ handlers:
   script: scripts/delete_data.py
   login: admin
 
-- url: /delete_data/user
+- url: /delete_data/mapimage
   script: scripts/delete_data.py
   login: required
 
+- url: /delete_data/user
+  script: scripts/delete_data.py
+  login: required
 
 - url: /update_user_color/.*
   script: scripts/update_user_color.py

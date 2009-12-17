@@ -14,7 +14,7 @@ from google.appengine.api import urlfetch
 import urllib
 
 
-def update_map_image(user, google_data, width, height, northlat, westlong):
+def update_map_image(user, google_data, width, height, northlat, westlng):
   result = urlfetch.fetch(url="http://maps.google.com/maps/api/staticmap?" + urllib.urlencode(google_data),
                           method=urlfetch.GET)
   input_tuples = []
@@ -22,7 +22,7 @@ def update_map_image(user, google_data, width, height, northlat, westlong):
 
   for offset_x_px in range (0, width, 256):
     for offset_y_px in range (0, height, 256):
-      new_tile = tile.CustomTile(user, int(google_data['zoom']), northlat, westlong, offset_x_px, offset_y_px)
+      new_tile = tile.CustomTile(user, int(google_data['zoom']), northlat, westlng, offset_x_px, offset_y_px)
       input_tuples.append((new_tile.image_out(), offset_x_px, offset_y_px, 1.0, images.TOP_LEFT))
       # http://code.google.com/appengine/docs/python/images/functions.html
 
@@ -38,9 +38,9 @@ def create_map_file(user, path=''):
     assert zoom.isdigit(), "not digits"
 
     assert centerpoint.count(',') == 1, "%d ,'s" % centerpoint.count(',')
-    centerlat, centerlong = centerpoint.split(',')
+    centerlat, centerlng = centerpoint.split(',')
     assert northwest.count(',') == 1, "%d ,'s" % northwest.count(',')
-    northlat, westlong = northwest.split(',')
+    northlat, westlng = northwest.split(',')
   except AssertionError, err:
     logging.error(err.args[0])
     return
@@ -61,14 +61,14 @@ def create_map_file(user, path=''):
     mapimage            = MapImage()
     mapimage.user       = user
     mapimage.centerlat  = float(centerlat)
-    mapimage.centerlong = float(centerlong)
+    mapimage.centerlng = float(centerlng)
     mapimage.northlat   = float(northlat)
-    mapimage.westlong   = float(westlong)
+    mapimage.westlng   = float(westlng)
     mapimage.zoom       = int(zoom)
     mapimage.height     = int(height)
     mapimage.width      = int(width)
 
-  img = update_map_image(user, google_data, int(width), int(height), float(northlat), float(westlong))
+  img = update_map_image(user, google_data, int(width), int(height), float(northlat), float(westlng))
   mapimage.img          = db.Blob(img)
   mapimage.put()
 
@@ -88,12 +88,12 @@ if __name__ == '__main__':
         google_data = {
           'key': constants.get_google_maps_apikey(),
           'zoom': mapimage.zoom,
-          'center': str(mapimage.centerlat) + "," + str(mapimage.centerlong),
+          'center': str(mapimage.centerlat) + "," + str(mapimage.centerlng),
           'size': str(mapimage.width) + "x" + str(mapimage.height),
           'sensor':'false',
           'format':'png',
         }
-        img = update_map_image(mapimage.user, google_data, mapimage.width, mapimage.height, mapimage.northlat, mapimage.westlong)
+        img = update_map_image(mapimage.user, google_data, mapimage.width, mapimage.height, mapimage.northlat, mapimage.westlng)
         mapimage.img = db.Blob(img)
         mapimage.put()
     except AssertionError, err:

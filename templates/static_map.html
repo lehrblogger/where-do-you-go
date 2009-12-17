@@ -11,19 +11,19 @@
   </div >
   <div id="urls" class="span-16 last">
     <ol>
-      <li><a href="{{ publicpage_url }}">http://www.wheredoyougo.net/{{ publicpage_url }}</a></li>
-      <li><a href="{{ mapimage_url }}">http://www.wheredoyougo.net/{{ mapimage_url }}</a></li>
+      <li><a href="{{ publicpage_url }}">http://{{ domain }}/{{ publicpage_url }}</a></li>
+      <li><a href="{{ mapimage_url }}">http://{{ domain }}/{{ mapimage_url }}</a></li>
     </ol>
   </div>
   <div id="privacy-note" class="span-8">
     <h2>important:</h2>
     <div class="indented">
       <p>WDYG doesn't store checkins from the past 24 hours, and doesn't store details about individual checkins.</p>
-      <p>Both that public page and that image are visible to <strong><em>anyone on the Internet!</em></strong> If you're not happy about this, you can <a id="delete_map_only">delete them by clicking here</a> or you can delete all of your data by clicking the link above.</p>
+      <p>Both that public page and that image are visible to <strong><em>anyone on the Internet!</em></strong> If you're not happy about this, you can delete them by clicking the button above, or you can delete all of your data by clicking the button in the upper left.</p>
       <p>Each Google user currently only gets one map, but for now feel free OAuth into the same Foursquare account from a second Google account.</p>
     </div>
   </div>
   <div id="static_map_url" class="span-16 last">
-    <img src="http://www.wheredoyougo.net/{{ mapimage_url }}"/>
+    <img src="http://{{ domain }}/{{ mapimage_url }}"/>
   </div>
 </div>

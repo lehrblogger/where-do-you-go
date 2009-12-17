@@ -1,5 +1,6 @@
 from google.appengine.ext import db
 from geo.geomodel import GeoModel
+import constants
 
 class AuthToken(db.Model):
   service = db.StringProperty(required=True)
@@ -11,7 +12,7 @@ class UserInfo(db.Model):
   user = db.UserProperty()
   last_checkin = db.IntegerProperty(default=0)
   color_scheme = db.StringProperty(default='fire')
-  level_max = db.IntegerProperty()
+  level_max = db.IntegerProperty(default=int(constants.level_const))
   checkin_count = db.IntegerProperty(default=0)
   venue_count = db.IntegerProperty(default=0)
   photo_url = db.StringProperty()
@@ -38,9 +39,9 @@ class UserVenue(GeoModel):
 class MapImage(db.Model):
   user = db.UserProperty()
   centerlat = db.FloatProperty()
-  centerlong = db.FloatProperty()
+  centerlng = db.FloatProperty()
   northlat = db.FloatProperty()
-  westlong = db.FloatProperty()
+  westlng = db.FloatProperty()
   zoom = db.IntegerProperty()
   width = db.IntegerProperty()
   height = db.IntegerProperty()

@@ -55,7 +55,7 @@ def fetch_and_store_checkins(userinfo):
           if checkin['id'] > userinfo.last_checkin: userinfo.last_checkin = checkin['id'] # because the checkins are ordered with most recent first!
           userinfo.put()
           num_added = num_added + 1
-        else: # there's nothing we can do without a venue id or a lat and a long
+        else: # there's nothing we can do without a venue id or a lat and a lng
           logging.info("Problematic j_venue: " + str(j_venue))
       else:
         logging.info("No venue in checkin: " + str(checkin))
@@ -66,7 +66,8 @@ def fetch_and_store_checkins(userinfo):
 
 def fetch_and_store_checkins_initial(userinfo):
   if constants.client == None:
-    constants.client = oauth.FoursquareClient(constants.consumer_key, constants.consumer_secret, constants.callback_url)
+    oauth_strings = constants.get_oauth_strings()
+    constants.client = oauth.FoursquareClient(oauth_strings[0], oauth_strings[1], oauth_strings[2])
 
   if fetch_and_store_checkins(userinfo) > 0:
     logging.info("checkins added so checkins might be remaining, add self to queue")

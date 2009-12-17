@@ -35,11 +35,15 @@ function updateLevels() {
   });
 }
 
-$(document).ready(function() {
+$(function() {
   $('#dimension_error').hide();
   $("#regenerate_status").hide();
+  $("#delete_map_status").hide();
   $.get("static_map_html", function(data){
-    if (data != "") {
+    if (data == "") {
+      $("#delete_map_button").hide();
+    }
+    else {
       $('#static_instructions').show();
       $("#static_map").html(data);
     }
@@ -47,7 +51,7 @@ $(document).ready(function() {
 
   if (GBrowserIsCompatible()) {
     map = new GMap2(document.getElementById("map_canvas"));
-    map.setCenter(new GLatLng(global_centerlat, global_centerlong), global_zoom);
+    map.setCenter(new GLatLng(global_centerlat, global_centerlng), global_zoom);
 
     var customUI = map.getDefaultUI();
     customUI.maptypes.satellite  = false;
@@ -78,18 +82,27 @@ $(document).ready(function() {
       });
   });
 
-  $('#delete_link').click(function() {
-    $('#delete_link').html("<img src='static/spinner-small.gif'/> deleting your data...");
+  $('#delete_all_button').click(function() {
+    $('#checkin_count').html("<img src='static/spinner-small.gif'/>");
+    $('#delete_all_span').html("deleting your data...");
     $.get("/delete_data/user", function(){
       map.clearOverlays();
       $("#options").html("");
       $("#regenerate").html("");
       resizeMapToWidthHeight(640, 640);
       $("#static_map").html("");
-      $('#status_info').html('<a href="/go_to_foursquare">OAuth with Foursquare</a><br/>');
+      $('#status_info').html('<a href="/go_to_foursquare">Login with Foursquare using OAuth</a><br/>');
     });
   });
 
+  $('#delete_map_button').click(function() {
+    $("#delete_map_button").hide();
+    $("#delete_map_status").show();
+    $.get("delete_data/mapimage", function() {
+      $("#static_map").html('');
+      $("#delete_map_status").hide();
+    });
+  });
 
   $("#color_select").change(function() {
     map.clearOverlays();
@@ -126,17 +139,18 @@ $(document).ready(function() {
 
     var center = map.getCenter();
     var center_lat = center.lat();
-    var center_long = center.lng();
+    var center_lng = center.lng();
 
     var zoom = map.getZoom();
     var size = map.getSize();
 
     $("#regenerate_button").hide();
     $("#regenerate_status").show();
-    $.get("generate_static_map/" + size.width + "x" + size.height + "/" + zoom + "/" + center_lat + "," + center_long + "/" + north + "," + west, function() {
+    $.get("generate_static_map/" + size.width + "x" + size.height + "/" + zoom + "/" + center_lat + "," + center_lng + "/" + north + "," + west, function() {
       $.get("static_map_html", function(data){
         $("#static_map").html(data);
-        $("#regenerate_button").show()
+        $("#delete_map_button").show();
+        $("#regenerate_button").show();
         $("#regenerate_status").hide();
       });
     });
