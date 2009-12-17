@@ -53,11 +53,11 @@ class IndexHandler(webapp.RequestHandler):
         map_data['citylng'] = userinfo.citylng
     os_path = os.path.dirname(__file__)
     self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), {'key': constants.get_google_maps_apikey()}))
-    self.response.out.write(template.render(os.path.join(os_path, 'templates/welcome.html'), page_data))
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/private_welcome.html'), page_data))
     if user and userinfo:
-        self.response.out.write(template.render(os.path.join(os_path, 'templates/map_controls.html'), user_data))
-    self.response.out.write(template.render(os.path.join(os_path, 'templates/map_all.html'), map_data))
-    self.response.out.write(template.render(os.path.join(os_path, 'templates/footer.html'), None))
+        self.response.out.write(template.render(os.path.join(os_path, 'templates/private_sidebar.html'), user_data))
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/private_map.html'), map_data))
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/all_footer.html'), None))
 
 class AuthHandler(webapp.RequestHandler):
   def get(self):
@@ -144,14 +144,24 @@ class PublicPageHandler(webapp.RequestHandler):
       return
     mapimage = db.get(map_key)
     if mapimage:
-      template_data = {
-        'mapimage_url': 'mapimage/%s.png' % mapimage.key(),
-        'publicpage_url': 'publicpage/%s.html' % mapimage.key(),
+      user_data = {
+        'real_name': '',
+        'photourl': constants.default_photo,
       }
+      map_data = {
+        'domain': environ['HTTP_HOST'],
+        'mapimage_url': 'map/%s.png' % mapimage.key(),
+      }
+      userinfo = UserInfo.all().filter('user =', mapimage.user).order('-created').get()
+      if userinfo:
+        user_data['real_name'] = userinfo.real_name
+        user_data['photo_url'] = userinfo.photo_url
       os_path = os.path.dirname(__file__)
-      self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), {'key': constants.get_google_maps_apikey()}))
-      self.response.out.write(template.render(os.path.join(os_path, 'templates/public_map.html'), template_data))
-      self.response.out.write(template.render(os.path.join(os_path, 'templates/footer.html'), None))
+      self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), None))
+      self.response.out.write(template.render(os.path.join(os_path, 'templates/public_welcome.html'), user_data))
+      self.response.out.write(template.render(os.path.join(os_path, 'templates/public_sidebar.html'), None))
+      self.response.out.write(template.render(os.path.join(os_path, 'templates/public_map.html'), map_data))
+      self.response.out.write(template.render(os.path.join(os_path, 'templates/all_footer.html'), None))
     else:
       self.redirect("/")
 
@@ -171,8 +181,8 @@ class StaticMapHtmlWriter(webapp.RequestHandler):
       if mapimage:
         template_data = {
           'domain': environ['HTTP_HOST'],
-          'mapimage_url': 'mapimage/%s.png' % mapimage.key(),
-          'publicpage_url': 'publicpage/%s.html' % mapimage.key(),
+          'mapimage_url': 'map/%s.png' % mapimage.key(),
+          'public_url': 'public/%s.html' % mapimage.key(),
         }
         os_path = os.path.dirname(__file__)
         self.response.out.write(template.render(os.path.join(os_path, 'templates/static_map.html'), template_data))
@@ -184,8 +194,8 @@ def main():
                                         ('/go_to_foursquare', AuthHandler),
                                         ('/authenticated', AuthHandler),
                                         ('/tile/.*', TileHandler),
-                                        ('/mapimage/.*', StaticMapHandler),
-                                        ('/publicpage/.*', PublicPageHandler),
+                                        ('/map/.*', StaticMapHandler),
+                                        ('/public/.*', PublicPageHandler),
                                         ('/static_map_html', StaticMapHtmlWriter),
                                         ('/view_uservenues', UserVenueWriter)],
                                       debug=True)

@@ -35,7 +35,7 @@ function updateLevels() {
   });
 }
 
-$(function() {
+$(document).ready(function() {
   $('#dimension_error').hide();
   $("#regenerate_status").hide();
   $("#delete_map_status").hide();
@@ -119,12 +119,14 @@ $(function() {
     if (isNaN(width) || (0 >= width) || (640 < width)) {
       $("label#dimension_error").show();
       $("input#width_field").focus();
+      return false;
     }
 
     var height = parseInt($("input#height_field").val());
     if (isNaN(height) || (0 >= height) || (640 < height)) {
       $("label#dimension_error").show();
       $("input#height_field").focus();
+      return false;
     }
 
     resizeMapToWidthHeight(width, height);

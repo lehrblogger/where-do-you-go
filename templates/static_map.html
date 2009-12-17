@@ -1,17 +1,16 @@
 <div id="static" class="span-24 last">
   <div class="span-24 last">
     <h2>finally, share it!</h2>
-    <strong class="indented">you get two links:</strong>
   </div>
   <div id="descriptions" class="span-8">
     <ol>
-      <li>send this link to your friends! <a href="">go to Twitter</a>
-      <li>embed this url in an &#60;img&#62; tag on your blog!
+      <li class="indented">send this link to your friends! <a href="">go to Twitter</a>
+      <li class="indented">embed this url in an &#60;img&#62; tag on your blog!
     </ol>
   </div >
   <div id="urls" class="span-16 last">
     <ol>
-      <li><a href="{{ publicpage_url }}">http://{{ domain }}/{{ publicpage_url }}</a></li>
+      <li><a href="{{ public_url }}">http://{{ domain }}/{{ public_url }}</a></li>
       <li><a href="{{ mapimage_url }}">http://{{ domain }}/{{ mapimage_url }}</a></li>
     </ol>
   </div>
@@ -20,10 +19,10 @@
     <div class="indented">
       <p>WDYG doesn't store checkins from the past 24 hours, and doesn't store details about individual checkins.</p>
       <p>Both that public page and that image are visible to <strong><em>anyone on the Internet!</em></strong> If you're not happy about this, you can delete them by clicking the button above, or you can delete all of your data by clicking the button in the upper left.</p>
-      <p>Each Google user currently only gets one map, but for now feel free OAuth into the same Foursquare account from a second Google account.</p>
+      <p>You only get one map at a time, and creating a new snapshot will change the old image but won't break your old links. If you want maps for multiple cities (both New York and San Francisco, for example) just log in with a second Google account and re-authorize Foursquare.</p>
     </div>
   </div>
-  <div id="static_map_url" class="span-16 last">
+  <div id="static_map_div" class="span-16 last">
     <img src="http://{{ domain }}/{{ mapimage_url }}"/>
   </div>
 </div>

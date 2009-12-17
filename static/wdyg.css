@@ -1,23 +1,18 @@
 .container {
-    padding-bottom: 5em;
+  padding-top: 3em;
+  padding-bottom: 5em;
 }
-#options p, #regenerate p, #regenerate p, .indented {
-  padding-left: 1em;
+p {
+  padding-left: 1.5em;
 }
-#status_info, #static_map_url, #privacy-note, #about {
-    padding-top: 2em;
+h2 {
+  padding-top: 0.5em;
 }
-.container, #regenerate, #static_map {
-    padding-top: 3em;
+#left-lower, #static_map_div, #status_info {
+  padding-top: 2em;
 }
-#options {
-  padding-top: 4em;
-}
-
-fieldset {
-  border: none;
-  margin: 0;
-  padding: 0;
+#about {
+  padding-top: 3em;
 }
 
 #map_bounds {
@@ -26,14 +21,13 @@ fieldset {
   height: 640px;
 }
 
-
 li {
   padding-top: 0.5em;
   list-style: none;
 }
-#descriptions ol {
-  list-style: none;
-}
 #urls ol {
   padding-left: 0;
+}
+#descriptions ol {
+  text-align: right;
 }
