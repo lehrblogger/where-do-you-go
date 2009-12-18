@@ -1,31 +1,26 @@
-import logging
 from google.appengine.api import users
+from google.appengine.api import images
+from google.appengine.api import urllib
 from google.appengine.ext import db
-
 import os
 from os import environ
+import urllib
 import constants
-from google.appengine.api import images
-
+import logging
+from datetime import datetime
 from gheatae import tile
 from models import MapImage
-
-from google.appengine.api import urlfetch
-import urllib
-
 
 def update_map_image(user, google_data, width, height, northlat, westlng):
   result = urlfetch.fetch(url="http://maps.google.com/maps/api/staticmap?" + urllib.urlencode(google_data),
                           method=urlfetch.GET)
   input_tuples = []
   input_tuples.append((result.content, 0, 0, 1.0, images.TOP_LEFT))
-
   for offset_x_px in range (0, width, 256):
     for offset_y_px in range (0, height, 256):
       new_tile = tile.CustomTile(user, int(google_data['zoom']), northlat, westlng, offset_x_px, offset_y_px)
       input_tuples.append((new_tile.image_out(), offset_x_px, offset_y_px, 1.0, images.TOP_LEFT))
       # http://code.google.com/appengine/docs/python/images/functions.html
-
   img = images.composite(inputs=input_tuples, width=width, height=height, color=0, output_encoding=images.PNG)
   return img
 
@@ -36,7 +31,6 @@ def create_map_file(user, path=''):
     assert widthxheight.count('x') == 1, "%d x's" % centerpoint.count('x')
     width, height = widthxheight.split('x')
     assert zoom.isdigit(), "not digits"
-
     assert centerpoint.count(',') == 1, "%d ,'s" % centerpoint.count(',')
     centerlat, centerlng = centerpoint.split(',')
     assert northwest.count(',') == 1, "%d ,'s" % northwest.count(',')
@@ -44,7 +38,6 @@ def create_map_file(user, path=''):
   except AssertionError, err:
     logging.error(err.args[0])
     return
-
   google_data = {
     'key': constants.get_google_maps_apikey(),
     'zoom': zoom,
@@ -53,25 +46,21 @@ def create_map_file(user, path=''):
     'sensor':'false',
     'format':'png',
   }
-
-
-
   mapimage = MapImage.all().filter('user =', user).get()
   if not mapimage:
     mapimage            = MapImage()
     mapimage.user       = user
     mapimage.centerlat  = float(centerlat)
-    mapimage.centerlng = float(centerlng)
+    mapimage.centerlng  = float(centerlng)
     mapimage.northlat   = float(northlat)
-    mapimage.westlng   = float(westlng)
+    mapimage.westlng    = float(westlng)
     mapimage.zoom       = int(zoom)
     mapimage.height     = int(height)
     mapimage.width      = int(width)
-
   img = update_map_image(user, google_data, int(width), int(height), float(northlat), float(westlng))
   mapimage.img          = db.Blob(img)
+  mapimage.last_updated = datetime.now()
   mapimage.put()
-
 
 if __name__ == '__main__':
   raw = environ['PATH_INFO']
@@ -79,11 +68,7 @@ if __name__ == '__main__':
     foo, bar, rest, = raw.split('/')
     try:
       assert rest == 'all', "rest is: %s " % rest
-
-      mapimages = []
-      while(len(MapImage.all().fetch(1000, len(mapimages))) > 0):
-        mapimages.extend(MapImage.all().fetch(1000, len(mapimages)))
-
+      mapimages = MapImage.all().order('-last_updated').fetch(1000)
       for mapimage in mapimages:
         google_data = {
           'key': constants.get_google_maps_apikey(),
@@ -95,6 +80,7 @@ if __name__ == '__main__':
         }
         img = update_map_image(mapimage.user, google_data, mapimage.width, mapimage.height, mapimage.northlat, mapimage.westlng)
         mapimage.img = db.Blob(img)
+        mapimage.last_updated = datetime.now()
         mapimage.put()
     except AssertionError, err:
       logging.error(err.args[0])

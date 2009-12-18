@@ -1,5 +1,6 @@
 var map;
 var geocoder;
+var level_offset = 0;
 
 function createHeatMap(map) {
   var myCopyright = new GCopyrightCollection("© ");

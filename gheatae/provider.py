@@ -20,7 +20,7 @@ class DBProvider(Provider):
       # log.info("Range: (%6.4f - %6.4f), (%6.4f - %6.4f)" % (min(90, max(-90, lat_north + range_lat)), lat_north, min(180, max(-180, lng_west + range_lng)), lng_west))
 
       if user:
-        return UserVenue.bounding_box_fetch(UserVenue.all().filter('user =', user), #TODO find a way to specify this elsewhere!!
+        return UserVenue.bounding_box_fetch(UserVenue.all().filter('user =', user).order('-last_checkin'), #TODO find a way to specify this elsewhere!!
           geotypes.Box(min(90, max(-90, lat_north + range_lat)),
               min(180, max(-180, lng_west + range_lng)),
               lat_north,
@@ -33,7 +33,7 @@ class DBProvider(Provider):
       if user:
         self.get_user_data(user, lat_north, lng_west, range_lat, range_lng, max_results)
       else:
-        return UserVenue.bounding_box_fetch(UserVenue.all(),
+        return UserVenue.bounding_box_fetch(UserVenue.all().order('-last_checkin'),
           geotypes.Box(min(90, max(-90, lat_north + range_lat)),
               min(180, max(-180, lng_west + range_lng)),
               lat_north,

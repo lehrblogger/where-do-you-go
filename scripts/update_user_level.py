@@ -13,7 +13,9 @@ if user:
 
   try:
     assert path.count('/') == 3, "%d /'s" % path.count('/')
-    foo, bar, northwest, southeast = path.split('/')
+    foo, bar, offset, northwest, southeast = path.split('/')
+    assert offset.isdigit(), "offset not a digit"
+    offset = int(offset)
     assert northwest.count(',') == 1, "%d ,'s" % northwest.count(',')
     northlat, westlng = northwest.split(',')
     assert southeast.count(',') == 1, "%d ,'s" % southeast.count(',')
@@ -28,7 +30,7 @@ if user:
       visible_checkin_count = visible_checkin_count + len(venue.checkin_list)
 
     logging.warning("visible_checkin_count=%d  len(visible_uservenues)=%d" % (visible_checkin_count, len(visible_uservenues)))
-    userinfo.level_max = int(float(visible_checkin_count) / max(float(len(visible_uservenues)), 1) * constants.level_const)
+    userinfo.level_max = int(float(visible_checkin_count) / max(float(len(visible_uservenues)), 1) * (constants.level_const + offset))
     userinfo.put()
 
   except AssertionError, err:

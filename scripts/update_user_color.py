@@ -3,10 +3,8 @@ from os import environ
 from models import UserInfo
 
 user = users.get_current_user()
-
 if user:
   path = environ['PATH_INFO']
-
   try:
     assert path.count('/') == 2, "%d /'s" % path.count('/')
     foo, bar, color_scheme = path.split('/')
