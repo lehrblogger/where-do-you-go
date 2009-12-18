@@ -2,6 +2,7 @@ var map;
 var geocoder;
 var level_offset = 0;
 var uncacher = 0;
+var is_ready_interval;
 
 function createHeatMap(map) {
   var myCopyright = new GCopyrightCollection("© ");
@@ -52,6 +53,29 @@ $(document).ready(function() {
     }
   });
 
+  if ($('#delete_all_span').attr('name') == 'started_ready') {
+    $('#fetching_span').hide();
+    $('#delete_all_span').show();
+  } else {
+    $('#fetching_span').show();
+    $('#delete_all_span').hide();
+    is_ready_interval = setInterval(function() {
+      $.get("/user_is_ready", function(data) {
+        data_arr = data.split(',');
+        $('#checkin_count').html(data_arr[1] + ' checkins logged!');
+        if (data_arr[0] == 'True') {
+          clearInterval(is_ready_interval);
+          $('#fetching_span').hide();
+          $('#delete_all_span').show();
+          level_offset = 0;
+          updateLevels(0);
+          map.clearOverlays();
+          createHeatMap(map);
+        }
+      });
+    }, 3000);
+  }
+
   if (GBrowserIsCompatible()) {
     map = new GMap2(document.getElementById("map_canvas"));
     map.setCenter(new GLatLng(global_centerlat, global_centerlng), global_zoom);
@@ -87,8 +111,8 @@ $(document).ready(function() {
   });
 
   $('#delete_all_button').click(function() {
-    $('#checkin_count').html("<img src='static/spinner-small.gif'/>");
-    $('#delete_all_span').html("deleting your data...");
+    $('#checkin_count').html("");
+    $('#delete_all_span').html("deleting your data... <img src='static/spinner-small.gif'/>");
     $.get("/delete_data/user", function(){
       map.clearOverlays();
       $("#hello img").attr("src", "/static/foursquare_icon.png"); //TODO also in constants.py - this duplication is ugly, but oh well for now
@@ -139,11 +163,11 @@ $(document).ready(function() {
 
   $('#hot_button').click(function() {
     uncacher++;
-    updateLevels(+7);
+    updateLevels(+5);
   });
   $('#cold_button').click(function() {
     uncacher++;
-    updateLevels(-7);
+    updateLevels(-5);
   });
 
   $('#regenerate_button').click(function() {

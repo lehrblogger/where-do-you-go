@@ -11,8 +11,11 @@ level_const = 140.
 
 default_photo = '/static/foursquare_icon.png'
 default_color = color_scheme.color_schemes.keys()[0]
-default_lat = 40.728397037445006 #NYC
-default_lng = -73.99429321289062
+default_lat = 40.73607172122901 #NYC
+default_lng = -73.96699905395508
+default_zoom = 13
+default_dimension = 640
+
 
 def get_google_maps_apikey():
   domain = environ['HTTP_HOST']

@@ -28,7 +28,7 @@ if user:
     for venue in visible_uservenues:
       visible_checkin_count = visible_checkin_count + len(venue.checkin_list)
 
-    logging.warning("visible_checkin_count=%d  len(visible_uservenues)=%d" % (visible_checkin_count, len(visible_uservenues)))
+    logging.info("visible_checkin_count=%d  len(visible_uservenues)=%d" % (visible_checkin_count, len(visible_uservenues)))
     userinfo.level_max = int(float(visible_checkin_count) / max(float(len(visible_uservenues)), 1) * (constants.level_const + level_offset))
     userinfo.put()
 

@@ -8,10 +8,9 @@ from django.utils import simplejson as json
 from datetime import datetime, timedelta
 import logging
 
-def fetch_and_store_checkins(userinfo):
+def fetch_and_store_checkins(userinfo, limit=75):
   num_added = 0
-  logging.info("userinfo.last_checkin = " + str(userinfo.last_checkin))
-  params = {'l':50, 'sinceid':userinfo.last_checkin}
+  params = {'l':limit, 'sinceid':userinfo.last_checkin}
   response = constants.client.make_request("http://api.foursquare.com/v1/history.json",
                                             token = userinfo.token,
                                             secret = userinfo.secret,
@@ -52,6 +51,7 @@ def fetch_and_store_checkins(userinfo):
           uservenue.put()
           userinfo.checkin_count = userinfo.checkin_count + 1
           if checkin['id'] > userinfo.last_checkin: userinfo.last_checkin = checkin['id'] # because the checkins are ordered with most recent first!
+          userinfo.last_updated = datetime.now()
           userinfo.put()
           num_added = num_added + 1
       #   else: # there's nothing we can do without a venue id or a lat and a lng
@@ -70,16 +70,16 @@ def fetch_and_store_checkins_initial(userinfo):
   if fetch_and_store_checkins(userinfo) > 0:
     logging.info("more than 0 checkins added so there might be checkins remaining. requeue!")
     taskqueue.add(url='/fetch_foursquare_data/all_for_user/%s' % userinfo.key())
+  else:
+    logging.info("no more checkins found, we're all set!")
+    userinfo.is_ready = True
   userinfo.level_max = int(3 * constants.level_const)
-  userinfo.last_updated = datetime.now()
   userinfo.put()
 
 def fetch_and_store_checkins_for_all():
   userinfos = UserInfo.all().order('-last_updated').fetch(1000)
   for userinfo in userinfos:
     fetch_and_store_checkins(userinfo)
-    userinfo.last_updated = datetime.now()
-    userinfo.put()
 
 def update_user_info(userinfo):
   response = constants.client.make_request("http://api.foursquare.com/v1/user.json", token = userinfo.token, secret = userinfo.secret)
@@ -97,6 +97,8 @@ def update_user_info(userinfo):
       userinfo.citylat = constants.default_lat
       userinfo.citylng = constants.default_lng
     userinfo.put()
+  else:
+    logging.error('user object not updated!')
 
 if __name__ == '__main__':
   raw = environ['PATH_INFO']
@@ -110,6 +112,5 @@ if __name__ == '__main__':
   if rest == 'update_everyone':
     fetch_and_store_checkins_for_all()
   elif rest == 'all_for_user':
-    logging.info("userinfo_key " + str(userinfo_key))
     userinfo = db.get(userinfo_key)
     fetch_and_store_checkins_initial(userinfo)

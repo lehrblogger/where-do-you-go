@@ -11,6 +11,7 @@ class AuthToken(db.Model):
 class UserInfo(db.Model):
   last_updated = db.DateTimeProperty(auto_now_add=True)
   user = db.UserProperty()
+  is_ready = db.BooleanProperty()
   last_checkin = db.IntegerProperty(default=0)
   color_scheme = db.StringProperty(default='fire')
   level_max = db.IntegerProperty(default=int(constants.level_const))
