@@ -1,6 +1,6 @@
 from google.appengine.api import users
 from google.appengine.api import images
-from google.appengine.api import urllib
+from google.appengine.api import urlfetch
 from google.appengine.ext import db
 import os
 from os import environ

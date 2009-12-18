@@ -145,21 +145,25 @@ class PublicPageHandler(webapp.RequestHandler):
     mapimage = db.get(map_key)
     if mapimage:
       user_data = {
-        'real_name': '',
         'photourl': constants.default_photo,
       }
       map_data = {
         'domain': environ['HTTP_HOST'],
         'mapimage_url': 'map/%s.png' % mapimage.key(),
       }
+      sidebar_data = {
+        'domain': environ['HTTP_HOST'],
+        'public_url': 'public/%s.html' % mapimage.key(),
+      }
       userinfo = UserInfo.all().filter('user =', mapimage.user).order('-created').get()
       if userinfo:
         user_data['real_name'] = userinfo.real_name
         user_data['photo_url'] = userinfo.photo_url
+        user_data['checkin_count'] = userinfo.checkin_count
       os_path = os.path.dirname(__file__)
       self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), None))
       self.response.out.write(template.render(os.path.join(os_path, 'templates/public_welcome.html'), user_data))
-      self.response.out.write(template.render(os.path.join(os_path, 'templates/public_sidebar.html'), None))
+      self.response.out.write(template.render(os.path.join(os_path, 'templates/public_sidebar.html'), sidebar_data))
       self.response.out.write(template.render(os.path.join(os_path, 'templates/public_map.html'), map_data))
       self.response.out.write(template.render(os.path.join(os_path, 'templates/all_footer.html'), None))
     else:

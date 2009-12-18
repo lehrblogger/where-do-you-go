@@ -5,7 +5,7 @@ client = None
 provider = None
 
 min_zoom = 10
-max_zoom = 18 # note that these must also be in the static wdyg.js file
+max_zoom = 18 # note that these must also be in the static wdyg-private.js file
 
 level_const = 140.
 

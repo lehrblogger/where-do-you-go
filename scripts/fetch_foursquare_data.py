@@ -70,7 +70,7 @@ def fetch_and_store_checkins_initial(userinfo):
   if fetch_and_store_checkins(userinfo) > 0:
     logging.info("more than 0 checkins added so there might be checkins remaining. requeue!")
     taskqueue.add(url='/fetch_foursquare_data/all_for_user/%s' % userinfo.key())
-  userinfo.level_max = int(constants.level_const)
+  userinfo.level_max = int(3 * constants.level_const)
   userinfo.last_updated = datetime.now()
   userinfo.put()
 

@@ -9,7 +9,7 @@ indexes:
   properties:
   - name: location_geocells
   - name: user
-  - name: created
+  - name: last_checkin
     direction: desc
 
 

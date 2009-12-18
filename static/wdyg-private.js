@@ -1,13 +1,14 @@
 var map;
 var geocoder;
 var level_offset = 0;
+var uncacher = 0;
 
 function createHeatMap(map) {
   var myCopyright = new GCopyrightCollection("© ");
   myCopyright.addCopyright(new GCopyright('', new GLatLngBounds(new GLatLng(-90,-180), new GLatLng(90,180)), 0,''));
 
   var tilelayer = new GTileLayer(myCopyright);
-  tilelayer.getTileUrl = function(point, zoom) { return "tile/" + $("#color_select").val() + "/" + zoom + "/" + point.y + "," + point.x +".png"; };
+  tilelayer.getTileUrl = function(point, zoom) { return "tile/" + $("#color_select").val() + uncacher + "/" + zoom + "/" + point.y + "," + point.x +".png"; };
   tilelayer.isPng = function() { return true; };
   tilelayer.getOpacity = function() { return 1.0; };
 
@@ -23,7 +24,7 @@ function resizeMapToWidthHeight(width, height) {
   map.checkResize();
 }
 
-function updateLevels() {
+function updateLevels(offset) {
   var bounds = map.getBounds();
   var north = bounds.getNorthEast().lat();
   var east = bounds.getNorthEast().lng();
@@ -31,7 +32,8 @@ function updateLevels() {
   var west = bounds.getSouthWest().lng();
 
   map.clearOverlays();
-  $.get("/update_user_level/" + north + "," + west + "/" + south + "," + east, function(){
+  level_offset += offset;
+  $.get("/update_user_level/" + level_offset + "/" + north + "," + west + "/" + south + "," + east, function(){
     createHeatMap(map);
   });
 }
@@ -77,7 +79,8 @@ $(document).ready(function() {
           alert(address + " not found");
         } else {
           map.setCenter(point);
-          updateLevels();
+          level_offset = 0;
+          updateLevels(0);
         }
         $('#search_field').val('');
       });
@@ -88,7 +91,8 @@ $(document).ready(function() {
     $('#delete_all_span').html("deleting your data...");
     $.get("/delete_data/user", function(){
       map.clearOverlays();
-      $("#options").html("");
+      $("#hello img").attr("src", "/static/foursquare_icon.png"); //TODO also in constants.py - this duplication is ugly, but oh well for now
+      $("#left-lower").html("");
       $("#regenerate").html("");
       resizeMapToWidthHeight(640, 640);
       $("#static_map").html("");
@@ -133,7 +137,14 @@ $(document).ready(function() {
     resizeMapToWidthHeight(width, height);
   });
 
-  $('#level_button').click(updateLevels);
+  $('#hot_button').click(function() {
+    uncacher++;
+    updateLevels(+7);
+  });
+  $('#cold_button').click(function() {
+    uncacher++;
+    updateLevels(-7);
+  });
 
   $('#regenerate_button').click(function() {
     var bounds = map.getBounds();

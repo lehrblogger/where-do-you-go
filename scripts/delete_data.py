@@ -15,34 +15,31 @@ if __name__ == '__main__':
     constants.provider = provider.DBProvider()
 
   if rest == 'all':
+    while(MapImage.all().count() > 0):
+      mapimages = MapImage.all().fetch(500)
+      db.delete(mapimages)
+    while(UserVenue.all().count() > 0):
+      uservenues = UserVenue.all().fetch(500)
+      db.delete(uservenues)
     while(AuthToken.all().count() > 0):
       authtokens = AuthToken.all().fetch(500)
       db.delete(authtokens)
-
     while(UserInfo.all().count() > 0):
       userinfos = UserInfo.all().fetch(500)
       db.delete(userinfos)
 
-    while(UserVenue.all().count() > 0):
-      uservenues = UserVenue.all().fetch(500)
-      db.delete(uservenues)
-
-    while(MapImage.all().count() > 0):
-      mapimages = MapImage.all().fetch(500)
-      db.delete(mapimages)
-
   elif rest == 'user':
     user = users.get_current_user()
     if user:
-      while(UserInfo.all().filter('user =', user).count() > 0):
-        userinfos = UserInfo.all().filter('user =', user).fetch(500)
-        db.delete(userinfos)
       while(MapImage.all().filter('user =', user).count() > 0):
         mapimages = MapImage.all().filter('user =', user).fetch(500)
         db.delete(mapimages)
       while(UserVenue.all().filter('user = ', user).count() > 0):
         uservenues = UserVenue.all().filter('user = ', user).fetch(500)
         db.delete(uservenues)
+      while(UserInfo.all().filter('user =', user).count() > 0):
+        userinfos = UserInfo.all().filter('user =', user).fetch(500)
+        db.delete(userinfos)
 
   elif rest == 'mapimage':
     user = users.get_current_user()

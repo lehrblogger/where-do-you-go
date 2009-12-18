@@ -5,16 +5,16 @@
   </div>
   <div id="status_info" class="span-8 last">
   {% if userinfo %}
-    <span id="checkin_count" class="span-4">{{ userinfo.checkin_count }} checkins logged!</span>
-
-    <span id="delete_all_span" class="span-4 last"><input type="submit" name="submit" class="button" id="delete_all_button" value="delete your WDYG data" /></span>
+    <h4>
+      <span id="checkin_count" class="span-4">{{ userinfo.checkin_count }} checkins logged!</span>
+      <span id="delete_all_span" class="span-4 last"><input type="submit" name="submit" class="button" id="delete_all_button" value="delete your data" /></span>
+    </h4>
   {% else %}
-    <a href="/go_to_foursquare">Login with Foursquare using OAuth</a><br/>
+    <h4><a href="/go_to_foursquare">Login with Foursquare using OAuth</a></h4>
   {% endif %}
   </div>
 {% else %}
     <h4><a href="{{ url }}">login!</a> then OAuth</h4>
     <img src="{{ photo_url }}" />
-    <br/><strong>THIS IS IN BETA! PLEASE DO NOT PUBLICIZE!</strong>
   </div>
 {% endif %}
