@@ -14,6 +14,7 @@ import logging
 import time
 import oauth
 import constants
+from datetime import datetime
 from scripts import fetch_foursquare_data
 from gheatae import color_scheme, tile, provider
 from models import UserInfo, UserVenue, MapImage
@@ -33,8 +34,8 @@ class IndexHandler(webapp.RequestHandler):
       'color_scheme': constants.default_color,
     }
     map_data = {
-      'centerlat': constants.default_lat,
-      'centerlng': constants.default_lng,
+      'citylat': constants.default_lat,
+      'citylng': constants.default_lng,
       'zoom': constants.default_zoom,
       'width': constants.default_dimension,
       'height': constants.default_dimension,
@@ -70,7 +71,7 @@ class AuthHandler(webapp.RequestHandler):
         credentials= constants.client.get_credentials(auth_token)
         old_userinfos = UserInfo.all().filter('user =', user).fetch(500)
         db.delete(old_userinfos)
-        userinfo = UserInfo(user = user, token = credentials['token'], secret = credentials['secret'], is_ready=False)
+        userinfo = UserInfo(user = user, token = credentials['token'], secret = credentials['secret'], is_ready=False, last_checkin=0, last_updated=datetime.now(), color_scheme='fire', level_max=int(constants.level_const), checkin_count=0, venue_count=0)
         fetch_foursquare_data.update_user_info(userinfo)
         fetch_foursquare_data.fetch_and_store_checkins(userinfo, limit=10)
         taskqueue.add(url='/fetch_foursquare_data/all_for_user/%s' % userinfo.key())#, queue_name='initial-checkin-fetching')
@@ -176,6 +177,9 @@ class UserVenueWriter(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
     if user:
+      userinfo = UserInfo.all().filter('user =', user).order('-created').get()
+      if userinfo:
+          self.response.out.write(str(userinfo))
       template_data = { 'uservenues': constants.provider.get_user_data(user=user)}
       os_path = os.path.dirname(__file__)
       self.response.out.write(template.render(os.path.join(os_path, 'templates/uservenue_list.html'), template_data))
@@ -200,9 +204,10 @@ class ReadyInfoWriter(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
     if user:
-      userinfo = UserInfo.all().filter('user =', user).order('-created').get()
+      userinfo = UserInfo.all().filter('user =', user).get() #.order('-created')
       if userinfo:
           self.response.out.write(str(userinfo.is_ready) + ',' + str(userinfo.checkin_count))
+          return
     self.response.out.write("")
 
 def main():

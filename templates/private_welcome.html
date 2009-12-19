@@ -19,7 +19,7 @@
       <span id="fetching_span" class="span-3 last">Fetching the rest...<img src='static/spinner-small.gif'/></span>
     </h4>
   {% else %}
-    <h4><a href="/go_to_foursquare">Login with Foursquare using OAuth</a></h4>
+    <h4><span name="not_oauthed" id="oauth_span"><a href="/go_to_foursquare">Login with Foursquare using OAuth</a></span></h4>
   {% endif %}
   </div>
 {% else %}

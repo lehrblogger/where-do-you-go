@@ -53,7 +53,7 @@ $(document).ready(function() {
     }
   });
 
-  if ($('#delete_all_span').attr('name') == 'started_ready') {
+  if (($('#delete_all_span').attr('name') == 'started_ready') || ($('#oauth_span').attr('name') == 'not_oauthed')) {
     $('#fetching_span').hide();
     $('#delete_all_span').show();
   } else {
@@ -163,11 +163,11 @@ $(document).ready(function() {
 
   $('#hot_button').click(function() {
     uncacher++;
-    updateLevels(+5);
+    updateLevels(+1);
   });
   $('#cold_button').click(function() {
     uncacher++;
-    updateLevels(-5);
+    updateLevels(-1);
   });
 
   $('#regenerate_button').click(function() {

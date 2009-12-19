@@ -8,7 +8,7 @@ from django.utils import simplejson as json
 from datetime import datetime, timedelta
 import logging
 
-def fetch_and_store_checkins(userinfo, limit=75):
+def fetch_and_store_checkins(userinfo, limit=50):
   num_added = 0
   params = {'l':limit, 'sinceid':userinfo.last_checkin}
   response = constants.client.make_request("http://api.foursquare.com/v1/history.json",
@@ -19,6 +19,9 @@ def fetch_and_store_checkins(userinfo, limit=75):
     history = json.loads(response.content)
     if not 'checkins' in history:
       logging.warning("no value for 'checkins' in history: " + str(history))
+      return -1
+    if history['checkins'] == None:
+      logging.warning("history['checkins'] is None: " + str(history))
       return 0
     for checkin in history['checkins']:
       if 'venue' in checkin:
@@ -45,13 +48,12 @@ def fetch_and_store_checkins(userinfo, limit=75):
               uservenue.zipcode      = j_venue['zip']
             if 'phone' in j_venue:
               uservenue.phone        = j_venue['phone']
-          uservenue.last_checkin = datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000")
-          if datetime.now() < uservenue.last_checkin + timedelta(hours=12):  continue
+          uservenue.last_updated = datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000") #WARNING last_updated is confusing and should be last_checkin_at
+          if datetime.now() < uservenue.last_updated + timedelta(hours=12):  continue #WARNING last_updated is confusing and should be last_checkin_at
           uservenue.checkin_list.append(checkin['id'])
           uservenue.put()
           userinfo.checkin_count = userinfo.checkin_count + 1
           if checkin['id'] > userinfo.last_checkin: userinfo.last_checkin = checkin['id'] # because the checkins are ordered with most recent first!
-          userinfo.last_updated = datetime.now()
           userinfo.put()
           num_added = num_added + 1
       #   else: # there's nothing we can do without a venue id or a lat and a lng
@@ -67,7 +69,10 @@ def fetch_and_store_checkins_initial(userinfo):
   if constants.client == None:
     oauth_strings = constants.get_oauth_strings()
     constants.client = oauth.FoursquareClient(oauth_strings[0], oauth_strings[1], oauth_strings[2])
-  if fetch_and_store_checkins(userinfo) > 0:
+  logging.info("about to fetch, userinfo.last_checkin = %d" % (userinfo.last_checkin))
+  num_added = fetch_and_store_checkins(userinfo)
+  logging.info("%d checkins added this time, userinfo.last_checkin = %d" % (num_added, userinfo.last_checkin))
+  if num_added != 0:
     logging.info("more than 0 checkins added so there might be checkins remaining. requeue!")
     taskqueue.add(url='/fetch_foursquare_data/all_for_user/%s' % userinfo.key())
   else:

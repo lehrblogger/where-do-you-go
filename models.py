@@ -9,7 +9,7 @@ class AuthToken(db.Model):
   created = db.DateTimeProperty(auto_now_add=True)
 
 class UserInfo(db.Model):
-  last_updated = db.DateTimeProperty(auto_now_add=True)
+  last_updated = db.DateTimeProperty()
   user = db.UserProperty()
   is_ready = db.BooleanProperty()
   last_checkin = db.IntegerProperty(default=0)
@@ -25,8 +25,11 @@ class UserInfo(db.Model):
   secret = db.StringProperty()
   created = db.DateTimeProperty(auto_now_add=True)
 
+  def __str__(self):
+    return 'last_updated = ' + str(self.last_updated) + ' | user =' + str(self.user) + ' | is_ready =' + str(self.is_ready) + ' | last_checkin = ' + str(self.last_checkin) + ' | color_scheme = ' + str(self.color_scheme) + ' | level_max =' + str(self.level_max) + ' | checkin_count =' + str(self.checkin_count) + ' | venue_count =' + str(self.venue_count) + ' | photo_url =' + str(self.photo_url) + ' | real_name =' + str(self.real_name) + ' | citylat =' + str(self.citylat) + ' | citylng =' + str(self.citylng) + ' | created =' + str(self.created)
+
 class UserVenue(GeoModel):
-  last_checkin = db.DateTimeProperty(auto_now_add=True)
+  last_updated = db.DateTimeProperty(auto_now_add=True) #WARNING last_updated is confusing and should be last_checkin_at
   user = db.UserProperty()
   checkin_list = db.ListProperty(int, default=[])
   venue_id = db.IntegerProperty()

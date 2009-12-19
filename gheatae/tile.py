@@ -18,13 +18,16 @@ DOT_MULT = 3
 class BasicTile(object):
   def __init__(self, user, lat_north, lng_west, range_lat, range_lng):
     userinfo = UserInfo.all().filter('user =', user).order('-created').get()
-    self.level_max = userinfo.level_max
-
+    if userinfo:
+      self.level_max = userinfo.level_max
+      self.color_scheme = color_scheme.color_schemes[userinfo.color_scheme]
+    else:
+      self.level_max = int(constants.level_const)
+      self.color_scheme = color_scheme.color_schemes[constants.default_color]
+          
     self.cache_levels = []
     for i in range(self.level_max - 1, -1, -1):
       self.cache_levels.append(int(((-(pow(float(i) - self.level_max, 2))/self.level_max) + self.level_max) / self.level_max * 255))
-
-    self.color_scheme = color_scheme.color_schemes[userinfo.color_scheme]
 
     if not constants.provider:
       constants.provider = provider.DBProvider()
@@ -60,12 +63,15 @@ class BasicTile(object):
 
   def convert_image(self, space_level):
     tile = PNGCanvas(len(space_level[0]), len(space_level), bgcolor=[0xff,0xff,0xff,0])
-    color_scheme = []
+    temp_color_scheme = []
     for i in range(self.level_max):
-      color_scheme.append(self.color_scheme.canvas[self.cache_levels[i]][0])
+      temp_color_scheme.append(self.color_scheme.canvas[self.cache_levels[i]][0])
     for y in xrange(len(space_level[0])):
       for x in xrange(len(space_level[0])):
-        tile.canvas[y][x] = color_scheme[min(len(color_scheme) - 1, self.scale_value(space_level[y][x]))]
+        if len(temp_color_scheme) > 0:
+          tile.canvas[y][x] = [int(e) for e in temp_color_scheme[max(0, min(len(temp_color_scheme) - 1, self.scale_value(space_level[y][x])))]]
+        else:
+          tile.canvas[y][x] = [0,0,0,0]
     return tile
 
   def calc_point(self, rad, pt_rad, weight):
@@ -149,30 +155,3 @@ class GoogleTile(BasicTile):
     self.latlng_diff          = [ self.southeast_ll[0]          - self.northwest_ll[0]         , self.southeast_ll[1]          - self.northwest_ll[1]]
 
     BasicTile.__init__(self, user, self.northwest_ll_buffered[0], self.northwest_ll_buffered[1], self.latlng_diff_buffered[0], self.latlng_diff_buffered[1])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
