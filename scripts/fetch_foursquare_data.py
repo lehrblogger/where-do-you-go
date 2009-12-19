@@ -21,7 +21,7 @@ def fetch_and_store_checkins(userinfo, limit=50):
       logging.warning("no value for 'checkins' in history: " + str(history))
       return -1
     if history['checkins'] == None:
-      logging.warning("history['checkins'] is None: " + str(history))
+      #logging.warning("history['checkins'] is None: " + str(history))
       return 0
     for checkin in history['checkins']:
       if 'venue' in checkin:
@@ -69,14 +69,14 @@ def fetch_and_store_checkins_initial(userinfo):
   if constants.client == None:
     oauth_strings = constants.get_oauth_strings()
     constants.client = oauth.FoursquareClient(oauth_strings[0], oauth_strings[1], oauth_strings[2])
-  logging.info("about to fetch, userinfo.last_checkin = %d" % (userinfo.last_checkin))
+  #logging.info("about to fetch, userinfo.last_checkin = %d" % (userinfo.last_checkin))
   num_added = fetch_and_store_checkins(userinfo)
-  logging.info("%d checkins added this time, userinfo.last_checkin = %d" % (num_added, userinfo.last_checkin))
+  #logging.info("%d checkins added this time, userinfo.last_checkin = %d" % (num_added, userinfo.last_checkin))
   if num_added != 0:
-    logging.info("more than 0 checkins added so there might be checkins remaining. requeue!")
+    #logging.info("more than 0 checkins added so there might be checkins remaining. requeue!")
     taskqueue.add(url='/fetch_foursquare_data/all_for_user/%s' % userinfo.key())
   else:
-    logging.info("no more checkins found, we're all set!")
+    #logging.info("no more checkins found, we're all set!")
     userinfo.is_ready = True
   userinfo.level_max = int(3 * constants.level_const)
   userinfo.put()

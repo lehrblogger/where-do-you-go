@@ -5,7 +5,7 @@
   {% else %}
     <h4>Hi, {{ user }}! <a href="{{ url }}">Logout?</a></h4>
   {% endif %}
-    <img src="{{ photo_url }}" />
+    <img width="75" height="75" src="{{ photo_url }}" />
   </div>
   <div id="status_info" class="span-8 last">
   {% if userinfo %}
@@ -24,6 +24,6 @@
   </div>
 {% else %}
     <h4><a href="{{ url }}">Login</a>, then OAuth!</h4>
-    <img src="{{ photo_url }}" />
+    <img width="75" height="75" src="{{ photo_url }}" />
   </div>
 {% endif %}
