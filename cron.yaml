@@ -1,12 +1,12 @@
 cron:
-- description: get most recent user checkins
-  url: /fetch_foursquare_data/update_everyone
-  schedule: every 1 hours
-
-- description: update all the maps
-  url: /generate_static_map/all
-  schedule: every 1 hours
-
-- description: clear old authtokens
-  url: /clear_authtokens
-  schedule: every 30 minutes
+# - description: get most recent user checkins
+#   url: /fetch_foursquare_data/update_everyone
+#   schedule: every 1 hours
+#
+# - description: update all the maps
+#   url: /generate_static_map/all
+#   schedule: every 1 hours
+#
+# - description: clear old authtokens
+#   url: /clear_authtokens
+#   schedule: every 30 minutes

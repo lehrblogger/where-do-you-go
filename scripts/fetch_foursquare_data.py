@@ -18,10 +18,12 @@ def fetch_and_store_checkins(userinfo, limit=50):
   try:
     history = json.loads(response.content)
     if not 'checkins' in history:
-      logging.warning("no value for 'checkins' in history: " + str(history))
-      return -1
-    if history['checkins'] == None:
-      #logging.warning("history['checkins'] is None: " + str(history))
+      if 'unauthorized' in history: # TOKEN_EXPIRED
+        return 0 #TODO flag user as unauthorized on foursquare?
+      else:
+        logging.warning("no value for 'checkins' or 'unauthorized' in history: " + str(history))
+        return -1
+    elif history['checkins'] == None:
       return 0
     for checkin in history['checkins']:
       if 'venue' in checkin:

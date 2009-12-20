@@ -34,11 +34,13 @@ def loadScheme(name, steps=255):
   return img
 
 color_schemes = {'fire': loadScheme("fire"),
-                  'cyan_red': createScheme(),
+                  'water': loadScheme("water"),
+                  #'wp-barthelme': loadScheme("wp-barthelme"),
+                  'cyan/red': createScheme(),
                   'classic': loadScheme("classic"),
                   'omg': loadScheme("omg"),
                   'pbj': loadScheme("pbj"),
                   'pgaitch': loadScheme("pgaitch"),
-                  'classic2': loadScheme("classic2"),
-                  'pgaitch2': loadScheme("pgaitch2")
+                  'classic-v2': loadScheme("classic2"),
+                  'pgaitch-v2': loadScheme("pgaitch2")
                 }
