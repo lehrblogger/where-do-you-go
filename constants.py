@@ -1,3 +1,4 @@
+import secret_keys #NOTE this file is not included in the repository because it contains the OAuth Consumer Secrets
 from os import environ
 from gheatae import color_scheme
 
@@ -32,20 +33,21 @@ def get_google_maps_apikey():
 def get_oauth_strings():
   domain = environ['HTTP_HOST']
   if domain == 'www.wheredoyougo.net':
-    consumer_key = 'XAWY053VFN4IPANYTHOITQK4UCJIAO20UOCWLEXBCD21H100'
-    consumer_secret = 'MWSEKYB2XLGSWZ01SN3KLVOS3YX5COLPUYOAFACJAVTTV5CM'
+    consumer_key = 'KTNXGQJ4JXDZGAG35MGZ3WN0EQIO5XHNALYQZATHVEPDR3TI'
+    consumer_secret = secret_keys.get_oauth_secret_for_domain(domain)
     callback_url = 'http://www.wheredoyougo.net/authenticated'
   elif domain == 'where-do-you-go.appspot.com':
-    consumer_key = '98ff47ad5541ebaaee51cb5a1e843d1404aeba03f'
-    consumer_secret = 'f661bcab0416f66a2c6633cde08aefd5'
+    consumer_key = 'S1PL51GWSZORANT244XXZC2UXIZGUUPGGNWNA3YHDGWM4M4U'
+    consumer_secret = secret_keys.get_oauth_secret_for_domain(domain)
     callback_url = 'http://where-do-you-go.appspot.com/authenticated'
   elif domain == 'www.heredoyougo.com':
-    consumer_key = 'DMP4Z4RGDFRA15GWVPSQ2RVRYC2KSGLFLPX1B5IGD0JE5GPR'
-    consumer_secret = 'DHIOPECQMJCXACJQ05FZ14ZYFR3JTC3NKB1XI11DYVGFK4W2'
+    consumer_key = 'EGB1JZBOMTTNBPVDCHVB3VGGMIXMEYIJKPPTCQGKMPQ4NPCY'
+    consumer_secret = secret_keys.get_oauth_secret_for_domain(domain)
     callback_url = 'http://www.heredoyougo.com/authenticated'
   else:
     consumer_key = ''
     consumer_secret = ''
     callback_url = ''
-    logging.error('No Google maps key found for domain ' + domain)
+    logging.error('No Foursquare OAuth keys found for domain ' + domain)
   return (consumer_key, consumer_secret, callback_url)
+
