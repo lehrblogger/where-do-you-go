@@ -1,4 +1,4 @@
-import oauth_secrets #NOTE this file is not included in the repository because it contains the OAuth Consumer Secrets
+import oauth_secrets #NOTE this file is not included in the repository because it contains the OAuth consumer secrets
 from os import environ
 from gheatae import color_scheme
 
