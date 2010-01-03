@@ -1,4 +1,4 @@
-import secret_keys #NOTE this file is not included in the repository because it contains the OAuth Consumer Secrets
+import oauth_secrets #NOTE this file is not included in the repository because it contains the OAuth Consumer Secrets
 from os import environ
 from gheatae import color_scheme
 
@@ -43,5 +43,5 @@ def get_oauth_strings():
     consumer_key = ''
     callback_url = ''
     logging.error('No Foursquare OAuth consumer key found for domain ' + domain)
-  return (consumer_key, secret_keys.get_oauth_consumer_secret_for_domain(domain), callback_url)
+  return (consumer_key, oauth_secrets.get_oauth_consumer_secret_for_domain(domain), callback_url)
 
