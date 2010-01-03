@@ -1,0 +1,6 @@
+Where Do You Go provides Foursquare users with a dynamic visualization of the places they have visited in New York and other cities. This data is overlaid as a dynamic layer on top of a standard Google Map interface. Users can also generate a snapshot of their map and share it as a static URL on their personal blog and other webpages, as well as create a simple WDYG wrapper page so they can share their image on Twitter. The image will self-update automatically in the background as users continue to use Foursquare and visit new places.
+
+(Note that user privacy is protected because recent data is not shown and because individual check-ins are aggregated into an imprecise heat map.)
+
+
+There are still a few slight changes I want to make to the code, and feel free to contact me if you have any questions!
