@@ -36,7 +36,7 @@ def loadScheme(name, steps=255):
 color_schemes = {'fire': loadScheme("fire"),
                   'water': loadScheme("water"),
                   #'wp-barthelme': loadScheme("wp-barthelme"),
-                  'cyan/red': createScheme(),
+                  'cyan-red': createScheme(),
                   'classic': loadScheme("classic"),
                   'omg': loadScheme("omg"),
                   'pbj': loadScheme("pbj"),

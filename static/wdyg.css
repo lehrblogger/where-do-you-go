@@ -14,6 +14,9 @@ h2 {
 #left-lower, #static_map_div, #status_info {
   padding-top: 2em;
 }
+#information {
+  padding-top: 1em;
+}
 #about {
   padding-top: 3em;
 }

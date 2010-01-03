@@ -13,9 +13,9 @@ handlers:
   static_files: static/favicon.ico
   upload: static/favicon.ico
 
-- url: /delete_data/all
-  script: scripts/delete_data.py
-  login: admin
+# - url: /delete_data/all
+#   script: scripts/delete_data.py
+#   login: admin
 
 - url: /delete_data/mapimage
   script: scripts/delete_data.py

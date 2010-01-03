@@ -59,6 +59,8 @@ class IndexHandler(webapp.RequestHandler):
     self.response.out.write(template.render(os.path.join(os_path, 'templates/private_welcome.html'), welcome_data))
     if user and userinfo:
         self.response.out.write(template.render(os.path.join(os_path, 'templates/private_sidebar.html'), sidebar_data))
+    else:
+        self.response.out.write(template.render(os.path.join(os_path, 'templates/information.html'), None))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/private_map.html'), map_data))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/all_footer.html'), None))
 
