@@ -17,7 +17,6 @@ default_lng = -73.96699905395508
 default_zoom = 13
 default_dimension = 640
 
-
 def get_google_maps_apikey():
   domain = environ['HTTP_HOST']
   if domain == 'www.wheredoyougo.net':
@@ -29,25 +28,20 @@ def get_google_maps_apikey():
   else:
     logging.error('No Google maps key found for domain ' + domain)
 
-
 def get_oauth_strings():
   domain = environ['HTTP_HOST']
   if domain == 'www.wheredoyougo.net':
     consumer_key = 'KTNXGQJ4JXDZGAG35MGZ3WN0EQIO5XHNALYQZATHVEPDR3TI'
-    consumer_secret = secret_keys.get_oauth_secret_for_domain(domain)
     callback_url = 'http://www.wheredoyougo.net/authenticated'
   elif domain == 'where-do-you-go.appspot.com':
     consumer_key = 'S1PL51GWSZORANT244XXZC2UXIZGUUPGGNWNA3YHDGWM4M4U'
-    consumer_secret = secret_keys.get_oauth_secret_for_domain(domain)
     callback_url = 'http://where-do-you-go.appspot.com/authenticated'
   elif domain == 'www.heredoyougo.com':
     consumer_key = 'EGB1JZBOMTTNBPVDCHVB3VGGMIXMEYIJKPPTCQGKMPQ4NPCY'
-    consumer_secret = secret_keys.get_oauth_secret_for_domain(domain)
     callback_url = 'http://www.heredoyougo.com/authenticated'
   else:
     consumer_key = ''
-    consumer_secret = ''
     callback_url = ''
-    logging.error('No Foursquare OAuth keys found for domain ' + domain)
-  return (consumer_key, consumer_secret, callback_url)
+    logging.error('No Foursquare OAuth consumer key found for domain ' + domain)
+  return (consumer_key, secret_keys.get_oauth_consumer_secret_for_domain(domain), callback_url)
 
