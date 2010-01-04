@@ -60,17 +60,22 @@ $(document).ready(function() {
     $('#fetching_span').show();
     $('#delete_all_span').hide();
     is_ready_interval = setInterval(function() {
-      $.get("/user_is_ready", function(data) {
-        data_arr = data.split(',');
-        $('#checkin_count').html(data_arr[1] + ' checkins logged!');
-        if (data_arr[0] == 'True') {
-          clearInterval(is_ready_interval);
-          $('#fetching_span').hide();
-          $('#delete_all_span').show();
-          level_offset = 0;
-          updateLevels(0);
-          map.clearOverlays();
-          createHeatMap(map);
+      $.ajax({
+        type: "GET",
+        url: "/user_is_ready",
+        success: function(data){
+          data_arr = data.split(',');
+          $('#checkin_count').html(data_arr[1] + ' checkins logged!');
+          if (data_arr[0] == 'True') {
+            clearInterval(is_ready_interval);
+            $('#fetching_span').hide();
+            $('#delete_all_span').show();
+            level_offset = 0;
+            updateLevels(0);
+          }
+          else if (data == '') {
+            clearInterval(is_ready_interval);
+          }
         }
       });
     }, 3000);
@@ -104,6 +109,7 @@ $(document).ready(function() {
         } else {
           map.setCenter(point);
           level_offset = 0;
+          uncacher++;
           updateLevels(0);
         }
         $('#search_field').val('');
