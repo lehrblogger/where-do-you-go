@@ -6,6 +6,7 @@ from google.appengine.api import users
 from google.appengine.api import images
 from google.appengine.api import urlfetch
 from google.appengine.api.labs import taskqueue
+from google.appengine.runtime import DeadlineExceededError
 from django.utils import simplejson as json
 import os
 from os import environ
@@ -128,10 +129,16 @@ class TileHandler(webapp.RequestHandler):
       else:
         self.respondError("Invalid path")
         return
-      new_tile = tile.GoogleTile(user, zoom, x, y)
-      self.response.headers['Content-Type'] = "image/png"
-      img_data = new_tile.image_out()
-      self.response.out.write(img_data)
+
+      try:
+        new_tile = tile.GoogleTile(user, zoom, x, y)
+        img_data = new_tile.image_out()
+        self.response.headers['Content-Type'] = "image/png"
+        self.response.out.write(img_data)
+      except DeadlineExceededError, err:
+        logging.warning(err.args[0])
+        self.response.headers['Content-Type'] = "image/png"
+        self.response.out.write('')
 
 class PublicPageHandler(webapp.RequestHandler):
   def get(self):

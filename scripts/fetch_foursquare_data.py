@@ -11,10 +11,17 @@ import logging
 def fetch_and_store_checkins(userinfo, limit=50):
   num_added = 0
   params = {'l':limit, 'sinceid':userinfo.last_checkin}
-  response = constants.client.make_request("http://api.foursquare.com/v1/history.json",
+
+  try:
+    response = constants.client.make_request("http://api.foursquare.com/v1/history.json",
                                             token = userinfo.token,
                                             secret = userinfo.secret,
                                             additional_params = params)
+  except DownloadError, err:
+    logging.error("Checkins not fetched for %s with error %s" % (userinfo.user, err.args[0]))
+    #TODO i should maybe fail more gracefully here and try again?
+    return num_added
+
   try:
     history = json.loads(response.content)
     if not 'checkins' in history:
@@ -38,8 +45,11 @@ def fetch_and_store_checkins(userinfo, limit=50):
             uservenue.venue_id       = int(j_venue['id'])
             if 'name' in j_venue:
               uservenue.name         = j_venue['name']
-            if 'address' in j_venue:
-              uservenue.address      = j_venue['address']
+            try:
+              if 'address' in j_venue:
+                uservenue.address      = j_venue['address']
+            except BadValueError:
+              logging.error("Address not added for venue %s with address json '%s'" % (j_venue['id'], j_venue['address']))
             if 'cross_street' in j_venue:
               uservenue.cross_street = j_venue['cross_street']
             if 'city' in j_venue:
@@ -105,7 +115,7 @@ def update_user_info(userinfo):
       userinfo.citylng = constants.default_lng
     userinfo.put()
   else:
-    logging.error('user object not updated!')
+    logging.error('no "user" key in json: %s' % current_info)
 
 if __name__ == '__main__':
   raw = environ['PATH_INFO']
