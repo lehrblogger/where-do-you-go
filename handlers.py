@@ -71,16 +71,16 @@ class AuthHandler(webapp.RequestHandler):
     if user:
       auth_token = self.request.get("oauth_token")
       if auth_token:
-        credentials= constants.client.get_credentials(auth_token)
+        credentials = constants.get_client().get_credentials(auth_token)
         old_userinfos = UserInfo.all().filter('user =', user).fetch(500)
         db.delete(old_userinfos)
-        userinfo = UserInfo(user = user, token = credentials['token'], secret = credentials['secret'], is_ready=False, last_checkin=0, last_updated=datetime.now(), color_scheme='fire', level_max=int(constants.level_const), checkin_count=0, venue_count=0)
+        userinfo = UserInfo(user = user, token = credentials['token'], secret = credentials['secret'], is_ready=False, is_authorized=True, last_checkin=0, last_updated=datetime.now(), color_scheme='fire', level_max=int(constants.level_const), checkin_count=0, venue_count=0)
         fetch_foursquare_data.update_user_info(userinfo)
         fetch_foursquare_data.fetch_and_store_checkins(userinfo, limit=10)
         taskqueue.add(url='/fetch_foursquare_data/all_for_user/%s' % userinfo.key())#, queue_name='initial-checkin-fetching')
         self.redirect("/")
       else:
-        self.redirect(constants.client.get_authorization_url())
+        self.redirect(constants.get_client().get_authorization_url())
     else:
       self.redirect(users.create_login_url(self.request.uri))
 
@@ -230,8 +230,6 @@ def main():
                                         ('/user_is_ready', ReadyInfoWriter),
                                         ('/view_uservenues', UserVenueWriter)],
                                       debug=True)
-  oauth_strings = constants.get_oauth_strings()
-  constants.client = oauth.FoursquareClient(oauth_strings[0], oauth_strings[1], oauth_strings[2])
   constants.provider = provider.DBProvider()
   wsgiref.handlers.CGIHandler().run(application)
 

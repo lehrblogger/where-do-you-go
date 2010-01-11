@@ -1,4 +1,10 @@
 indexes:
+
+- kind: UserInfo
+  properties:
+  - name: is_authorized
+  - name: last_updated
+    
 - kind: UserInfo
   properties:
   - name: user

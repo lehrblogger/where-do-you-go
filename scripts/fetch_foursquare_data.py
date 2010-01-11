@@ -4,6 +4,7 @@ import oauth
 from models import UserInfo, UserVenue
 from google.appengine.ext import db
 from google.appengine.api.labs import taskqueue
+from google.appengine.api.urlfetch import DownloadError
 from django.utils import simplejson as json
 from datetime import datetime, timedelta
 import logging
@@ -13,25 +14,31 @@ def fetch_and_store_checkins(userinfo, limit=50):
   params = {'l':limit, 'sinceid':userinfo.last_checkin}
 
   try:
-    response = constants.client.make_request("http://api.foursquare.com/v1/history.json",
+    response = constants.get_client().make_request("http://api.foursquare.com/v1/history.json",
                                             token = userinfo.token,
                                             secret = userinfo.secret,
-                                            additional_params = params)
+                                            additional_params = params,
+                                            protected = True)
   except DownloadError, err:
-    logging.error("Checkins not fetched for %s with error %s" % (userinfo.user, err.args[0]))
+    logging.error("Checkins not fetched for %s with error %s" % (userinfo.user, err.args))
     #TODO i should maybe fail more gracefully here and try again?
     return num_added
 
+  logging.debug(response.content)
+  userinfo.is_authorized = True
   try:
     history = json.loads(response.content)
     if not 'checkins' in history:
-      if 'unauthorized' in history: # TOKEN_EXPIRED
-        return 0 #TODO flag user as unauthorized on foursquare?
+      if 'unauthorized' in history:
+        userinfo.is_authorized = False
+        return 0
       else:
         logging.warning("no value for 'checkins' or 'unauthorized' in history: " + str(history))
         return -1
     elif history['checkins'] == None:
       return 0
+
+    userinfo.put()
     for checkin in history['checkins']:
       if 'venue' in checkin:
         j_venue = checkin['venue']
@@ -52,8 +59,8 @@ def fetch_and_store_checkins(userinfo, limit=50):
               logging.error("Address not added for venue %s with address json '%s'" % (j_venue['id'], j_venue['address']))
             if 'cross_street' in j_venue:
               uservenue.cross_street = j_venue['cross_street']
-            if 'city' in j_venue:
-              uservenue.city         = j_venue['city']
+            # if 'city' in j_venue:
+            #   uservenue.city         = j_venue['city']
             if 'state' in j_venue:
               uservenue.state        = j_venue['state']
             if 'zip' in j_venue:
@@ -64,10 +71,10 @@ def fetch_and_store_checkins(userinfo, limit=50):
           if datetime.now() < uservenue.last_updated + timedelta(hours=12):  continue #WARNING last_updated is confusing and should be last_checkin_at
           uservenue.checkin_list.append(checkin['id'])
           uservenue.put()
-          userinfo.checkin_count = userinfo.checkin_count + 1
+          userinfo.checkin_count += 1
           if checkin['id'] > userinfo.last_checkin: userinfo.last_checkin = checkin['id'] # because the checkins are ordered with most recent first!
           userinfo.put()
-          num_added = num_added + 1
+          num_added += 1
       #   else: # there's nothing we can do without a venue id or a lat and a lng
       #     logging.info("Problematic j_venue: " + str(j_venue))
       # else:
@@ -78,9 +85,6 @@ def fetch_and_store_checkins(userinfo, limit=50):
   return num_added
 
 def fetch_and_store_checkins_initial(userinfo):
-  if constants.client == None:
-    oauth_strings = constants.get_oauth_strings()
-    constants.client = oauth.FoursquareClient(oauth_strings[0], oauth_strings[1], oauth_strings[2])
   #logging.info("about to fetch, userinfo.last_checkin = %d" % (userinfo.last_checkin))
   num_added = fetch_and_store_checkins(userinfo)
   #logging.info("%d checkins added this time, userinfo.last_checkin = %d" % (num_added, userinfo.last_checkin))
@@ -94,12 +98,18 @@ def fetch_and_store_checkins_initial(userinfo):
   userinfo.put()
 
 def fetch_and_store_checkins_for_all():
-  userinfos = UserInfo.all().order('-last_updated').fetch(1000)
+  userinfos = UserInfo.all().order('last_updated').fetch(100)#.filter('is_authorized = ', True).
   for userinfo in userinfos:
-    fetch_and_store_checkins(userinfo)
+    if userinfo.is_authorized:
+      num_added = fetch_and_store_checkins(userinfo)
+      logging.info("updating %d checkins for %s" % (num_added, userinfo.user) )
+    else:
+      logging.info("did not update checkins for %s" % userinfo.user)
+    userinfo.last_updated = datetime.now()
+    userinfo.put()
 
 def update_user_info(userinfo):
-  response = constants.client.make_request("http://api.foursquare.com/v1/user.json", token = userinfo.token, secret = userinfo.secret)
+  response = constants.get_client().make_request("http://api.foursquare.com/v1/user.json", token = userinfo.token, secret = userinfo.secret)
   current_info = json.loads(response.content)
   if 'user' in current_info:
     userinfo.real_name = current_info['user']['firstname']
@@ -107,9 +117,9 @@ def update_user_info(userinfo):
       userinfo.photo_url = current_info['user']['photo']
     else:
       userinfo.photo_url = constants.default_photo
-    if 'city' in current_info['user']:
-      userinfo.citylat = current_info['user']['city']['geolat']
-      userinfo.citylng = current_info['user']['city']['geolong']
+    if 'checkin' in current_info['user'] and 'venue' in current_info['user']['checkin']:
+      userinfo.citylat = current_info['user']['checkin']['venue']['geolat']
+      userinfo.citylng = current_info['user']['checkin']['venue']['geolong']
     else:
       userinfo.citylat = constants.default_lat
       userinfo.citylng = constants.default_lng
@@ -126,7 +136,7 @@ if __name__ == '__main__':
   elif raw.count('/') == 3:
     foo, bar, rest, userinfo_key = raw.split('/')
 
-  if rest == 'update_everyone':
+  if rest == 'update_users_batch':
     fetch_and_store_checkins_for_all()
   elif rest == 'all_for_user':
     userinfo = db.get(userinfo_key)

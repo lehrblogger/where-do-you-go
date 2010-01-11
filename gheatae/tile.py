@@ -1,6 +1,5 @@
 import constants
 from gheatae import color_scheme, provider
-#from gheatae.dot import dot
 from pngcanvas import PNGCanvas
 from random import random, Random
 import logging
@@ -24,7 +23,7 @@ class BasicTile(object):
     else:
       self.level_max = int(constants.level_const)
       self.color_scheme = color_scheme.color_schemes[constants.default_color]
-          
+
     self.cache_levels = []
     for i in range(self.level_max - 1, -1, -1):
       self.cache_levels.append(int(((-(pow(float(i) - self.level_max, 2))/self.level_max) + self.level_max) / self.level_max * 255))

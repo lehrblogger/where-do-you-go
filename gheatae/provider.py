@@ -1,6 +1,6 @@
 from geo import geotypes
-from models import UserVenue
 from google.appengine.api.datastore_types import GeoPt
+from models import UserVenue
 import logging
 
 log = logging.getLogger('tile')

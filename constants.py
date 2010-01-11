@@ -1,14 +1,12 @@
 import oauth_secrets #NOTE this file is not included in the repository because it contains the OAuth consumer secrets
 from os import environ
 from gheatae import color_scheme
-
-client = None
-provider = None
+import oauth
 
 min_zoom = 10
 max_zoom = 18 # note that these must also be in the static wdyg-private.js file
 
-level_const = 140.
+level_const = 140. #TODO fix this from being hard coded in models.py for UserInfo - I was getting a <type 'exceptions.AttributeError'>: 'module' object has no attribute 'level_const'
 
 default_photo = '/static/foursquare_icon.png'
 default_color = color_scheme.color_schemes.keys()[0]
@@ -45,3 +43,11 @@ def get_oauth_strings():
     logging.error('No Foursquare OAuth consumer key found for domain ' + domain)
   return (consumer_key, oauth_secrets.get_oauth_consumer_secret_for_domain(domain), callback_url)
 
+provider = None
+client = None
+def get_client():
+  global client
+  if client == None:
+    oauth_strings = get_oauth_strings()
+    client = oauth.FoursquareClient(oauth_strings[0], oauth_strings[1], oauth_strings[2])
+  return client

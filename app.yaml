@@ -43,7 +43,7 @@ handlers:
   login: required
 
 
-- url: /fetch_foursquare_data/update_everyone
+- url: /fetch_foursquare_data/update_users_batch
   script: scripts/fetch_foursquare_data.py
   login: admin
 
