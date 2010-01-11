@@ -104,7 +104,7 @@ def fetch_and_store_checkins_for_all():
       num_added = fetch_and_store_checkins(userinfo)
       logging.info("updating %d checkins for %s" % (num_added, userinfo.user) )
     else:
-      logging.info("did not update checkins for %s" % userinfo.user)
+      logging.debug("did not update checkins for %s" % userinfo.user)
     userinfo.last_updated = datetime.now()
     userinfo.put()
 

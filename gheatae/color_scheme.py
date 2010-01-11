@@ -1,5 +1,4 @@
 import pngcanvas
-from google.appengine.api import urlfetch
 import os
 
 TRANSPARENCY = 100

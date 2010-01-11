@@ -4,7 +4,6 @@ from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.api import users
 from google.appengine.api import images
-from google.appengine.api import urlfetch
 from google.appengine.api.labs import taskqueue
 from google.appengine.runtime import DeadlineExceededError
 from django.utils import simplejson as json
