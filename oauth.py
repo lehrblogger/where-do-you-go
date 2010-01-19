@@ -154,7 +154,7 @@ class OAuthClient():
     url = "%s?%s" % (url, urlencode(params))
 
     headers = {}
-    headers["User-Agent"] = "Where Do You Go/6.0 +http://www.wheredoyougo.net/" #TODO this doesn't really belong here, find a better place for it
+    headers["User-Agent"] = "Where Do You Go:6.1 +http://www.wheredoyougo.net/" #TODO this doesn't really belong here, find a better place for it
     if protected:
       headers["Authorization"] = "OAuth"
 

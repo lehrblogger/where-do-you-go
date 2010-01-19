@@ -31,6 +31,7 @@ def fetch_and_store_checkins(userinfo, limit=50):
     if not 'checkins' in history:
       if 'unauthorized' in history:
         userinfo.is_authorized = False
+        logging.info("User %s is no longer authorized" % userinfo.user)
         return 0
       else:
         logging.warning("no value for 'checkins' or 'unauthorized' in history: " + str(history))
@@ -97,10 +98,11 @@ def fetch_and_store_checkins_initial(userinfo):
   userinfo.level_max = int(3 * constants.level_const)
   userinfo.put()
 
-def fetch_and_store_checkins_for_all():
-  userinfos = UserInfo.all().order('last_updated').fetch(100)#.filter('is_authorized = ', True).
+def fetch_and_store_checkins_for_batch():
+  userinfos = UserInfo.all().order('last_updated').fetch(10)#.filter('is_authorized = ', True)
+  logging.info("performing batch update for %d users-------------------------------" % len(userinfos))
   for userinfo in userinfos:
-    if userinfo.is_authorized:
+    if True:#userinfo.is_authorized:
       num_added = fetch_and_store_checkins(userinfo)
       logging.info("updating %d checkins for %s" % (num_added, userinfo.user) )
     else:
@@ -137,7 +139,7 @@ if __name__ == '__main__':
     foo, bar, rest, userinfo_key = raw.split('/')
 
   if rest == 'update_users_batch':
-    fetch_and_store_checkins_for_all()
+    fetch_and_store_checkins_for_batch()
   elif rest == 'all_for_user':
     userinfo = db.get(userinfo_key)
     fetch_and_store_checkins_initial(userinfo)

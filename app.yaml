@@ -1,5 +1,5 @@
 application: where-do-you-go
-version: 6
+version: 6-1
 runtime: python
 api_version: 1
 
