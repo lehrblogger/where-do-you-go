@@ -1,6 +1,6 @@
 from os import environ
 import constants
-import oauth
+import foursquare
 from models import UserInfo, UserVenue
 from google.appengine.ext import db
 from google.appengine.api.labs import taskqueue

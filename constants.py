@@ -45,9 +45,25 @@ def get_oauth_strings():
 
 provider = None
 client = None
+
+# fs = None
+# def get_fs():
+#   global fs
+#   if fs == None:
+#     oauth_strings = get_oauth_strings()
+#     credentials = foursquare.OAuthCredentials(oauth_strings[0], oauth_strings[1])
+#     fs = foursquare.Foursquare(credentials)
+#   return fs
+
+# def get_client():
+#   global client
+#   if client == None:
+#     oauth_strings = get_oauth_strings()
+#     client = oauth.FoursquareClient(oauth_strings[0], oauth_strings[1], oauth_strings[2])
+#   return client
+
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DONT REUSE THE CLIENT
 def get_client():
-  global client
-  if client == None:
-    oauth_strings = get_oauth_strings()
-    client = oauth.FoursquareClient(oauth_strings[0], oauth_strings[1], oauth_strings[2])
+  oauth_strings = get_oauth_strings()
+  client = oauth.FoursquareClient(oauth_strings[0], oauth_strings[1], oauth_strings[2])
   return client
