@@ -1,33 +1,35 @@
 from os import environ
 import constants
+import oauth
 import foursquare
 from models import UserInfo, UserVenue
 from google.appengine.ext import db
 from google.appengine.api.labs import taskqueue
 from google.appengine.api.urlfetch import DownloadError
-from django.utils import simplejson as json
+#from django.utils import simplejson as json
 from datetime import datetime, timedelta
 import logging
 
 def fetch_and_store_checkins(userinfo, limit=50):
   num_added = 0
-  params = {'l':limit, 'sinceid':userinfo.last_checkin}
-
   try:
-    response = constants.get_client().make_request("http://api.foursquare.com/v1/history.json",
-                                            token = userinfo.token,
-                                            secret = userinfo.secret,
-                                            additional_params = params,
-                                            protected = True)
-  except DownloadError, err:
+    fs, credentials = constants.get_new_fs_and_credentials()
+    user_token = oauth.OAuthToken(userinfo.token, userinfo.secret)
+    credentials.set_access_token(user_token)
+    history = fs.history(l=limit, sinceid=userinfo.last_checkin)
+
+  # except DownloadError, err:
+  #   logging.error("Checkins not fetched for %s with error %s" % (userinfo.user, err.args))
+  #   #TODO i should maybe fail more gracefully here and try again?
+  #   return num_added
+  except FoursquareRemoteException, err:
     logging.error("Checkins not fetched for %s with error %s" % (userinfo.user, err.args))
     #TODO i should maybe fail more gracefully here and try again?
     return num_added
 
-  logging.debug(response.content)
+  logging.debug(history)
   userinfo.is_authorized = True
   try:
-    history = json.loads(response.content)
     if not 'checkins' in history:
       if 'unauthorized' in history:
         userinfo.is_authorized = False
@@ -81,7 +83,7 @@ def fetch_and_store_checkins(userinfo, limit=50):
       # else:
       #   logging.info("No venue in checkin: " + str(checkin))
   except KeyError:
-    logging.error("There was a KeyError when processing the response: " + response.content)
+    logging.error("There was a KeyError when processing the response: " + content)
     raise
   return num_added
 
@@ -111,23 +113,25 @@ def fetch_and_store_checkins_for_batch():
     userinfo.put()
 
 def update_user_info(userinfo):
-  response = constants.get_client().make_request("http://api.foursquare.com/v1/user.json", token = userinfo.token, secret = userinfo.secret)
-  current_info = json.loads(response.content)
-  if 'user' in current_info:
-    userinfo.real_name = current_info['user']['firstname']
-    if 'photo' in current_info['user'] and not current_info['user']['photo'] == '' :
-      userinfo.photo_url = current_info['user']['photo']
+  fs, credentials = constants.get_new_fs_and_credentials()
+  user_token =  oauth.OAuthToken(userinfo.token, userinfo.secret)
+  credentials.set_access_token(user_token)
+  user = fs.user()
+  if 'user' in user:
+    userinfo.real_name = user['user']['firstname']
+    if 'photo' in user['user'] and not user['user']['photo'] == '' :
+      userinfo.photo_url = user['user']['photo']
     else:
       userinfo.photo_url = constants.default_photo
-    if 'checkin' in current_info['user'] and 'venue' in current_info['user']['checkin']:
-      userinfo.citylat = current_info['user']['checkin']['venue']['geolat']
-      userinfo.citylng = current_info['user']['checkin']['venue']['geolong']
+    if 'checkin' in user['user'] and 'venue' in user['user']['checkin']:
+      userinfo.citylat = user['user']['checkin']['venue']['geolat']
+      userinfo.citylng = user['user']['checkin']['venue']['geolong']
     else:
       userinfo.citylat = constants.default_lat
       userinfo.citylng = constants.default_lng
     userinfo.put()
   else:
-    logging.error('no "user" key in json: %s' % current_info)
+    logging.error('no "user" key in json: %s' % user)
 
 if __name__ == '__main__':
   raw = environ['PATH_INFO']

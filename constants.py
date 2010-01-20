@@ -1,7 +1,8 @@
 import oauth_secrets #NOTE this file is not included in the repository because it contains the OAuth consumer secrets
 from os import environ
 from gheatae import color_scheme
-import oauth
+import foursquare
+import logging
 
 min_zoom = 10
 max_zoom = 18 # note that these must also be in the static wdyg-private.js file
@@ -41,19 +42,16 @@ def get_oauth_strings():
     consumer_key = ''
     callback_url = ''
     logging.error('No Foursquare OAuth consumer key found for domain ' + domain)
-  return (consumer_key, oauth_secrets.get_oauth_consumer_secret_for_domain(domain), callback_url)
+  return consumer_key, oauth_secrets.get_oauth_consumer_secret_for_domain(domain)#, callback_url)
 
 provider = None
-client = None
+#client = None
 
-# fs = None
-# def get_fs():
-#   global fs
-#   if fs == None:
-#     oauth_strings = get_oauth_strings()
-#     credentials = foursquare.OAuthCredentials(oauth_strings[0], oauth_strings[1])
-#     fs = foursquare.Foursquare(credentials)
-#   return fs
+def get_new_fs_and_credentials():
+  oauth_token, oauth_secret = get_oauth_strings()
+  credentials = foursquare.OAuthCredentials(oauth_token, oauth_secret)
+  fs = foursquare.Foursquare(credentials)
+  return fs, credentials
 
 # def get_client():
 #   global client
@@ -61,9 +59,10 @@ client = None
 #     oauth_strings = get_oauth_strings()
 #     client = oauth.FoursquareClient(oauth_strings[0], oauth_strings[1], oauth_strings[2])
 #   return client
-
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DONT REUSE THE CLIENT
-def get_client():
-  oauth_strings = get_oauth_strings()
-  client = oauth.FoursquareClient(oauth_strings[0], oauth_strings[1], oauth_strings[2])
-  return client
+# def get_client():
+#   oauth_strings = get_oauth_strings()
+#   client = oauth.FoursquareClient(oauth_strings[0], oauth_strings[1], oauth_strings[2])
+#   return client
+#
+#

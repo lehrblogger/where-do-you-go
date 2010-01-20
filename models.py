@@ -8,6 +8,11 @@ class AuthToken(db.Model):
   secret = db.StringProperty(required=True)
   created = db.DateTimeProperty(auto_now_add=True)
 
+class AppToken(db.Model):
+  token = db.StringProperty(required=True)
+  secret = db.StringProperty(required=True)
+  created = db.DateTimeProperty(auto_now_add=True)
+
 class UserInfo(db.Model):
   last_updated = db.DateTimeProperty()
   user = db.UserProperty()
