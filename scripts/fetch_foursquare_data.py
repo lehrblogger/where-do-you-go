@@ -22,8 +22,8 @@ def fetch_and_store_checkins(userinfo, limit=50):
   #   logging.error("Checkins not fetched for %s with error %s" % (userinfo.user, err.args))
   #   #TODO i should maybe fail more gracefully here and try again?
   #   return num_added
-  except FoursquareRemoteException, err:
-    logging.error("Checkins not fetched for %s with error %s" % (userinfo.user, err.args))
+  except foursquare.FoursquareRemoteException, err:
+    logging.error("Checkins not fetched for %s with error %s" % (userinfo.user, err))
     #TODO i should maybe fail more gracefully here and try again?
     return num_added
 
@@ -101,7 +101,7 @@ def fetch_and_store_checkins_initial(userinfo):
   userinfo.put()
 
 def fetch_and_store_checkins_for_batch():
-  userinfos = UserInfo.all().order('last_updated').fetch(10)#.filter('is_authorized = ', True)
+  userinfos = UserInfo.all().order('last_updated').fetch(30)#.filter('is_authorized = ', True)
   logging.info("performing batch update for %d users-------------------------------" % len(userinfos))
   for userinfo in userinfos:
     if True:#userinfo.is_authorized:
