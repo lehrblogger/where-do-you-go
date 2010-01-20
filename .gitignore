@@ -1,2 +1,3 @@
 oauth_secrets.*
 *.pyc
+*/*.pyc
