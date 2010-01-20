@@ -70,10 +70,17 @@ class AuthHandler(webapp.RequestHandler):
     user = users.get_current_user()
     if user:
       oauth_token = self.request.get("oauth_token")
+
+      def get_new_fs_and_credentials():
+        oauth_token, oauth_secret = constants.get_oauth_strings()
+        credentials = foursquare.OAuthCredentials(oauth_token, oauth_secret)
+        fs = foursquare.Foursquare(credentials)
+        return fs, credentials
+
       if oauth_token:
         old_userinfos = UserInfo.all().filter('user =', user).fetch(500)
         db.delete(old_userinfos)
-        fs, credentials = constants.get_new_fs_and_credentials()
+        fs, credentials = get_new_fs_and_credentials()
         apptoken = AppToken.all().filter('token =', oauth_token).get()
         user_token = fs.access_token(oauth.OAuthToken(apptoken.token, apptoken.secret))
         credentials.set_access_token(user_token)
@@ -83,7 +90,7 @@ class AuthHandler(webapp.RequestHandler):
         taskqueue.add(url='/fetch_foursquare_data/all_for_user/%s' % userinfo.key())#, queue_name='initial-checkin-fetching')
         self.redirect("/")
       else:
-        fs, credentials = constants.get_new_fs_and_credentials()
+        fs, credentials = get_new_fs_and_credentials()
         app_token = fs.request_token()
         auth_url = fs.authorize(app_token)
         new_apptoken = AppToken(token = app_token.key, secret = app_token.secret)

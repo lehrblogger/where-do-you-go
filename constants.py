@@ -47,11 +47,6 @@ def get_oauth_strings():
 provider = None
 #client = None
 
-def get_new_fs_and_credentials():
-  oauth_token, oauth_secret = get_oauth_strings()
-  credentials = foursquare.OAuthCredentials(oauth_token, oauth_secret)
-  fs = foursquare.Foursquare(credentials)
-  return fs, credentials
 
 # def get_client():
 #   global client

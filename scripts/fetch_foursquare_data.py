@@ -10,12 +10,18 @@ from google.appengine.api.urlfetch import DownloadError
 from datetime import datetime, timedelta
 import logging
 
+
+def get_new_fs_for_userinfo(userinfo):
+  oauth_token, oauth_secret = constants.get_oauth_strings()
+  credentials = foursquare.OAuthCredentials(oauth_token, oauth_secret)
+  user_token = oauth.OAuthToken(userinfo.token, userinfo.secret)
+  credentials.set_access_token(user_token)
+  return foursquare.Foursquare(credentials)
+
 def fetch_and_store_checkins(userinfo, limit=50):
   num_added = 0
   try:
-    fs, credentials = constants.get_new_fs_and_credentials()
-    user_token = oauth.OAuthToken(userinfo.token, userinfo.secret)
-    credentials.set_access_token(user_token)
+    fs = get_new_fs_for_userinfo(userinfo)
     history = fs.history(l=limit, sinceid=userinfo.last_checkin)
 
   # except DownloadError, err:
@@ -113,9 +119,7 @@ def fetch_and_store_checkins_for_batch():
     userinfo.put()
 
 def update_user_info(userinfo):
-  fs, credentials = constants.get_new_fs_and_credentials()
-  user_token =  oauth.OAuthToken(userinfo.token, userinfo.secret)
-  credentials.set_access_token(user_token)
+  fs = get_new_fs_for_userinfo(userinfo)
   user = fs.user()
   if 'user' in user:
     userinfo.real_name = user['user']['firstname']
