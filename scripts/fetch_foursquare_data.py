@@ -34,7 +34,7 @@ def fetch_and_store_checkins(userinfo, limit=50):
     return num_added
 
   logging.info(history)
-   userinfo.valid_signature = True
+  userinfo.valid_signature = True
   userinfo.is_authorized = True
   try:
     if not 'checkins' in history:
