@@ -126,7 +126,7 @@ $(document).ready(function() {
       $("#regenerate").html("");
       resizeMapToWidthHeight(640, 640);
       $("#static_map").html("");
-      $('#status_info').html('<a href="/go_to_foursquare">Login with Foursquare using OAuth</a><br/>');
+      $('#status_info').html('<a href="/go_to_foursquare"><img src="static/signinwith-foursquare.png"></a><br/>');
     });
   });
 

@@ -46,7 +46,14 @@ def fetch_and_store_checkins(userinfo, limit=50):
         return -1
     elif history['checkins'] == None:
       return 0
-
+    if not userinfo.gender is 'male' and not userinfo.gender is 'female':
+      user = fs.user()
+      if 'gender' in user['user']:
+        userinfo.gender = user['user']['gender']
+        if user['user']['gender'] is 'male':
+          userinfo.photo_url = 'static/blank_boy.png'
+        elif user['user']['gender'] is 'female':
+          userinfo.photo_url = 'static/blank_girl.png'
     userinfo.put()
     for checkin in history['checkins']:
       if 'venue' in checkin:
@@ -123,8 +130,14 @@ def update_user_info(userinfo):
   user = fs.user()
   if 'user' in user:
     userinfo.real_name = user['user']['firstname']
+    if 'gender' in user['user']:
+      userinfo.gender = user['user']['gender']
     if 'photo' in user['user'] and not user['user']['photo'] == '' :
       userinfo.photo_url = user['user']['photo']
+    elif 'gender' in user['user'] and user['user']['gender'] is 'male':
+      userinfo.photo_url = 'static/blank_boy.png'
+    elif 'gender' in user['user'] and user['user']['gender'] is 'female':
+      userinfo.photo_url = 'static/blank_girl.png'
     else:
       userinfo.photo_url = constants.default_photo
     if 'checkin' in user['user'] and 'venue' in user['user']['checkin']:

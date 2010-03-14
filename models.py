@@ -23,6 +23,7 @@ class UserInfo(db.Model):
   level_max = db.IntegerProperty(default=int(140.)) #TODO see note in constants.py, was =int(constants.level_const))
   checkin_count = db.IntegerProperty(default=0)
   venue_count = db.IntegerProperty(default=0)
+  gender = db.StringProperty()
   photo_url = db.StringProperty()
   real_name = db.StringProperty()
   citylat = db.FloatProperty() #no longer really cities! just where the user was scene at the time of signup

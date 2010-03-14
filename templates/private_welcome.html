@@ -1,16 +1,16 @@
   <div id="hello" class="span-4 last">
 {% if user %}
   {% if real_name %}
-    <h4>Hi, {{ real_name }}! <a href="{{ url }}">Logout?</a></h4>
+    <h4<span>Hi, {{ real_name }}! <a href="{{ url }}">Logout?</a></span></h4>
   {% else %}
-    <h4>Hi, {{ user }}! <a href="{{ url }}">Logout?</a></h4>
+    <h4><span>Hi, {{ user }}! <a href="{{ url }}">Logout?</a></span></h4>
   {% endif %}
-    <img width="75" height="75" src="{{ photo_url }}" />
+    <img height="75" src="{{ photo_url }}" />
   </div>
   <div id="status_info" class="span-8 last">
   {% if userinfo %}
     <h4>
-      <span id="checkin_count" class="span-5">{{ userinfo.checkin_count }} checkins logged!</span>
+	  <span id="checkin_count" class="span-5">{{ userinfo.checkin_count }} checkins logged!</span>
     {% if userinfo.is_ready %}
       <span id="delete_all_span" name="started_ready" class="span-3 last"><input type="submit" name="submit" class="button" id="delete_all_button" value="delete your data" /></span>
     {% else %}
@@ -19,11 +19,11 @@
       <span id="fetching_span" class="span-3 last">Fetching the rest...<img src='static/spinner-small.gif'/></span>
     </h4>
   {% else %}
-    <h4><span name="not_oauthed" id="oauth_span"><a href="/go_to_foursquare"><img src="static/signinwith-foursquare.png"></a></span></h4>
+    <span name="not_oauthed" id="oauth_span"><a href="/go_to_foursquare"><img src="static/signinwith-foursquare.png"></a></span>
   {% endif %}
   </div>
 {% else %}
     <h4><a href="{{ url }}">Login</a>, then OAuth!</h4>
-    <img width="75" height="75" src="{{ photo_url }}" />
+    <img height="75" src="{{ photo_url }}" />
   </div>
 {% endif %}
