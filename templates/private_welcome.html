@@ -1,9 +1,9 @@
   <div id="hello" class="span-4 last">
 {% if user %}
   {% if real_name %}
-    <h4<span>Hi, {{ real_name }}! <a href="{{ url }}">Logout?</a></span></h4>
+    <h4<span>Hi {{ real_name }}! <a href="{{ url }}">Logout?</a></span></h4>
   {% else %}
-    <h4><span>Hi, {{ user }}! <a href="{{ url }}">Logout?</a></span></h4>
+    <h4><span>Hi {{ user }}! <a href="{{ url }}">Logout?</a></span></h4>
   {% endif %}
     <img height="75" src="{{ photo_url }}" />
   </div>
