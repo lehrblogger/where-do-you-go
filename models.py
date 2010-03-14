@@ -18,6 +18,7 @@ class UserInfo(db.Model):
   user = db.UserProperty()
   is_ready = db.BooleanProperty()
   is_authorized = db.BooleanProperty()
+  signature_invalid = db.BooleanProperty()
   last_checkin = db.IntegerProperty(default=0)
   color_scheme = db.StringProperty(default='fire')
   level_max = db.IntegerProperty(default=int(140.)) #TODO see note in constants.py, was =int(constants.level_const))

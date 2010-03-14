@@ -34,12 +34,16 @@ def fetch_and_store_checkins(userinfo, limit=50):
     return num_added
 
   logging.info(history)
+  userinfo.signature_invalid = True
   userinfo.is_authorized = True
   try:
     if not 'checkins' in history:
       if 'unauthorized' in history:
-        userinfo.is_authorized = False
-        logging.info("User %s is no longer authorized" % userinfo.user)
+        if history['unauthorized'].find('SIGNATURE_INVALID') >= 0:
+          userinfo.signature_invalid = False
+        if history['unauthorized'].find('TOKEN_UNAUTHORIZED') >= 0:
+          userinfo.is_authorized = False
+        logging.info("User %s is no longer authorized with SIGNATURE_INVALID=%s and TOKEN_UNAUTHORIZED=%s" % userinfo.user, userinfo.signature_invalid, userinfo.is_authorized)
         return 0
       else:
         logging.warning("no value for 'checkins' or 'unauthorized' in history: " + str(history))
@@ -114,16 +118,21 @@ def fetch_and_store_checkins_initial(userinfo):
   userinfo.put()
 
 def fetch_and_store_checkins_for_batch():
-  userinfos = UserInfo.all().order('last_updated').fetch(2)#.filter('is_authorized = ', True)
+  max_left_to_process = 2
+  userinfos = UserInfo.all().order('last_updated').fetch(50)#.filter('is_authorized = ', True)
   logging.info("performing batch update for %d users-------------------------------" % len(userinfos))
   for userinfo in userinfos:
     if True:#userinfo.is_authorized:
       num_added = fetch_and_store_checkins(userinfo)
+      if num_added > 0:
+          max_left_to_process -= 1
       logging.debug("updating %d checkins for %s" % (num_added, userinfo.user) )
     else:
       logging.debug("did not update checkins for %s" % userinfo.user)
     userinfo.last_updated = datetime.now()
     userinfo.put()
+    if max_left_to_process == 0:
+      return # since we're out of time
 
 def update_user_info(userinfo):
   fs = get_new_fs_for_userinfo(userinfo)
