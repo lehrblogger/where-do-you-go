@@ -27,8 +27,14 @@ def get_google_maps_apikey():
   else:
     logging.error('No Google maps key found for domain ' + domain)
 
-def get_oauth_strings():
-  domain = environ['HTTP_HOST']
+def get_oauth_strings(force_primary_domain=True):
+  if force_primary_domain: # I was getting SIGNATURE_INVALID oauth errors on many of my backend calls because 
+                           # I was not using the same domain for the requests as I was when the users signed up
+                           # Always forcing this will break support for other domains, but will fix some OAuth
+                           # issues, so that's what I'm doing for now.
+      domain = 'www.wheredoyougo.net'
+  else:
+      domain = environ['HTTP_HOST']
   if domain == 'www.wheredoyougo.net':
     consumer_key = 'KTNXGQJ4JXDZGAG35MGZ3WN0EQIO5XHNALYQZATHVEPDR3TI'
     callback_url = 'http://www.wheredoyougo.net/authenticated'

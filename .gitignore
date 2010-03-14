@@ -1,3 +1,5 @@
 oauth_secrets.*
 *.pyc
 */*.pyc
+bulkloader-*
+bulkloader_files/
