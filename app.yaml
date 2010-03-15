@@ -55,6 +55,9 @@ handlers:
   script: scripts/fetch_foursquare_data.py
   login: admin
 
+# - url: /update_venue_ids_to_strings
+#   script: scripts/update_venue_ids_to_strings.py
+#   login: admin
 
 - url: /clear_authtokens
   script: scripts/clear_authtokens.py

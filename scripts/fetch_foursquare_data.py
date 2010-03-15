@@ -31,7 +31,7 @@ def fetch_and_store_checkins(userinfo, limit=50):
   except foursquare.FoursquareRemoteException, err:
     logging.debug("Checkins not fetched for %s with error %s" % (userinfo.user, err))
     #TODO i should maybe fail more gracefully here and try again?
-    return num_added
+    return 0
 
   logging.info(history)
   userinfo.valid_signature = True

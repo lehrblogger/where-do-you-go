@@ -2,6 +2,9 @@ from google.appengine.ext import db
 from geo.geomodel import GeoModel
 import constants
 
+class LastOffset(db.Model):
+  offset = db.IntegerProperty(default=0)
+
 class AuthToken(db.Model):
   service = db.StringProperty(required=True)
   token = db.StringProperty(required=True)
@@ -18,8 +21,8 @@ class UserInfo(db.Model):
   user = db.UserProperty()
   is_ready = db.BooleanProperty()
   is_authorized = db.BooleanProperty()
-  signature_invalid = db.BooleanProperty()
-  last_checkin = db.IntegerProperty(default=0)
+  valid_signature = db.BooleanProperty()
+  last_checkin = db.IntegerProperty(default=0)    #____UPDATE THIS
   color_scheme = db.StringProperty(default='fire')
   level_max = db.IntegerProperty(default=int(140.)) #TODO see note in constants.py, was =int(constants.level_const))
   checkin_count = db.IntegerProperty(default=0)
@@ -39,8 +42,8 @@ class UserInfo(db.Model):
 class UserVenue(GeoModel):
   last_updated = db.DateTimeProperty(auto_now_add=True) #WARNING last_updated is confusing and should be last_checkin_at
   user = db.UserProperty()
-  checkin_list = db.ListProperty(int, default=[])
-  venue_id = db.IntegerProperty()
+  checkin_list = db.ListProperty(int, default=[]) #____UPDATE THIS
+  venue_id = db.IntegerProperty()                 #____UPDATE THIS
   name = db.StringProperty()
   address = db.StringProperty()
   cross_street = db.StringProperty()
@@ -48,6 +51,7 @@ class UserVenue(GeoModel):
   state = db.StringProperty()
   zipcode = db.StringProperty()
   phone = db.PhoneNumberProperty()
+  ids_converted = db.BooleanProperty(default=False)
 
 class MapImage(db.Model):
   last_updated = db.DateTimeProperty(auto_now_add=True)
