@@ -30,7 +30,12 @@ class BasicTile(object):
 
     if not constants.provider:
       constants.provider = provider.DBProvider()
-    self.tile_img = self.plot_image(constants.provider.get_user_data(user, lat_north, lng_west, range_lat, range_lng))
+    uservenues = constants.provider.get_user_data(user, lat_north, lng_west, range_lat, range_lng)
+    for uservenue in uservenues:
+      if not uservenue.checkin_guid_list or len(uservenue.checkin_guid_list) is 0:
+        uservenue.checkin_guid_list = a[str(checkin_id) for checkin_id in uservenue.checkin_list]
+        uservenue.put()
+    self.tile_img = self.plot_image(uservenues)
 
   def plot_image(self, points):
     space_level = self.__create_empty_space()
@@ -87,14 +92,14 @@ class BasicTile(object):
       cur_dot.append([0.] * int(rad * 2))
     for y in range(0, int(rad * 2)):
       for x in range(0, int(rad * 2)):
-        y_adj = math.pow((y - rad), 2) # * len(point.checkin_list)
-        x_adj = math.pow((x - rad), 2) # * len(point.checkin_list)
+        y_adj = math.pow((y - rad), 2) # * len(point.checkin_guid_list)
+        x_adj = math.pow((x - rad), 2) # * len(point.checkin_guid_list)
         pt_rad = math.sqrt(y_adj + x_adj)
-        temp_rad = rad  #* len(point.checkin_list)
+        temp_rad = rad  #* len(point.checkin_guid_list)
         if pt_rad > temp_rad:
           cur_dot[y][x] = 0.
           continue
-        cur_dot[y][x] = self.calc_point(rad, pt_rad, len(point.checkin_list))
+        cur_dot[y][x] = self.calc_point(rad, pt_rad, len(point.checkin_guid_list))
     y_off = int(math.ceil((-1 * self.northwest_ll[0] + point.location.lat) / self.latlng_diff[0] * 256. - len(cur_dot) / 2))
     x_off = int(math.ceil((-1 * self.northwest_ll[1] + point.location.lon) / self.latlng_diff[1] * 256. - len(cur_dot[0]) / 2))
     return cur_dot, x_off, y_off

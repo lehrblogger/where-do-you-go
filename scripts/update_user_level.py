@@ -24,9 +24,12 @@ if user:
     visible_uservenues = constants.provider.get_user_data(user, float(northlat), float(westlng), float(southlat) - float(northlat), float(eastlng) - float(westlng))
 
     visible_checkin_count = 0
-    for venue in visible_uservenues:
-      visible_checkin_count = visible_checkin_count + len(venue.checkin_list)
-      
+    for uservenue in visible_uservenues:
+      if not uservenue.checkin_guid_list or len(uservenue.checkin_guid_list) is 0:
+        uservenue.checkin_guid_list = a[str(checkin_id) for checkin_id in uservenue.checkin_list]
+        uservenue.put()
+      visible_checkin_count = visible_checkin_count + len(uservenue.checkin_guid_list)
+
     userinfo = UserInfo.all().filter('user =', user).order('-created').get()
     level_offset = level_offset * 15
     #logging.info("level_offset=%d  visible_checkin_count=%d  len(visible_uservenues)=%d" % (level_offset, visible_checkin_count, len(visible_uservenues)))

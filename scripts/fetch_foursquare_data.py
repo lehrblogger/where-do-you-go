@@ -93,8 +93,10 @@ def fetch_and_store_checkins(userinfo, limit=50):
             if 'phone' in j_venue:
               uservenue.phone        = j_venue['phone']
           uservenue.last_updated = datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000") #WARNING last_updated is confusing and should be last_checkin_at
-          if datetime.now() < uservenue.last_updated + timedelta(hours=12):  continue #WARNING last_updated is confusing and should be last_checkin_at
-          uservenue.checkin_list.append(checkin['id'])
+          if datetime.now() < uservenue.last_updated + timedelta(hours=12):  continue #WARNING last_updated is confusing and should be last_checkin_at   
+          if not uservenue.checkin_guid_list or len(uservenue.checkin_guid_list) is 0:
+            uservenue.checkin_guid_list = a[str(checkin_id) for checkin_id in uservenue.checkin_list]
+          uservenue.checkin_guid_list.append(str(checkin['id']))
           uservenue.put()
           userinfo.checkin_count += 1
           if checkin['id'] > userinfo.last_checkin: userinfo.last_checkin = checkin['id'] # because the checkins are ordered with most recent first!

@@ -204,7 +204,11 @@ class UserVenueWriter(webapp.RequestHandler):
       userinfo = UserInfo.all().filter('user =', user).order('-created').get()
       if userinfo:
           self.response.out.write(str(userinfo))
-      template_data = { 'uservenues': constants.provider.get_user_data(user=user)}
+      usevenues = constants.provider.get_user_data(user=user)
+      if not uservenue.checkin_guid_list or len(uservenue.checkin_guid_list) is 0:
+        uservenue.checkin_guid_list = [str(checkin_id) for checkin_id in uservenue.checkin_list]
+        usevenue.put()
+      template_data = { 'uservenues': usevenues}
       os_path = os.path.dirname(__file__)
       self.response.out.write(template.render(os.path.join(os_path, 'templates/uservenue_list.html'), template_data))
 
