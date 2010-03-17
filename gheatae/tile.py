@@ -6,6 +6,7 @@ import logging
 import gmerc
 import math
 from models import UserInfo
+from datetime import datetime
 
 from google.appengine.api import users
 log = logging.getLogger('space_level')
@@ -30,17 +31,19 @@ class BasicTile(object):
 
     if not constants.provider:
       constants.provider = provider.DBProvider()
-    uservenues = constants.provider.get_user_data(user, lat_north, lng_west, range_lat, range_lng)
+    uservenues = constants.provider.get_user_data(user, lat_north, lng_west, range_lat, range_lng)  
     for uservenue in uservenues:
       if not uservenue.checkin_guid_list or len(uservenue.checkin_guid_list) is 0:
-        uservenue.checkin_guid_list = a[str(checkin_id) for checkin_id in uservenue.checkin_list]
+        uservenue.checkin_guid_list = [str(checkin_id) for checkin_id in uservenue.checkin_list]
         uservenue.put()
     self.tile_img = self.plot_image(uservenues)
 
   def plot_image(self, points):
     space_level = self.__create_empty_space()
-    for point in points:
+    start = datetime.now()
+    for i, point in enumerate(points):
       self.__merge_point_in_space(space_level, point)
+      logging.warning('   point %d of %d, start at %s, done at %s' % (i, len(points), start, datetime.now()))
     return self.convert_image(space_level)
 
   def __merge_point_in_space(self, space_level, point):

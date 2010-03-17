@@ -145,13 +145,14 @@ class TileHandler(webapp.RequestHandler):
         self.respondError("Invalid path")
         return
 
+      start = datetime.now()
       try:
         new_tile = tile.GoogleTile(user, zoom, x, y)
         img_data = new_tile.image_out()
         self.response.headers['Content-Type'] = "image/png"
         self.response.out.write(img_data)
       except DeadlineExceededError, err:
-        logging.warning(err.args[0])
+        logging.warning('%s error - started at %s, failed at %s' % (str(err), start, datetime.now()))
         self.response.headers['Content-Type'] = "image/png"
         self.response.out.write('')
 
