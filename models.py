@@ -23,6 +23,7 @@ class UserInfo(db.Model):
   is_authorized = db.BooleanProperty()
   valid_signature = db.BooleanProperty()
   last_checkin = db.IntegerProperty(default=0)    #____UPDATE THIS
+  last_checkin_at = db.DateTimeProperty()
   color_scheme = db.StringProperty(default='fire')
   level_max = db.IntegerProperty(default=int(140.)) #TODO see note in constants.py, was =int(constants.level_const))
   checkin_count = db.IntegerProperty(default=0)
@@ -43,7 +44,8 @@ class UserVenue(GeoModel):
   last_updated = db.DateTimeProperty(auto_now_add=True) #WARNING last_updated is confusing and should be last_checkin_at
   user = db.UserProperty()
   checkin_list = db.ListProperty(int, default=[]) #____UPDATE THIS
-  venue_id = db.IntegerProperty()                 #____UPDATE THIS
+  venue_id = db.IntegerProperty()
+  venue_guid = db.StringProperty()
   name = db.StringProperty()
   address = db.StringProperty()
   cross_street = db.StringProperty()
