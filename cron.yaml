@@ -3,12 +3,6 @@ cron:
   url: /fetch_foursquare_data/update_users_batch
   schedule: every 1 minutes
 
-# - description: label the UserVenues with a flag to say their datatypes haven't been updated yet
-#   url: /update_venue_ids_to_strings
-#   schedule: every 1 minutes
-    
-# 
-
 # - description: update all the maps
 #   url: /generate_static_map/all
 #   schedule: every 1 hours
