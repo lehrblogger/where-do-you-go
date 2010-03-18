@@ -121,7 +121,7 @@ $(document).ready(function() {
     $('#delete_all_span').html("deleting your data... <img src='static/spinner-small.gif'/>");
     $.get("/delete_data/user", function(){
       map.clearOverlays();
-      $("#hello img").attr("src", "/static/foursquare_icon.png"); //TODO also in constants.py - this duplication is ugly, but oh well for now
+      $("#hello img").attr("src", "/static/foursquare_girl.png"); //TODO also in constants.py - this duplication is ugly, but oh well for now
       $("#left-lower").html("");
       $("#regenerate").html("");
       resizeMapToWidthHeight(640, 640);

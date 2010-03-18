@@ -54,8 +54,7 @@ class UserVenue(GeoModel):
   state = db.StringProperty()
   zipcode = db.StringProperty()
   phone = db.PhoneNumberProperty()
-  ids_converted = db.BooleanProperty(default=False)
-
+  
 class MapImage(db.Model):
   last_updated = db.DateTimeProperty(auto_now_add=True)
   user = db.UserProperty()

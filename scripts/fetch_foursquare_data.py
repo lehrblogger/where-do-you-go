@@ -63,9 +63,9 @@ def fetch_and_store_checkins(userinfo, limit=50):
       if 'venue' in checkin:
         j_venue = checkin['venue']
         if 'id' in j_venue and 'geolat' in j_venue and 'geolong' in j_venue:
-          uservenue = UserVenue.all().filter('user =', userinfo.user).filter('venue_guid =', j_venue['id']).get()
+          uservenue = UserVenue.all().filter('user =', userinfo.user).filter('venue_guid =', str(j_venue['id'])).get()
           if uservenue == None:
-            uservenue   = UserVenue.all().filter('user =', userinfo.user).filter('venue_id =',   j_venue['id']).get()
+            uservenue   = UserVenue.all().filter('user =', userinfo.user).filter('venue_id =', str(j_venue['id'])).get()
           # first we look for guid. if nothing, look as reg id, and convert to guid if we find it, else we need to instantiate it
           if uservenue:
             uservenue.venue_guid = str(uservenue.venue_id)
@@ -81,7 +81,7 @@ def fetch_and_store_checkins(userinfo, limit=50):
               if 'address' in j_venue:
                 uservenue.address    = j_venue['address']
             except BadValueError:
-              logging.error("Address not added for venue %s with address json '%s'" % (j_venue['id'], j_venue['address']))
+              logging.error("Address not added for venue %s with address json '%s'" % (str(j_venue['id']), j_venue['address']))
             if 'cross_street' in j_venue:
               uservenue.cross_street = j_venue['cross_street']
             # if 'city' in j_venue:

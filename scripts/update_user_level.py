@@ -28,7 +28,7 @@ if user:
       if not uservenue.checkin_guid_list or len(uservenue.checkin_guid_list) is 0:
         uservenue.checkin_guid_list = [str(checkin_id) for checkin_id in uservenue.checkin_list]
         uservenue.put()
-      visible_checkin_count = visible_checkin_count + len(uservenue.checkin_guid_list)
+      visible_checkin_count += len(uservenue.checkin_guid_list)
 
     userinfo = UserInfo.all().filter('user =', user).order('-created').get()
     level_offset = level_offset * 15
