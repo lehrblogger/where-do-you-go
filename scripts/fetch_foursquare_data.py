@@ -126,7 +126,7 @@ def fetch_and_store_checkins_initial(userinfo):
 
 def fetch_and_store_checkins_for_batch():
   max_left_to_process = 2
-  userinfos = UserInfo.all().order('last_updated').fetch(50)#.filter('is_authorized = ', True)
+  userinfos = UserInfo.all().order('last_updated').filter('is_authorized = ', True).fetch(50)
   logging.info("performing batch update for up to %d users-------------------------------" % len(userinfos))
   for userinfo in userinfos:
     if True:#userinfo.is_authorized:

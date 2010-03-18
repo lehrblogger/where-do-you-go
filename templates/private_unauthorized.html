@@ -1,0 +1,21 @@
+<div id="left-lower" class="span-8 last">
+  <h2>uh-oh!</h2>
+  <p>
+    It looks like something's wrong with your OAuth link between WDYG and Foursquare, so we can't update your map - you might have revoked access in your <a href="http://foursquare.com/settings">Foursquare settings</a>, but it's probably just an old bug on our end.
+  </p>
+  <p>
+		But don't worry, you can fix it by clicking on the "delete your data" button above, and then re-authenticating with Foursquare. The link to your static map will change when you re-create it, but everything else should work fine. Sorry about that!
+	</p>
+</div>
+<div id="regenerate" class="span-8 last">
+  <h2>take a snapshot anyway:</h2>
+  <p>
+    <input type="submit" name="submit" class="button" id="regenerate_button" value="create your map with the current view" />
+    <span id="regenerate_status">(re)generating map... <img src='static/spinner-small.gif'/></span>
+    <label for="regenerate_button"><br/>it will periodically update itself as you check in<br/>to more places, but the links won't change</label
+  </p>
+  <p>
+    <input type="submit" name="submit" class="button" id="delete_map_button" value="delete your public map and personalized page" />
+    <span id="delete_map_status">deleting map... <img src='static/spinner-small.gif'/></span>
+  </p>
+</div>

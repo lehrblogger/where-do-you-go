@@ -40,26 +40,35 @@ class BasicTile(object):
 
   def plot_image(self, points):
     space_level = self.__create_empty_space()
-    start = datetime.now()
+    #start = datetime.now()
     for i, point in enumerate(points):
       self.__merge_point_in_space(space_level, point)
-      logging.warning('   point %d of %d, start at %s, done at %s' % (i, len(points), start, datetime.now()))
+      #logging.warning('   point %d of %d, start at %s, done at %s' % (i, len(points), start, datetime.now()))
     return self.convert_image(space_level)
 
   def __merge_point_in_space(self, space_level, point):
     # By default, multiply per color point
-    dot_levels, x_off, y_off = self.get_dot(point)
+    dot_levels = []
+    rad = int(self.zoom * DOT_MULT)
+    for i in range(int(rad * 2)):
+      dot_levels.append([0.] * int(rad * 2))
 
-    for y in range(y_off, y_off + len(dot_levels)):
+    y_off = int(math.ceil((-1 * self.northwest_ll[0] + point.location.lat) / self.latlng_diff[0] * 256. - rad))
+    x_off = int(math.ceil((-1 * self.northwest_ll[1] + point.location.lon) / self.latlng_diff[1] * 256. - rad))
+
+    for y in range(y_off, y_off + (rad * 2)):
       if y < 0 or y >= len(space_level):
         continue
-      for x in range(x_off, x_off + len(dot_levels[0])):
+      for x in range(x_off, x_off + (rad * 2)):
         if x < 0 or x >= len(space_level[0]):
           continue
-        dot_level = dot_levels[y_off - y][x_off - x]
-        if dot_level <= 0.:
+        y_adj = math.pow((y - rad - y_off), 2)
+        x_adj = math.pow((x - rad - x_off), 2)
+        pt_rad = math.sqrt(y_adj + x_adj)
+        temp_rad = rad
+        if pt_rad > temp_rad:
           continue
-        space_level[y][x] += dot_level
+        space_level[y][x] += self.calc_point(rad, pt_rad, len(point.checkin_guid_list))
 
   def scale_value(self, value):
     #ret_float = math.log(max((value + 50) / 50, 1), 1.01) + 30
@@ -87,25 +96,25 @@ class BasicTile(object):
     return max_alpha * math.pow(fraction, math.pow(weight, 0.25)) * weight
     #return max_alpha * math.pow(fraction, math.pow(weight, fraction)) * weight
 
-  def get_dot(self, point):
-    #cur_dot = dot[self.zoom]
-    cur_dot = []
-    rad = int(self.zoom * DOT_MULT)
-    for i in range(int(rad * 2)):
-      cur_dot.append([0.] * int(rad * 2))
-    for y in range(0, int(rad * 2)):
-      for x in range(0, int(rad * 2)):
-        y_adj = math.pow((y - rad), 2) # * len(point.checkin_guid_list)
-        x_adj = math.pow((x - rad), 2) # * len(point.checkin_guid_list)
-        pt_rad = math.sqrt(y_adj + x_adj)
-        temp_rad = rad  #* len(point.checkin_guid_list)
-        if pt_rad > temp_rad:
-          cur_dot[y][x] = 0.
-          continue
-        cur_dot[y][x] = self.calc_point(rad, pt_rad, len(point.checkin_guid_list))
-    y_off = int(math.ceil((-1 * self.northwest_ll[0] + point.location.lat) / self.latlng_diff[0] * 256. - len(cur_dot) / 2))
-    x_off = int(math.ceil((-1 * self.northwest_ll[1] + point.location.lon) / self.latlng_diff[1] * 256. - len(cur_dot[0]) / 2))
-    return cur_dot, x_off, y_off
+  # def get_dot(self, point):
+  #   #cur_dot = dot[self.zoom]
+  #   cur_dot = []
+  #   rad = int(self.zoom * DOT_MULT)
+  #   for i in range(int(rad * 2)):
+  #     cur_dot.append([0.] * int(rad * 2))
+  #   for y in range(0, int(rad * 2)):
+  #     for x in range(0, int(rad * 2)):
+  #       y_adj = math.pow((y - rad), 2) # * len(point.checkin_guid_list)
+  #       x_adj = math.pow((x - rad), 2) # * len(point.checkin_guid_list)
+  #       pt_rad = math.sqrt(y_adj + x_adj)
+  #       temp_rad = rad  #* len(point.checkin_guid_list)
+  #       if pt_rad > temp_rad:
+  #         cur_dot[y][x] = 0.
+  #         continue
+  #       cur_dot[y][x] = self.calc_point(rad, pt_rad, len(point.checkin_guid_list))
+  #   y_off = int(math.ceil((-1 * self.northwest_ll[0] + point.location.lat) / self.latlng_diff[0] * 256. - len(cur_dot) / 2))
+  #   x_off = int(math.ceil((-1 * self.northwest_ll[1] + point.location.lon) / self.latlng_diff[1] * 256. - len(cur_dot[0]) / 2))
+  #   return cur_dot, x_off, y_off
 
   def __create_empty_space(self):
     space = []
@@ -157,7 +166,7 @@ class GoogleTile(BasicTile):
     self.southeast_ll_buffered = gmerc.px2ll((x_tile + 1) * 256 + dot_radius, (y_tile + 1) * 256 + dot_radius, zoom) #TODO fix this in case we're at the edge of the map!
     self.southeast_ll          = gmerc.px2ll((x_tile + 1) * 256             , (y_tile + 1) * 256             , zoom)
 
-    # calculate the real values for these without the offsets, otherwise it messes up the get_dot calculations
+    # calculate the real values for these without the offsets, otherwise it messes up the __merge_point_in_space calculations
     self.latlng_diff_buffered = [ self.southeast_ll_buffered[0] - self.northwest_ll_buffered[0], self.southeast_ll_buffered[1] - self.northwest_ll_buffered[1]]
     self.latlng_diff          = [ self.southeast_ll[0]          - self.northwest_ll[0]         , self.southeast_ll[1]          - self.northwest_ll[1]]
 

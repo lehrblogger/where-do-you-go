@@ -47,7 +47,8 @@ class IndexHandler(webapp.RequestHandler):
       welcome_data['url'] = users.create_logout_url(self.request.uri)
       userinfo = UserInfo.all().filter('user =', user).order('-created').get()
       if userinfo:
-        fetch_foursquare_data.update_user_info(userinfo)
+        if userinfo.is_authorized:
+          fetch_foursquare_data.update_user_info(userinfo)
         welcome_data['userinfo'] = userinfo
         welcome_data['real_name'] = userinfo.real_name
         welcome_data['photo_url'] = userinfo.photo_url
@@ -59,7 +60,10 @@ class IndexHandler(webapp.RequestHandler):
     self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), {'key': constants.get_google_maps_apikey()}))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/private_welcome.html'), welcome_data))
     if user and userinfo:
+      if userinfo.is_authorized:
         self.response.out.write(template.render(os.path.join(os_path, 'templates/private_sidebar.html'), sidebar_data))
+      else:
+        self.response.out.write(template.render(os.path.join(os_path, 'templates/private_unauthorized.html'), None))
     else:
         self.response.out.write(template.render(os.path.join(os_path, 'templates/information.html'), None))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/private_map.html'), map_data))
