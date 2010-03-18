@@ -105,9 +105,10 @@ def fetch_and_store_checkins(userinfo, limit=50):
             uservenue.put()
             userinfo.put()
           except DeadlineExceededError, err:
-            logging.warning('hacky deadline exceeded handling while fetching new checkins!')
+            logging.warning('start hacky deadline exceeded handling while fetching new checkins!')
             uservenue.put()
             userinfo.put()
+            logging.warning('end hacky deadline exceeded handling while fetching new checkins!')
             raise err
           num_added += 1
       #   else: # there's nothing we can do without a venue id or a lat and a lng
