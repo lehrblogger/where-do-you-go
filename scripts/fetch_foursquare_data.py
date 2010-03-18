@@ -102,7 +102,7 @@ def fetch_and_store_checkins(userinfo, limit=50):
           userinfo.checkin_count += 1
           if checkin['id'] > userinfo.last_checkin: 
             userinfo.last_checkin = checkin['id'] # because the checkins are ordered with most recent first!
-          if datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000") > userinfo.last_checkin_at: 
+          if userinfo.last_checkin_at is None or datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000") > userinfo.last_checkin_at: 
             userinfo.last_checkin_at = datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000") # because the checkins are ordered with most recent first!
           userinfo.put()
           num_added += 1

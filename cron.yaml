@@ -1,4 +1,5 @@
 cron:
+  
 - description: get most recent user checkins
   url: /fetch_foursquare_data/update_users_batch
   schedule: every 1 minutes

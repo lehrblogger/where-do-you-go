@@ -65,7 +65,7 @@ class IndexHandler(webapp.RequestHandler):
       else:
         self.response.out.write(template.render(os.path.join(os_path, 'templates/private_unauthorized.html'), None))
     else:
-        self.response.out.write(template.render(os.path.join(os_path, 'templates/information.html'), None))
+        self.response.out.write(template.render(os.path.join(os_path, 'templates/information.html'), {'user': user }))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/private_map.html'), map_data))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/all_footer.html'), None))
 
