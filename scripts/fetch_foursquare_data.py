@@ -21,15 +21,13 @@ def get_new_fs_for_userinfo(userinfo):
 
 def fetch_and_store_checkins(userinfo, limit=50):
   num_added = 0
+  num_ignored = 0
   try:
     fs = get_new_fs_for_userinfo(userinfo)
     history = fs.history(l=limit, sinceid=userinfo.last_checkin)
-
   except foursquare.FoursquareRemoteException, err:
     logging.debug("Checkins not fetched for %s with error %s" % (userinfo.user, err))
-    #TODO i should maybe fail more gracefully here and try again?
-    return 0, 0
-
+    return 0, 0, 0
   logging.debug(history)
   userinfo.valid_signature = True
   userinfo.is_authorized = True
@@ -41,12 +39,15 @@ def fetch_and_store_checkins(userinfo, limit=50):
         if history['unauthorized'].find('TOKEN_UNAUTHORIZED') >= 0:
           userinfo.is_authorized = False
         logging.info("User %s is no longer authorized with SIGNATURE_INVALID=%s and TOKEN_UNAUTHORIZED=%s" % userinfo.user,  userinfo.valid_signature, userinfo.is_authorized)
-        return 0, 0
+        userinfo.put()
+        return 0, 0, 0 
       else:
-        logging.warning("no value for 'checkins' or 'unauthorized' in history: " + str(history))
-        return -1, -1
+        logging.error("no value for 'checkins' or 'unauthorized' in history: " + str(history))
+        userinfo.put()
+        return -1, 0, 0
     elif history['checkins'] == None:
-      return 0, 0
+      userinfo.put()
+      return 0, 0, 0
     if not userinfo.gender is 'male' and not userinfo.gender is 'female':
       user = fs.user()
       if 'gender' in user['user']:
@@ -55,7 +56,7 @@ def fetch_and_store_checkins(userinfo, limit=50):
           userinfo.photo_url = 'static/blank_boy.png'
         elif user['user']['gender'] is 'female':
           userinfo.photo_url = 'static/blank_girl.png'
-    userinfo.put()
+        userinfo.put()
     for checkin in history['checkins']:
       if 'venue' in checkin:
         j_venue = checkin['venue']
@@ -81,8 +82,6 @@ def fetch_and_store_checkins(userinfo, limit=50):
               logging.error("Address not added for venue %s with address json '%s'" % (str(j_venue['id']), j_venue['address']))
             if 'cross_street' in j_venue:
               uservenue.cross_street = j_venue['cross_street']
-            # if 'city' in j_venue:
-            #   uservenue.city         = j_venue['city']
             if 'state' in j_venue:
               uservenue.state        = j_venue['state']
             if 'zip' in j_venue:
@@ -91,6 +90,7 @@ def fetch_and_store_checkins(userinfo, limit=50):
               uservenue.phone        = j_venue['phone']
           uservenue.last_updated = datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000") #WARNING last_updated is confusing and should be last_checkin_at
           if datetime.now() < uservenue.last_updated + timedelta(hours=12): #WARNING last_updated is confusing and should be last_checkin_at   
+            num_ignored += 1
             continue # ignore recent checkins for the sake of privacy
           if not uservenue.checkin_guid_list or len(uservenue.checkin_guid_list) is 0:
             uservenue.checkin_guid_list = [str(checkin_id) for checkin_id in uservenue.checkin_list]
@@ -117,11 +117,11 @@ def fetch_and_store_checkins(userinfo, limit=50):
   except KeyError:
     logging.error("There was a KeyError when processing the response: " + content)
     raise
-  return num_added, len(history)
+  return num_added, num_ignored, len(history['checkins'])
 
 def fetch_and_store_checkins_initial(userinfo):
   #logging.info("about to fetch, userinfo.last_checkin = %d" % (userinfo.last_checkin))
-  num_added, num_received = fetch_and_store_checkins(userinfo)
+  num_added, num_ignored, num_received = fetch_and_store_checkins(userinfo)
   #logging.info("%d checkins added this time, userinfo.last_checkin = %d" % (num_added, userinfo.last_checkin))
   if num_added != 0:
     #logging.info("more than 0 checkins added so there might be checkins remaining. requeue!")
@@ -140,13 +140,14 @@ def fetch_and_store_checkins_for_batch():
   try:
     for userinfo in userinfos:
       current_userinfo = userinfo
-      num_added, num_received = fetch_and_store_checkins(userinfo)
-      logging.info("updating %d checkins of %d for %s" % (num_added, num_received, userinfo.user))
+      num_added, num_ignored, num_received = fetch_and_store_checkins(userinfo)
+      if not (num_added + num_ignored) == num_received:
+        logging.warning("updating %d and ignoring %d of %d checkins for %s but they don't match!" % (num_added, num_ignored, num_received, userinfo.user))
+      elif num_received > 0:
+        logging.info("updating %d and ignoring %d of %d checkins for %s" % (num_added, num_ignored, num_received, userinfo.user))
       num_users_completed += 1
   except DeadlineExceededError:
     logging.info("exceeded deadline after %d users, unfinished user was %s" % (num_users_completed, current_userinfo.user))
-    
-
 
 def update_user_info(userinfo):
   fs = get_new_fs_for_userinfo(userinfo)

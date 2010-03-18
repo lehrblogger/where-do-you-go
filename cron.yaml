@@ -4,8 +4,8 @@ cron:
   url: /fetch_foursquare_data/update_users_batch
   schedule: every 1 minutes
 
-- description: update some maps
-  url: /generate_static_map/some
+- description: update one map (60 * 24 = 1440 a day)
+  url: /generate_static_map/one
   schedule: every 1 minutes
 #
 # - description: clear old authtokens

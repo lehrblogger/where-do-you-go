@@ -2,6 +2,8 @@ from google.appengine.api import users
 from google.appengine.api import images
 from google.appengine.api import urlfetch
 from google.appengine.ext import db
+from google.appengine.runtime import DeadlineExceededError
+from google.appengine.runtime.apiproxy_errors import CancelledError
 import os
 from os import environ
 import urllib
@@ -19,8 +21,7 @@ def update_map_image(user, google_data, width, height, northlat, westlng):
   for offset_x_px in range (0, width, 256):
     for offset_y_px in range (0, height, 256):
       new_tile = tile.CustomTile(user, int(google_data['zoom']), northlat, westlng, offset_x_px, offset_y_px)
-      input_tuples.append((new_tile.image_out(), offset_x_px, offset_y_px, 1.0, images.TOP_LEFT))
-      # http://code.google.com/appengine/docs/python/images/functions.html
+      input_tuples.append((new_tile.image_out(), offset_x_px, offset_y_px, 1.0, images.TOP_LEFT)) # http://code.google.com/appengine/docs/python/images/functions.html
   img = images.composite(inputs=input_tuples, width=width, height=height, color=0, output_encoding=images.PNG)
   return img
 
@@ -67,26 +68,26 @@ if __name__ == '__main__':
   if raw.count('/') == 2:
     foo, bar, rest, = raw.split('/')
     try:
-      assert rest == 'some', "rest is: %s " % rest
-      mapimages = MapImage.all().order('-last_updated').fetch(50)
-      num_updated = 0
-      for mapimage in mapimages:
-        try: 
-          google_data = {
-            'key': constants.get_google_maps_apikey(),
-            'zoom': mapimage.zoom,
-            'center': str(mapimage.centerlat) + "," + str(mapimage.centerlng),
-            'size': str(mapimage.width) + "x" + str(mapimage.height),
-            'sensor':'false',
-            'format':'png',
-          }
-          img = update_map_image(mapimage.user, google_data, mapimage.width, mapimage.height, mapimage.northlat, mapimage.westlng)
-          mapimage.img = db.Blob(img)
-          mapimage.last_updated = datetime.now()
-          mapimage.put()
-          num_updated += 1
-        except DeadlineExceededError:
-          logging.info("Ran out of time, but updated %d maps" % num_updated)
+      assert rest == 'one', "rest is: %s " % rest
+      mapimage = MapImage.all().order('last_updated').get()
+      try: 
+        google_data = {
+          'key': constants.get_google_maps_apikey(),
+          'zoom': mapimage.zoom,
+          'center': str(mapimage.centerlat) + "," + str(mapimage.centerlng),
+          'size': str(mapimage.width) + "x" + str(mapimage.height),
+          'sensor':'false',
+          'format':'png',
+        }
+        img = update_map_image(mapimage.user, google_data, mapimage.width, mapimage.height, mapimage.northlat, mapimage.westlng)
+        mapimage.img = db.Blob(img)
+        mapimage.last_updated = datetime.now()
+        mapimage.put()
+        logging.info("Updated user map for %s" % mapimage.user)
+      except DeadlineExceededError, err:    
+        logging.error("Ran out of time before updating a map! %s" % err)
+        mapimage.last_updated = datetime.now() # put it at the end of the queue anyway, in case we always fail on this map for some reason
+        mapimage.put()
     except AssertionError, err:
       logging.error(err.args[0])
   else:

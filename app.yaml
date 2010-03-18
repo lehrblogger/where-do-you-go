@@ -38,7 +38,7 @@ handlers:
   login: required
 
 
-- url: /generate_static_map/some
+- url: /generate_static_map/one
   script: scripts/update_user_maps.py
   login: admin
 
