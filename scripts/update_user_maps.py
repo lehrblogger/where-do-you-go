@@ -67,21 +67,26 @@ if __name__ == '__main__':
   if raw.count('/') == 2:
     foo, bar, rest, = raw.split('/')
     try:
-      assert rest == 'all', "rest is: %s " % rest
-      mapimages = MapImage.all().order('-last_updated').fetch(1000)
+      assert rest == 'some', "rest is: %s " % rest
+      mapimages = MapImage.all().order('-last_updated').fetch(50)
+      num_updated = 0
       for mapimage in mapimages:
-        google_data = {
-          'key': constants.get_google_maps_apikey(),
-          'zoom': mapimage.zoom,
-          'center': str(mapimage.centerlat) + "," + str(mapimage.centerlng),
-          'size': str(mapimage.width) + "x" + str(mapimage.height),
-          'sensor':'false',
-          'format':'png',
-        }
-        img = update_map_image(mapimage.user, google_data, mapimage.width, mapimage.height, mapimage.northlat, mapimage.westlng)
-        mapimage.img = db.Blob(img)
-        mapimage.last_updated = datetime.now()
-        mapimage.put()
+        try: 
+          google_data = {
+            'key': constants.get_google_maps_apikey(),
+            'zoom': mapimage.zoom,
+            'center': str(mapimage.centerlat) + "," + str(mapimage.centerlng),
+            'size': str(mapimage.width) + "x" + str(mapimage.height),
+            'sensor':'false',
+            'format':'png',
+          }
+          img = update_map_image(mapimage.user, google_data, mapimage.width, mapimage.height, mapimage.northlat, mapimage.westlng)
+          mapimage.img = db.Blob(img)
+          mapimage.last_updated = datetime.now()
+          mapimage.put()
+          num_updated += 1
+        except DeadlineExceededError:
+          logging.info("Ran out of time, but updated %d maps" % num_updated)
     except AssertionError, err:
       logging.error(err.args[0])
   else:

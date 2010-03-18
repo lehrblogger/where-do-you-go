@@ -6,6 +6,7 @@ from models import UserInfo, UserVenue
 from google.appengine.ext import db
 from google.appengine.api.labs import taskqueue
 from google.appengine.api.urlfetch import DownloadError
+from google.appengine.runtime import DeadlineExceededError
 #from django.utils import simplejson as json
 from datetime import datetime, timedelta
 import logging
@@ -24,16 +25,12 @@ def fetch_and_store_checkins(userinfo, limit=50):
     fs = get_new_fs_for_userinfo(userinfo)
     history = fs.history(l=limit, sinceid=userinfo.last_checkin)
 
-  # except DownloadError, err:
-  #   logging.error("Checkins not fetched for %s with error %s" % (userinfo.user, err.args))
-  #   #TODO i should maybe fail more gracefully here and try again?
-  #   return num_added
   except foursquare.FoursquareRemoteException, err:
     logging.debug("Checkins not fetched for %s with error %s" % (userinfo.user, err))
     #TODO i should maybe fail more gracefully here and try again?
-    return 0
+    return 0, 0
 
-  logging.info(history)
+  logging.debug(history)
   userinfo.valid_signature = True
   userinfo.is_authorized = True
   try:
@@ -44,12 +41,12 @@ def fetch_and_store_checkins(userinfo, limit=50):
         if history['unauthorized'].find('TOKEN_UNAUTHORIZED') >= 0:
           userinfo.is_authorized = False
         logging.info("User %s is no longer authorized with SIGNATURE_INVALID=%s and TOKEN_UNAUTHORIZED=%s" % userinfo.user,  userinfo.valid_signature, userinfo.is_authorized)
-        return 0
+        return 0, 0
       else:
         logging.warning("no value for 'checkins' or 'unauthorized' in history: " + str(history))
-        return -1
+        return -1, -1
     elif history['checkins'] == None:
-      return 0
+      return 0, 0
     if not userinfo.gender is 'male' and not userinfo.gender is 'female':
       user = fs.user()
       if 'gender' in user['user']:
@@ -98,13 +95,20 @@ def fetch_and_store_checkins(userinfo, limit=50):
           if not uservenue.checkin_guid_list or len(uservenue.checkin_guid_list) is 0:
             uservenue.checkin_guid_list = [str(checkin_id) for checkin_id in uservenue.checkin_list]
           uservenue.checkin_guid_list.append(str(checkin['id']))
-          uservenue.put()
           userinfo.checkin_count += 1
+          userinfo.last_updated = datetime.now()
           if checkin['id'] > userinfo.last_checkin: 
             userinfo.last_checkin = checkin['id'] # because the checkins are ordered with most recent first!
           if userinfo.last_checkin_at is None or datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000") > userinfo.last_checkin_at: 
             userinfo.last_checkin_at = datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000") # because the checkins are ordered with most recent first!
-          userinfo.put()
+          try:
+            uservenue.put()
+            userinfo.put()
+          except DeadlineExceededError, err:
+            logging.warning('hacky deadline exceeded handling while fetching new checkins!')
+            uservenue.put()
+            userinfo.put()
+            raise err
           num_added += 1
       #   else: # there's nothing we can do without a venue id or a lat and a lng
       #     logging.info("Problematic j_venue: " + str(j_venue))
@@ -113,11 +117,11 @@ def fetch_and_store_checkins(userinfo, limit=50):
   except KeyError:
     logging.error("There was a KeyError when processing the response: " + content)
     raise
-  return num_added
+  return num_added, len(history)
 
 def fetch_and_store_checkins_initial(userinfo):
   #logging.info("about to fetch, userinfo.last_checkin = %d" % (userinfo.last_checkin))
-  num_added = fetch_and_store_checkins(userinfo)
+  num_added, num_received = fetch_and_store_checkins(userinfo)
   #logging.info("%d checkins added this time, userinfo.last_checkin = %d" % (num_added, userinfo.last_checkin))
   if num_added != 0:
     #logging.info("more than 0 checkins added so there might be checkins remaining. requeue!")
@@ -129,21 +133,20 @@ def fetch_and_store_checkins_initial(userinfo):
   userinfo.put()
 
 def fetch_and_store_checkins_for_batch():
-  max_left_to_process = 2
   userinfos = UserInfo.all().order('last_updated').filter('is_authorized = ', True).fetch(50)
   logging.info("performing batch update for up to %d users-------------------------------" % len(userinfos))
-  for userinfo in userinfos:
-    if True:#userinfo.is_authorized:
-      num_added = fetch_and_store_checkins(userinfo)
-      if num_added > 0:
-          max_left_to_process -= 1
-      logging.debug("updating %d checkins for %s" % (num_added, userinfo.user) )
-    else:
-      logging.debug("did not update checkins for %s" % userinfo.user)
-    userinfo.last_updated = datetime.now()
-    userinfo.put()
-    if max_left_to_process == 0:
-      return # since we're out of time
+  num_users_completed = 0
+  current_userinfo = None
+  try:
+    for userinfo in userinfos:
+      current_userinfo = userinfo
+      num_added, num_received = fetch_and_store_checkins(userinfo)
+      logging.info("updating %d checkins of %d for %s" % (num_added, num_received, userinfo.user))
+      num_users_completed += 1
+  except DeadlineExceededError:
+    logging.info("exceeded deadline after %d users, unfinished user was %s" % (num_users_completed, current_userinfo.user))
+    
+
 
 def update_user_info(userinfo):
   fs = get_new_fs_for_userinfo(userinfo)

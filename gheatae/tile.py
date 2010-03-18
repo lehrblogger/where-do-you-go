@@ -47,15 +47,12 @@ class BasicTile(object):
     return self.convert_image(space_level)
 
   def __merge_point_in_space(self, space_level, point):
-    # By default, multiply per color point
     dot_levels = []
     rad = int(self.zoom * DOT_MULT)
-    for i in range(int(rad * 2)):
-      dot_levels.append([0.] * int(rad * 2))
-
+    for i in range(rad * 2):
+      dot_levels.append([0.] * (rad * 2))
     y_off = int(math.ceil((-1 * self.northwest_ll[0] + point.location.lat) / self.latlng_diff[0] * 256. - rad))
     x_off = int(math.ceil((-1 * self.northwest_ll[1] + point.location.lon) / self.latlng_diff[1] * 256. - rad))
-
     for y in range(y_off, y_off + (rad * 2)):
       if y < 0 or y >= len(space_level):
         continue
@@ -95,26 +92,6 @@ class BasicTile(object):
     fraction = (rad - pt_rad) / rad
     return max_alpha * math.pow(fraction, math.pow(weight, 0.25)) * weight
     #return max_alpha * math.pow(fraction, math.pow(weight, fraction)) * weight
-
-  # def get_dot(self, point):
-  #   #cur_dot = dot[self.zoom]
-  #   cur_dot = []
-  #   rad = int(self.zoom * DOT_MULT)
-  #   for i in range(int(rad * 2)):
-  #     cur_dot.append([0.] * int(rad * 2))
-  #   for y in range(0, int(rad * 2)):
-  #     for x in range(0, int(rad * 2)):
-  #       y_adj = math.pow((y - rad), 2) # * len(point.checkin_guid_list)
-  #       x_adj = math.pow((x - rad), 2) # * len(point.checkin_guid_list)
-  #       pt_rad = math.sqrt(y_adj + x_adj)
-  #       temp_rad = rad  #* len(point.checkin_guid_list)
-  #       if pt_rad > temp_rad:
-  #         cur_dot[y][x] = 0.
-  #         continue
-  #       cur_dot[y][x] = self.calc_point(rad, pt_rad, len(point.checkin_guid_list))
-  #   y_off = int(math.ceil((-1 * self.northwest_ll[0] + point.location.lat) / self.latlng_diff[0] * 256. - len(cur_dot) / 2))
-  #   x_off = int(math.ceil((-1 * self.northwest_ll[1] + point.location.lon) / self.latlng_diff[1] * 256. - len(cur_dot[0]) / 2))
-  #   return cur_dot, x_off, y_off
 
   def __create_empty_space(self):
     space = []
