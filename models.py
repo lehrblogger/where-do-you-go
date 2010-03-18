@@ -1,6 +1,7 @@
 from google.appengine.ext import db
 from geo.geomodel import GeoModel
 import constants
+from datetime import datetime
 
 class LastOffset(db.Model):
   offset = db.IntegerProperty(default=0)
@@ -22,8 +23,8 @@ class UserInfo(db.Model):
   is_ready = db.BooleanProperty()
   is_authorized = db.BooleanProperty()
   valid_signature = db.BooleanProperty()
-  last_checkin = db.IntegerProperty(default=0)    #____UPDATE THIS
-  last_checkin_at = db.DateTimeProperty()         #____WITH THIS
+  last_checkin = db.IntegerProperty(default=0) #TODO changes need to be made at some point to use the since instead of sinceid. by that time all users should have a datetime, but we can hadnle the case in which they don't somehow?
+  last_checkin_at = db.DateTimeProperty(datetime.strptime('1970', "%Y")
   color_scheme = db.StringProperty(default='fire')
   level_max = db.IntegerProperty(default=int(140.)) #TODO see note in constants.py, was =int(constants.level_const))
   checkin_count = db.IntegerProperty(default=0)
@@ -50,7 +51,6 @@ class UserVenue(GeoModel):
   name = db.StringProperty()
   address = db.StringProperty()
   cross_street = db.StringProperty()
-  #city = db.StringProperty()
   state = db.StringProperty()
   zipcode = db.StringProperty()
   phone = db.PhoneNumberProperty()
