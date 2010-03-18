@@ -145,6 +145,8 @@ def fetch_and_store_checkins_for_batch():
         logging.warning("updating %d and ignoring %d of %d checkins for %s but they don't match!" % (num_added, num_ignored, num_received, userinfo.user))
       elif num_received > 0:
         logging.info("updating %d and ignoring %d of %d checkins for %s" % (num_added, num_ignored, num_received, userinfo.user))
+      userinfo.last_updated = datetime.now() # redundant with the above but oh well
+      userinfo.put()
       num_users_completed += 1
   except DeadlineExceededError:
     logging.info("exceeded deadline after %d users, unfinished user was %s" % (num_users_completed, current_userinfo.user))
