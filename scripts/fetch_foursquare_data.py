@@ -26,7 +26,7 @@ def fetch_and_store_checkins(userinfo, limit=50):
     fs = get_new_fs_for_userinfo(userinfo)
     history = fs.history(l=limit, sinceid=userinfo.last_checkin)
   except foursquare.FoursquareRemoteException, err:
-    logging.debug("Checkins not fetched for %s with error %s" % (userinfo.user, err))
+    logging.warning("Checkins not fetched for %s with error %s" % (userinfo.user, err))
     return 0, 0, 0
   logging.debug(history)
   userinfo.valid_signature = True
@@ -101,20 +101,14 @@ def fetch_and_store_checkins(userinfo, limit=50):
             userinfo.last_checkin = checkin['id'] # because the checkins are ordered with most recent first!
           if userinfo.last_checkin_at is None or datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000") > userinfo.last_checkin_at: 
             userinfo.last_checkin_at = datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000") # because the checkins are ordered with most recent first!
-          try:
+          
+          def put_updated_uservenue_and_userinfo(uservenue, userinfo, num_added):
             uservenue.put()
             userinfo.put()
-          except DeadlineExceededError, err:
-            logging.warning('start hacky deadline exceeded handling while fetching new checkins!')
-            uservenue.put()
-            userinfo.put()
-            logging.warning('end hacky deadline exceeded handling while fetching new checkins!')
-            raise err
-          num_added += 1
-      #   else: # there's nothing we can do without a venue id or a lat and a lng
-      #     logging.info("Problematic j_venue: " + str(j_venue))
-      # else:
-      #   logging.info("No venue in checkin: " + str(checkin))
+            return num_added + 1
+            
+          num_added = db.run_in_transaction(put_updated_uservenue_and_userinfo, uservenue, userinfo, num_added)
+
   except KeyError:
     logging.error("There was a KeyError when processing the response: " + content)
     raise
@@ -143,7 +137,7 @@ def fetch_and_store_checkins_for_batch():
       current_userinfo = userinfo
       num_added, num_ignored, num_received = fetch_and_store_checkins(userinfo)
       if not (num_added + num_ignored) == num_received:
-        logging.warning("updating %d and ignoring %d of %d checkins for %s but they don't match!" % (num_added, num_ignored, num_received, userinfo.user))
+        logging.info("updating %d and ignoring %d of %d checkins for %s but they don't match - there are probably shouts or venues without a lat/lon!" % (num_added, num_ignored, num_received, userinfo.user))
       elif num_received > 0:
         logging.info("updating %d and ignoring %d of %d checkins for %s" % (num_added, num_ignored, num_received, userinfo.user))
       userinfo.last_updated = datetime.now() # redundant with the above but oh well
