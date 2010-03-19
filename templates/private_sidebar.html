@@ -1,12 +1,12 @@
 <div id="left-lower" class="span-8 last">
   <h2>customize your heat map:</h2>
   <p id="level">
-    adjust if things look <input type="submit" name="submit" class="button" id="hot_button" value="too hot" /> or <input type="submit" name="submit" class="button" id="cold_button" value="too cold" />
+    adjust if things look <input type="submit" name="submit_hot" class="button" id="hot_button" value="too hot" /> or <input type="submit" name="submit_cold" class="button" id="cold_button" value="too cold" />
   </p>
   <p id="search">
-    <label for="search_field" id="search_label">another city?
+    <label for="search_field" id="search_label">another city?</label>
     <input type="text" name="search_field" id="search_field" size="16" value="" class="text-input" />
-    <input type="submit" name="submit" class="button" id="search_button" value="go!" />
+    <input type="submit" name="submit_search" class="button" id="search_button" value="go!" />
   </p>
   <p id="color">
     <label for="color_select" id="color_label">color scheme</label>:
@@ -24,19 +24,19 @@
     <label for="width_field" id="width_label">width</label> and <label for="height_field" id="height_label">height</label> in px:
     <input type="text" name="width_field" id="width_field" size="3" value="640" class="text-input" />
     <input type="text" name="height_field" id="height_field" size="3" value="640" class="text-input" />
-    <input type="submit" name="submit" class="button" id="size_button" value="update" />
+    <input type="submit" name="submit_size" class="button" id="size_button" value="update" />
     <label for="size_button" id="dimension_error"><br/>Must be a number between 0 and 640 pixels.</label>
   </p>
 </div>
 <div id="regenerate" class="span-8 last">
   <h2>then take a snapshot:</h2>
   <p>
-    <input type="submit" name="submit" class="button" id="regenerate_button" value="create your map with the current view" />
+    <input type="submit" name="submit_regenerate" class="button" id="regenerate_button" value="create your map with the current view" />
     <span id="regenerate_status">(re)generating map... <img src='static/spinner-small.gif'/></span>
     <label for="regenerate_button"><br/>it will periodically update itself as you check in<br/>to more places, but the links won't change</label
   </p>
   <p>
-    <input type="submit" name="submit" class="button" id="delete_map_button" value="delete your public map and personalized page" />
+    <input type="submit" name="submit_delete_map" class="button" id="delete_map_button" value="delete your public map and personalized page" />
     <span id="delete_map_status">deleting map... <img src='static/spinner-small.gif'/></span>
   </p>
 </div>
