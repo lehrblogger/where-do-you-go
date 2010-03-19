@@ -2,6 +2,7 @@ Where Do You Go provides Foursquare users with a dynamic visualization of the pl
 
 (Note that user privacy is protected because recent data is not shown and because individual check-ins are aggregated into an imprecise heat map.)
 
+http://lehrblogger.com/2010/03/19/where-do-you-go/
 ---
 
 To create your own GAE installation of Where Do You Go you'll need to modify constants.py (and create the gitignore'd oauth_secrets.py) to contain the Google Maps API key and Foursquare consumer key/secret for the domain(s) you're using.

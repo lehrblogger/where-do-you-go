@@ -1,6 +1,7 @@
 oauth_secrets.*
 *.pyc
-*/*.pyc
+geo/*.pyc
+gheatae/*.pyc
 oauth_testing/
 bulkloader-*
 bulkloader_files/
