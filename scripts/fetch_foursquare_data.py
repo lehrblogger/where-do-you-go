@@ -34,11 +34,14 @@ def fetch_and_store_checkins(userinfo, limit=50):
       userinfo.put()
     elif str(err).find('TOKEN_UNAUTHORIZED') >= 0:
       userinfo.is_authorized = False
-      logging.info("User %s is no longer authorized with TOKEN_UNAUTHORIZED" % userinfo.userd)
+      logging.info("User %s is no longer authorized with TOKEN_UNAUTHORIZED" % userinfo.user)
       userinfo.put()
     else:
-      logging.warning("Checkins not fetched for %s with error %s" % (userinfo.user, err))
-      return 0, 0, 0
+      logging.warning("History not fetched for %s with %s" % (userinfo.user, err))
+    return 0, 0, 0
+  except DownloadError, err:
+    logging.warning("History not fetched for %s with %s" % (userinfo.user, err))
+    return 0, 0, 0
   logging.debug(history)
   try:
     if not 'checkins' in history:
@@ -58,8 +61,8 @@ def fetch_and_store_checkins(userinfo, limit=50):
           elif user_data['user']['gender'] is 'female':
             userinfo.photo_url = 'static/blank_girl.png'
           userinfo.put()
-      except DownloadError:
-        logging.warning("Checkins not fetched for %s with error %s" % (userinfo.user, err))
+      except DownloadError, err:
+        logging.warning("User data not fetched for %s with %s" % (userinfo.user, err))
         return 0, 0, 0
     for checkin in history['checkins']:
       if 'venue' in checkin:
@@ -165,7 +168,7 @@ def update_user_info(userinfo):
     if str(err).find('{"unauthorized":"TOKEN_EXPIRED"}') >= 0:
       userinfo.is_authorized = False
       userinfo.put()
-      logging.warning("User %s has unauthorized with error %s" % (userinfo.user, err))
+      logging.warning("User %s has unauthorized with %s" % (userinfo.user, err))
       return
     else:
       raise err
