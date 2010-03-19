@@ -49,12 +49,12 @@ def fetch_and_store_checkins(userinfo, limit=50):
       userinfo.put()
       return 0, 0, 0
     if not userinfo.gender is 'male' and not userinfo.gender is 'female':
-      user = fs.user()
-      if 'gender' in user['user']:
-        userinfo.gender = user['user']['gender']
-        if user['user']['gender'] is 'male':
+      user_data = fs.user()
+      if 'gender' in user_data['user']:
+        userinfo.gender = user_data['user']['gender']
+        if user_data['user']['gender'] is 'male':
           userinfo.photo_url = 'static/blank_boy.png'
-        elif user['user']['gender'] is 'female':
+        elif user_data['user']['gender'] is 'female':
           userinfo.photo_url = 'static/blank_girl.png'
         userinfo.put()
     for checkin in history['checkins']:
@@ -101,14 +101,22 @@ def fetch_and_store_checkins(userinfo, limit=50):
             userinfo.last_checkin = checkin['id'] # because the checkins are ordered with most recent first!
           if userinfo.last_checkin_at is None or datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000") > userinfo.last_checkin_at: 
             userinfo.last_checkin_at = datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000") # because the checkins are ordered with most recent first!
-          
-          def put_updated_uservenue_and_userinfo(uservenue, userinfo, num_added):
+          # def put_updated_uservenue_and_userinfo(uservenue, userinfo, num_added):
+          #   uservenue.put()
+          #   userinfo.put()
+          #   return num_added + 1
+          # 
+          # num_added = db.run_in_transaction(put_updated_uservenue_and_userinfo, uservenue, userinfo, num_added)
+          try:
             uservenue.put()
             userinfo.put()
-            return num_added + 1
-            
-          num_added = db.run_in_transaction(put_updated_uservenue_and_userinfo, uservenue, userinfo, num_added)
-
+          except DeadlineExceededError, err:
+            logging.warning('start hacky deadline exceeded handling while fetching new checkins!')
+            uservenue.put()
+            userinfo.put()
+            logging.warning('end hacky deadline exceeded handling while fetching new checkins!')
+            raise err
+          num_added += 1
   except KeyError:
     logging.error("There was a KeyError when processing the response: " + content)
     raise
@@ -148,22 +156,31 @@ def fetch_and_store_checkins_for_batch():
 
 def update_user_info(userinfo):
   fs = get_new_fs_for_userinfo(userinfo)
-  user = fs.user()
-  if 'user' in user:
-    userinfo.real_name = user['user']['firstname']
-    if 'gender' in user['user']:
-      userinfo.gender = user['user']['gender']
-    if 'photo' in user['user'] and not user['user']['photo'] == '' :
-      userinfo.photo_url = user['user']['photo']
-    elif 'gender' in user['user'] and user['user']['gender'] is 'male':
+  try:
+    user_data = fs.user()
+  except foursquare.FoursquareRemoteException, err:
+    if str(err).find('{"unauthorized":"TOKEN_EXPIRED"}') >= 0:
+      userinfo.is_authorized = False
+      userinfo.put()
+      logging.warning("User %s has unauthorized with error %s" % (userinfo.user, err))
+      return
+    else:
+      raise err
+  if 'user' in user_data:
+    userinfo.real_name = user_data['user']['firstname']
+    if 'gender' in user_data['user']:
+      userinfo.gender = user_data['user']['gender']
+    if 'photo' in user_data['user'] and not user_data['user']['photo'] == '' :
+      userinfo.photo_url = user_data['user']['photo']
+    elif 'gender' in user_data['user'] and user_data['user']['gender'] is 'male':
       userinfo.photo_url = 'static/blank_boy.png'
-    elif 'gender' in user['user'] and user['user']['gender'] is 'female':
+    elif 'gender' in user_data['user'] and user_data['user']['gender'] is 'female':
       userinfo.photo_url = 'static/blank_girl.png'
     else:
       userinfo.photo_url = constants.default_photo
-    if 'checkin' in user['user'] and 'venue' in user['user']['checkin']:
-      userinfo.citylat = user['user']['checkin']['venue']['geolat']
-      userinfo.citylng = user['user']['checkin']['venue']['geolong']
+    if 'checkin' in user_data['user'] and 'venue' in user_data['user']['checkin']:
+      userinfo.citylat = user_data['user']['checkin']['venue']['geolat']
+      userinfo.citylng = user_data['user']['checkin']['venue']['geolong']
     else:
       userinfo.citylat = constants.default_lat
       userinfo.citylng = constants.default_lng
