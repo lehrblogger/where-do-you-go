@@ -61,79 +61,86 @@ def fetch_and_store_checkins(userinfo, limit=50):
       if 'venue' in checkin:
         j_venue = checkin['venue']
         if 'id' in j_venue and 'geolat' in j_venue and 'geolong' in j_venue:
-          # first, look for a uservenue with a guid
-          uservenue = UserVenue.all().filter('user =', userinfo.user).filter('venue_guid =', str(j_venue['id'])).get()
-          # if we don't find it, look for a user venue with an integer id
-          if not uservenue:
-            uservenue = UserVenue.all().filter('user =', userinfo.user).filter('venue_id =', j_venue['id']).get()
-            # if we find one, we need to convert it's id
+          
+          def uservenue_factory(userinfo_param, j_venue_param, checkin_guid_list_param, checkin_list_param, is_unique_param):
+            new_uservenue = UserVenue(parent=userinfo_param, location = db.GeoPt(j_venue_param['geolat'], j_venue_param['geolong']))
+            new_uservenue.update_location()
+            new_uservenue.user = userinfo_param.user
+            new_uservenue.venue_guid     = str(j_venue_param['id'])
+            if 'name' in j_venue_param:
+              new_uservenue.name         = j_venue_param['name']
+            if 'address' in j_venue_param:
+              new_uservenue.address      = j_venue_param['address']
+            if 'cross_street' in j_venue_param:
+              new_uservenue.cross_street = j_venue_param['cross_street']
+            if 'state' in j_venue_param:
+              new_uservenue.state        = j_venue_param['state']
+            if 'zip' in j_venue_param:
+              new_uservenue.zipcode      = j_venue_param['zip']
+            if 'phone' in j_venue_param:
+              new_uservenue.phone        = j_venue_param['phone']
+            new_uservenue.has_parent = True
+            new_uservenue.is_unique = is_unique_param 
+            new_uservenue.checkin_list = checkin_list_param
+            new_uservenue.checkin_guid_list = checkin_guid_list_param
+            if not new_uservenue.checkin_guid_list or len(new_uservenue.checkin_guid_list) is 0:
+              new_uservenue.checkin_guid_list = [str(checkin_id) for checkin_id in new_uservenue.checkin_list]
+            return new_uservenue
+            
+          uservenue = UserVenue.all().filter('user =', userinfo.user).filter('venue_guid =', str(j_venue['id'])).filter('has_parent = ', True).get()
+          if uservenue: 
+            if not uservenue.checkin_guid_list or len(uservenue.checkin_guid_list) is 0:
+              uservenue.checkin_guid_list = [str(checkin_id) for checkin_id in uservenue.checkin_list]
+          else:
+            uservenue = UserVenue.all().filter('user =', userinfo.user).filter('venue_guid =', str(j_venue['id'])).get()
             if uservenue:
-              uservenue.venue_guid = str(uservenue.venue_id)
-            # otherwise we need to instantiate it
+              uservenue = uservenue_factory(userinfo, j_venue, uservenue.checkin_guid_list, uservenue.checkin_list, False)
             else:
-              uservenue = UserVenue(location = db.GeoPt(j_venue['geolat'], j_venue['geolong']))
-              uservenue.update_location()
-              uservenue.user = userinfo.user
-              userinfo.venue_count = userinfo.venue_count + 1
-              uservenue.venue_guid     = str(j_venue['id'])
-              if 'name' in j_venue:
-                uservenue.name         = j_venue['name']
-              try:
-                if 'address' in j_venue:
-                  uservenue.address    = j_venue['address']
-              except BadValueError:
-                logging.error("Address not added for venue %s with address json '%s'" % (str(j_venue['id']), j_venue['address']))
-              if 'cross_street' in j_venue:
-                uservenue.cross_street = j_venue['cross_street']
-              if 'state' in j_venue:
-                uservenue.state        = j_venue['state']
-              if 'zip' in j_venue:
-                uservenue.zipcode      = j_venue['zip']
-              if 'phone' in j_venue:
-                uservenue.phone        = j_venue['phone']
+              uservenue = UserVenue.all().filter('user =', userinfo.user).filter('venue_id =', j_venue['id']).get()
+              if uservenue:
+                uservenue = uservenue_factory(userinfo, j_venue, uservenue.checkin_guid_list, uservenue.checkin_list, False)  
+              else:
+                userinfo.venue_count = userinfo.venue_count + 1
+                uservenue = uservenue_factory(userinfo, j_venue, [], [], True)
           uservenue.last_updated = datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000") #WARNING last_updated is confusing and should be last_checkin_at
-          if datetime.now() < uservenue.last_updated + timedelta(hours=12): #WARNING last_updated is confusing and should be last_checkin_at   
+          if datetime.now() < uservenue.last_updated + timedelta(hours=12):                             #WARNING last_updated is confusing and should be last_checkin_at   
             num_ignored += 1
-            continue # ignore recent checkins for the sake of privacy
-          if not uservenue.checkin_guid_list or len(uservenue.checkin_guid_list) is 0:
-            uservenue.checkin_guid_list = [str(checkin_id) for checkin_id in uservenue.checkin_list]
+            continue
           uservenue.checkin_guid_list.append(str(checkin['id']))
           userinfo.checkin_count += 1
           userinfo.last_updated = datetime.now()
           if checkin['id'] > userinfo.last_checkin: 
-            userinfo.last_checkin = checkin['id'] # because the checkins are ordered with most recent first!
+            userinfo.last_checkin = checkin['id']                                                           # because the checkins are ordered with most recent first!
           if userinfo.last_checkin_at is None or datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000") > userinfo.last_checkin_at: 
             userinfo.last_checkin_at = datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000") # because the checkins are ordered with most recent first!
-          # def put_updated_uservenue_and_userinfo(uservenue, userinfo, num_added):
+          
+          def put_updated_uservenue_and_userinfo(uservenue, userinfo, num_added):
+            uservenue.put()
+            userinfo.put()
+            return num_added + 1
+          
+          num_added = db.run_in_transaction(put_updated_uservenue_and_userinfo, uservenue, userinfo, num_added)
+          # try:
           #   uservenue.put()
           #   userinfo.put()
-          #   return num_added + 1
-          # 
-          # num_added = db.run_in_transaction(put_updated_uservenue_and_userinfo, uservenue, userinfo, num_added)
-          try:
-            uservenue.put()
-            userinfo.put()
-          except DeadlineExceededError, err:
-            logging.warning('start hacky deadline exceeded handling while fetching new checkins!')
-            uservenue.put()
-            userinfo.put()
-            logging.warning('end hacky deadline exceeded handling while fetching new checkins!')
-            raise err
-          num_added += 1
+          #   num_added += 1
+          # except DeadlineExceededError, err:
+          #   logging.warning('start hacky deadline exceeded handling while fetching new checkins!')
+          #   uservenue.put()
+          #   userinfo.put()
+          #   num_added += 1
+          #   logging.warning('end hacky deadline exceeded handling while fetching new checkins!')
+          #   raise err
   except KeyError:
     logging.error("There was a KeyError when processing the response: " + content)
     raise
   return num_added, num_ignored, len(history['checkins'])
 
 def fetch_and_store_checkins_initial(userinfo):
-  #logging.info("about to fetch, userinfo.last_checkin = %d" % (userinfo.last_checkin))
   num_added, num_ignored, num_received = fetch_and_store_checkins(userinfo)
-  #logging.info("%d checkins added this time, userinfo.last_checkin = %d" % (num_added, userinfo.last_checkin))
   if num_added != 0:
-    #logging.info("more than 0 checkins added so there might be checkins remaining. requeue!")
     taskqueue.add(url='/fetch_foursquare_data/all_for_user/%s' % userinfo.key())
   else:
-    #logging.info("no more checkins found, we're all set!")
     userinfo.is_ready = True
   userinfo.level_max = int(3 * constants.level_const)
   userinfo.put()
@@ -184,7 +191,7 @@ def update_user_info(userinfo):
       userinfo.photo_url = 'static/blank_girl.png'
     else:
       userinfo.photo_url = constants.default_photo
-    if 'checkin' in user_data['user'] and 'venue' in user_data['user']['checkin']:
+    if 'checkin' in user_data['user'] and 'venue' in user_data['user']['checkin'] and 'geolat' in user_data['user']['checkin']['venue'] and 'geolong' in user_data['user']['checkin']['venue']:
       userinfo.citylat = user_data['user']['checkin']['venue']['geolat']
       userinfo.citylng = user_data['user']['checkin']['venue']['geolong']
     else:

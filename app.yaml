@@ -59,6 +59,10 @@ handlers:
   script: scripts/clear_authtokens.py
   login: admin
 
+- url: /clear_parentless_uservenues
+  script: scripts/clear_parentless_uservenues.py
+  login: admin
+
 - url: /view_venues
   script: handlers.py
   login: admin

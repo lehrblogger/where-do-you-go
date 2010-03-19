@@ -71,6 +71,7 @@ $(document).ready(function() {
             $('#fetching_span').hide();
             $('#delete_all_span').show();
             level_offset = 0;
+            uncacher++;
             updateLevels(0);
           }
           else if (data == '') {
