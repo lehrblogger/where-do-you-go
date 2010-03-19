@@ -51,16 +51,16 @@ def fetch_and_store_checkins(userinfo, limit=50):
     if not userinfo.gender is 'male' and not userinfo.gender is 'female':
       try:
         user_data = fs.user()
+        if 'gender' in user_data['user']:
+          userinfo.gender = user_data['user']['gender']
+          if user_data['user']['gender'] is 'male':
+            userinfo.photo_url = 'static/blank_boy.png'
+          elif user_data['user']['gender'] is 'female':
+            userinfo.photo_url = 'static/blank_girl.png'
+          userinfo.put()
       except DownloadError:
         logging.warning("Checkins not fetched for %s with error %s" % (userinfo.user, err))
         return 0, 0, 0
-      if 'gender' in user_data['user']:
-        userinfo.gender = user_data['user']['gender']
-        if user_data['user']['gender'] is 'male':
-          userinfo.photo_url = 'static/blank_boy.png'
-        elif user_data['user']['gender'] is 'female':
-          userinfo.photo_url = 'static/blank_girl.png'
-        userinfo.put()
     for checkin in history['checkins']:
       if 'venue' in checkin:
         j_venue = checkin['venue']
