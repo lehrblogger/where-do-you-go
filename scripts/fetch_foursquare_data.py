@@ -169,6 +169,9 @@ def update_user_info(userinfo):
       return
     else:
       raise err
+  except DownloadError:    
+    logging.warning("DownloadError for user %s, retrying once" % userinfo.user)
+    user_data = fs.user()
   if 'user' in user_data:
     userinfo.real_name = user_data['user']['firstname']
     if 'gender' in user_data['user']:
