@@ -56,19 +56,3 @@ def get_oauth_strings(force_primary_domain=True):
   return consumer_key, oauth_secrets.get_oauth_consumer_secret_for_domain(domain)#, callback_url)
 
 provider = None
-#client = None
-
-
-# def get_client():
-#   global client
-#   if client == None:
-#     oauth_strings = get_oauth_strings()
-#     client = oauth.FoursquareClient(oauth_strings[0], oauth_strings[1], oauth_strings[2])
-#   return client
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DONT REUSE THE CLIENT
-# def get_client():
-#   oauth_strings = get_oauth_strings()
-#   client = oauth.FoursquareClient(oauth_strings[0], oauth_strings[1], oauth_strings[2])
-#   return client
-#
-#
