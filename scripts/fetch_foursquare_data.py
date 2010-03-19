@@ -22,24 +22,28 @@ def get_new_fs_for_userinfo(userinfo):
 def fetch_and_store_checkins(userinfo, limit=50):
   num_added = 0
   num_ignored = 0
+  userinfo.valid_signature = True
+  userinfo.is_authorized = True
   try:
     fs = get_new_fs_for_userinfo(userinfo)
     history = fs.history(l=limit, sinceid=userinfo.last_checkin)
   except foursquare.FoursquareRemoteException, err:
-    logging.warning("Checkins not fetched for %s with error %s" % (userinfo.user, err))
-    return 0, 0, 0
+    if str(err).find('SIGNATURE_INVALID') >= 0:
+      userinfo.valid_signature = False
+      logging.info("User %s is no longer authorized with SIGNATURE_INVALID" % userinfo.user)
+      userinfo.put()
+    elif str(err).find('TOKEN_UNAUTHORIZED') >= 0:
+      userinfo.is_authorized = False
+      logging.info("User %s is no longer authorized with TOKEN_UNAUTHORIZED" % userinfo.userd)
+      userinfo.put()
+    else:
+      logging.warning("Checkins not fetched for %s with error %s" % (userinfo.user, err))
+      return 0, 0, 0
   logging.debug(history)
-  userinfo.valid_signature = True
-  userinfo.is_authorized = True
   try:
     if not 'checkins' in history:
       if 'unauthorized' in history:
-        if history['unauthorized'].find('SIGNATURE_INVALID') >= 0:
-           userinfo.valid_signature = False
-        if history['unauthorized'].find('TOKEN_UNAUTHORIZED') >= 0:
-          userinfo.is_authorized = False
-        logging.info("User %s is no longer authorized with SIGNATURE_INVALID=%s and TOKEN_UNAUTHORIZED=%s" % userinfo.user,  userinfo.valid_signature, userinfo.is_authorized)
-        userinfo.put()
+
         return 0, 0, 0 
       else:
         logging.error("no value for 'checkins' or 'unauthorized' in history: " + str(history))
