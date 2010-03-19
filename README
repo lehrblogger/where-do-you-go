@@ -1,4 +1,4 @@
-Where Do You Go provides Foursquare  users with a dynamic heat map of the places they have visited on top of a standard Google Maps interface. Users can create snapshots of their maps and hotlink them as static URLs on their personal webpages, or they can use the simple WDYG wrapper pages to share their maps on Twitter. The maps will self-update automatically in the background as users continue to visit new places and checkin with Foursquare.
+Where Do You Go provides Foursquare users with a dynamic heat map of the places they have visited on top of a standard Google Maps interface. Users can create snapshots of their maps and hotlink them as static URLs on their personal webpages, or they can use the simple WDYG wrapper pages to share their maps on Twitter. The maps will self-update automatically in the background as users continue to visit new places and checkin with Foursquare.
 
 (Note that user privacy is protected because recent data is not shown and because individual check-ins are aggregated into an imprecise heat map.)
 
