@@ -39,30 +39,34 @@ def create_map_file(user, path=''):
   except AssertionError, err:
     logging.error(err.args[0])
     return
-  google_data = {
-    'key': constants.get_google_maps_apikey(),
-    'zoom': zoom,
-    'center': centerpoint,
-    'size': widthxheight,
-    'sensor':'false',
-    'format':'png',
-  }
-  mapimage = MapImage.all().filter('user =', user).get()
-  if not mapimage:
-    mapimage            = MapImage()
-    mapimage.user       = user
-    mapimage.centerlat  = float(centerlat)
-    mapimage.centerlng  = float(centerlng)
-    mapimage.northlat   = float(northlat)
-    mapimage.westlng    = float(westlng)
-    mapimage.zoom       = int(zoom)
-    mapimage.height     = int(height)
-    mapimage.width      = int(width)
-  img = update_map_image(user, google_data, int(width), int(height), float(northlat), float(westlng))
-  mapimage.img          = db.Blob(img)
-  mapimage.last_updated = datetime.now()
-  mapimage.put()
-
+    
+  try:
+    google_data = {
+      'key': constants.get_google_maps_apikey(),
+      'zoom': zoom,
+      'center': centerpoint,
+      'size': widthxheight,
+      'sensor':'false',
+      'format':'png',
+    }
+    mapimage = MapImage.all().filter('user =', user).get()
+    if not mapimage:
+      mapimage            = MapImage()
+      mapimage.user       = user
+      mapimage.centerlat  = float(centerlat)
+      mapimage.centerlng  = float(centerlng)
+      mapimage.northlat   = float(northlat)
+      mapimage.westlng    = float(westlng)
+      mapimage.zoom       = int(zoom)
+      mapimage.height     = int(height)
+      mapimage.width      = int(width)
+    img = update_map_image(user, google_data, int(width), int(height), float(northlat), float(westlng))
+    mapimage.img          = db.Blob(img)
+    mapimage.last_updated = datetime.now()
+    mapimage.put()
+  except DeadlineExceededError, err:    
+    logging.error("Ran out of time before creating a map! %s" % err)
+    
 if __name__ == '__main__':
   raw = environ['PATH_INFO']
   if raw.count('/') == 2:

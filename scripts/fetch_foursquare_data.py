@@ -61,33 +61,36 @@ def fetch_and_store_checkins(userinfo, limit=50):
       if 'venue' in checkin:
         j_venue = checkin['venue']
         if 'id' in j_venue and 'geolat' in j_venue and 'geolong' in j_venue:
+          # first, look for a uservenue with a guid
           uservenue = UserVenue.all().filter('user =', userinfo.user).filter('venue_guid =', str(j_venue['id'])).get()
-          if uservenue == None:
-            uservenue   = UserVenue.all().filter('user =', userinfo.user).filter('venue_id =', str(j_venue['id'])).get()
-          # first we look for guid. if nothing, look as reg id, and convert to guid if we find it, else we need to instantiate it
-          if uservenue:
-            uservenue.venue_guid = str(uservenue.venue_id)
-          else:
-            uservenue = UserVenue(location = db.GeoPt(j_venue['geolat'], j_venue['geolong']))
-            uservenue.update_location()
-            uservenue.user = userinfo.user
-            userinfo.venue_count = userinfo.venue_count + 1
-            uservenue.venue_guid     = str(j_venue['id'])
-            if 'name' in j_venue:
-              uservenue.name         = j_venue['name']
-            try:
-              if 'address' in j_venue:
-                uservenue.address    = j_venue['address']
-            except BadValueError:
-              logging.error("Address not added for venue %s with address json '%s'" % (str(j_venue['id']), j_venue['address']))
-            if 'cross_street' in j_venue:
-              uservenue.cross_street = j_venue['cross_street']
-            if 'state' in j_venue:
-              uservenue.state        = j_venue['state']
-            if 'zip' in j_venue:
-              uservenue.zipcode      = j_venue['zip']
-            if 'phone' in j_venue:
-              uservenue.phone        = j_venue['phone']
+          # if we don't find it, look for a user venue with an integer id
+          if not uservenue:
+            uservenue = UserVenue.all().filter('user =', userinfo.user).filter('venue_id =', j_venue['id']).get()
+            # if we find one, we need to convert it's id
+            if uservenue:
+              uservenue.venue_guid = str(uservenue.venue_id)
+            # otherwise we need to instantiate it
+            else:
+              uservenue = UserVenue(location = db.GeoPt(j_venue['geolat'], j_venue['geolong']))
+              uservenue.update_location()
+              uservenue.user = userinfo.user
+              userinfo.venue_count = userinfo.venue_count + 1
+              uservenue.venue_guid     = str(j_venue['id'])
+              if 'name' in j_venue:
+                uservenue.name         = j_venue['name']
+              try:
+                if 'address' in j_venue:
+                  uservenue.address    = j_venue['address']
+              except BadValueError:
+                logging.error("Address not added for venue %s with address json '%s'" % (str(j_venue['id']), j_venue['address']))
+              if 'cross_street' in j_venue:
+                uservenue.cross_street = j_venue['cross_street']
+              if 'state' in j_venue:
+                uservenue.state        = j_venue['state']
+              if 'zip' in j_venue:
+                uservenue.zipcode      = j_venue['zip']
+              if 'phone' in j_venue:
+                uservenue.phone        = j_venue['phone']
           uservenue.last_updated = datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000") #WARNING last_updated is confusing and should be last_checkin_at
           if datetime.now() < uservenue.last_updated + timedelta(hours=12): #WARNING last_updated is confusing and should be last_checkin_at   
             num_ignored += 1
