@@ -42,13 +42,9 @@ def fetch_and_store_checkins(userinfo, limit=50):
   logging.debug(history)
   try:
     if not 'checkins' in history:
-      if 'unauthorized' in history:
-
-        return 0, 0, 0 
-      else:
-        logging.error("no value for 'checkins' or 'unauthorized' in history: " + str(history))
-        userinfo.put()
-        return -1, 0, 0
+      logging.error("no value for 'checkins' in history: " + str(history))
+      userinfo.put()
+      return -1, 0, 0
     elif history['checkins'] == None:
       userinfo.put()
       return 0, 0, 0
