@@ -49,7 +49,11 @@ def fetch_and_store_checkins(userinfo, limit=50):
       userinfo.put()
       return 0, 0, 0
     if not userinfo.gender is 'male' and not userinfo.gender is 'female':
-      user_data = fs.user()
+      try:
+        user_data = fs.user()
+      except DownloadError:
+        logging.warning("Checkins not fetched for %s with error %s" % (userinfo.user, err))
+        return 0, 0, 0
       if 'gender' in user_data['user']:
         userinfo.gender = user_data['user']['gender']
         if user_data['user']['gender'] is 'male':
@@ -120,17 +124,6 @@ def fetch_and_store_checkins(userinfo, limit=50):
             return num_added + 1
           
           num_added = db.run_in_transaction(put_updated_uservenue_and_userinfo, uservenue, userinfo, num_added)
-          # try:
-          #   uservenue.put()
-          #   userinfo.put()
-          #   num_added += 1
-          # except DeadlineExceededError, err:
-          #   logging.warning('start hacky deadline exceeded handling while fetching new checkins!')
-          #   uservenue.put()
-          #   userinfo.put()
-          #   num_added += 1
-          #   logging.warning('end hacky deadline exceeded handling while fetching new checkins!')
-          #   raise err
   except KeyError:
     logging.error("There was a KeyError when processing the response: " + content)
     raise
