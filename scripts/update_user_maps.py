@@ -11,7 +11,7 @@ import constants
 import logging
 from datetime import datetime
 from gheatae import tile
-from models import MapImage
+from models import MapImage, UserInfo
 
 def update_map_image(user, google_data, width, height, northlat, westlng):
   result = urlfetch.fetch(url="http://maps.google.com/maps/api/staticmap?" + urllib.urlencode(google_data),
@@ -66,15 +66,13 @@ def create_map_file(user, path=''):
     mapimage.put()
   except DeadlineExceededError, err:    
     logging.error("Ran out of time before creating a map! %s" % err)
-    
-if __name__ == '__main__':
-  raw = environ['PATH_INFO']
-  if raw.count('/') == 2:
-    foo, bar, rest, = raw.split('/')
+
+def update_map_file():
+  mapimages = MapImage.all().order('last_updated').fetch(10)
+  for mapimage in mapimages:
+    userinfo = UserInfo.all().filter('user = ', mapimage.user).get()
     try:
-      assert rest == 'one', "rest is: %s " % rest
-      mapimage = MapImage.all().order('last_updated').get()
-      try: 
+      if userinfo.last_updated > mapimage.last_updated:
         google_data = {
           'key': constants.get_google_maps_apikey(),
           'zoom': mapimage.zoom,
@@ -88,10 +86,23 @@ if __name__ == '__main__':
         mapimage.last_updated = datetime.now()
         mapimage.put()
         logging.info("Updated user map for %s" % mapimage.user)
-      except DeadlineExceededError, err:    
-        logging.error("Ran out of time before updating a map! %s" % err)
-        mapimage.last_updated = datetime.now() # put it at the end of the queue anyway, in case we always fail on this map for some reason
+        return # only update one map
+      else: # so that we don't get stuck on the same maps forever
+        mapimage.last_updated = datetime.now()
         mapimage.put()
+        logging.debug("Did not need to update map for %s" % mapimage.user)
+    except DeadlineExceededError, err:    
+      logging.error("Ran out of time before updating a map! %s" % err)
+      mapimage.last_updated = datetime.now() # put it at the end of the queue anyway, in case we always fail on this map for some reason
+      mapimage.put()
+
+if __name__ == '__main__':
+  raw = environ['PATH_INFO']
+  if raw.count('/') == 2:
+    foo, bar, rest, = raw.split('/')
+    try:
+      assert rest == 'one', "rest is: %s " % rest
+      update_map_file()
     except AssertionError, err:
       logging.error(err.args[0])
   else:

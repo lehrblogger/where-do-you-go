@@ -42,7 +42,7 @@ class UserInfo(db.Model):
     return 'UserInfo:  last_updated = ' + str(self.last_updated) + ' | user =' + str(self.user) + ' | is_ready =' + str(self.is_ready) + ' | last_checkin = ' + str(self.last_checkin) + ' | color_scheme = ' + str(self.color_scheme) + ' | level_max =' + str(self.level_max) + ' | checkin_count =' + str(self.checkin_count) + ' | venue_count =' + str(self.venue_count) + ' | photo_url =' + str(self.photo_url) + ' | real_name =' + str(self.real_name) + ' | citylat =' + str(self.citylat) + ' | citylng =' + str(self.citylng) + ' | created =' + str(self.created)
 
 class UserVenue(GeoModel):
-  last_updated = db.DateTimeProperty(auto_now_add=True) #WARNING last_updated is confusing and should be last_checkin_at
+  last_updated = db.DateTimeProperty() #WARNING last_updated is confusing and should be last_checkin_at
   user = db.UserProperty()
   checkin_list = db.ListProperty(int, default=[])
   checkin_guid_list = db.ListProperty(str, default=[])
