@@ -2,15 +2,14 @@ from os import environ
 import constants
 import oauth
 import foursquare
-from models import UserInfo, UserVenue
+import logging
 from google.appengine.ext import db
 from google.appengine.api.labs import taskqueue
 from google.appengine.api.urlfetch import DownloadError
+from google.appengine.api.datastore_errors import BadRequestError
 from google.appengine.runtime import DeadlineExceededError
-#from django.utils import simplejson as json
 from datetime import datetime, timedelta
-import logging
-
+from models import UserInfo, UserVenue
 
 def get_new_fs_for_userinfo(userinfo):
   oauth_token, oauth_secret = constants.get_oauth_strings()
@@ -31,7 +30,7 @@ def fetch_and_store_checkins(userinfo, limit=50):
     if str(err).find('SIGNATURE_INVALID') >= 0:
       userinfo.valid_signature = False
       logging.info("User %s is no longer authorized with SIGNATURE_INVALID" % userinfo.user)
-      userinfo.put()
+      userinfo.put() 
     elif str(err).find('TOKEN_EXPIRED') >= 0:
       userinfo.is_authorized = False
       logging.info("User %s is no longer authorized with TOKEN_EXPIRED" % userinfo.user)
@@ -94,7 +93,7 @@ def fetch_and_store_checkins(userinfo, limit=50):
               new_uservenue.checkin_guid_list = [str(checkin_id) for checkin_id in new_uservenue.checkin_list]
             return new_uservenue
             
-          uservenue = UserVenue.all().filter('user =', userinfo.user).filter('venue_guid =', str(j_venue['id'])).filter('has_parent = ', True).get()
+          uservenue = UserVenue.all().filter('user = ', userinfo.user).filter('venue_guid = ', str(j_venue['id'])).filter('has_parent = ', True).get()
           if uservenue: 
             if not uservenue.checkin_guid_list or len(uservenue.checkin_guid_list) is 0:
               uservenue.checkin_guid_list = [str(checkin_id) for checkin_id in uservenue.checkin_list]
@@ -126,7 +125,10 @@ def fetch_and_store_checkins(userinfo, limit=50):
             userinfo.put()
             return num_added + 1
           
-          num_added = db.run_in_transaction(put_updated_uservenue_and_userinfo, uservenue, userinfo, num_added)
+          try:
+            num_added = db.run_in_transaction(put_updated_uservenue_and_userinfo, uservenue, userinfo, num_added)
+          except BadRequestError, err:
+            logging.warning("Database transaction error due to entity restrictions? %s" % err)
   except KeyError:
     logging.error("There was a KeyError when processing the response: " + content)
     raise
@@ -210,4 +212,7 @@ if __name__ == '__main__':
     fetch_and_store_checkins_for_batch()
   elif rest == 'all_for_user':
     userinfo = db.get(userinfo_key)
-    fetch_and_store_checkins_initial(userinfo)
+    if userinfo:
+      fetch_and_store_checkins_initial(userinfo)
+    else: 
+      logging.warning('No userinfo found for key %s' % userinfo_key)
