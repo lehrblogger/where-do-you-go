@@ -71,6 +71,12 @@ def update_map_file(): # really there should be a flag in the user object to ind
   mapimages = MapImage.all().order('last_updated').fetch(10)
   for mapimage in mapimages:
     userinfo = UserInfo.all().filter('user = ', mapimage.user).get()
+    if not userinfo:
+      #TODO consider deleting these maps?
+      mapimage.last_updated = datetime.now()
+      mapimage.put()
+      logging.warning("No userinfo found for mapimage with user %s" % mapimage.user)
+      continue
     try:
       if userinfo.last_updated > mapimage.last_updated:
         google_data = {
