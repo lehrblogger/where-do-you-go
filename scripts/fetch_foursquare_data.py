@@ -32,9 +32,9 @@ def fetch_and_store_checkins(userinfo, limit=50):
       userinfo.valid_signature = False
       logging.info("User %s is no longer authorized with SIGNATURE_INVALID" % userinfo.user)
       userinfo.put()
-    elif str(err).find('TOKEN_UNAUTHORIZED') >= 0:
+    elif str(err).find('TOKEN_EXPIRED') >= 0:
       userinfo.is_authorized = False
-      logging.info("User %s is no longer authorized with TOKEN_UNAUTHORIZED" % userinfo.user)
+      logging.info("User %s is no longer authorized with TOKEN_EXPIRED" % userinfo.user)
       userinfo.put()
     else:
       logging.warning("History not fetched for %s with %s" % (userinfo.user, err))
