@@ -67,7 +67,7 @@ def create_map_file(user, path=''):
   except DeadlineExceededError, err:    
     logging.error("Ran out of time before creating a map! %s" % err)
 
-def update_map_file():
+def update_map_file(): # really there should be a flag in the user object to indicate the map needs updating, but for that to be reliable that needs to put with each new checkin, so these need to have the user as the parent so the transaction works, and that's just a nightmare.
   mapimages = MapImage.all().order('last_updated').fetch(10)
   for mapimage in mapimages:
     userinfo = UserInfo.all().filter('user = ', mapimage.user).get()
