@@ -52,14 +52,14 @@ def create_map_file(user, path=''):
     mapimage = MapImage.all().filter('user =', user).get()
     if not mapimage:
       mapimage            = MapImage()
-      mapimage.user       = user
-      mapimage.centerlat  = float(centerlat)
-      mapimage.centerlng  = float(centerlng)
-      mapimage.northlat   = float(northlat)
-      mapimage.westlng    = float(westlng)
-      mapimage.zoom       = int(zoom)
-      mapimage.height     = int(height)
-      mapimage.width      = int(width)
+    mapimage.user       = user
+    mapimage.centerlat  = float(centerlat)
+    mapimage.centerlng  = float(centerlng)
+    mapimage.northlat   = float(northlat)
+    mapimage.westlng    = float(westlng)
+    mapimage.zoom       = int(zoom)
+    mapimage.height     = int(height)
+    mapimage.width      = int(width)
     img = update_map_image(user, google_data, int(width), int(height), float(northlat), float(westlng))
     mapimage.img          = db.Blob(img)
     mapimage.last_updated = datetime.now()
