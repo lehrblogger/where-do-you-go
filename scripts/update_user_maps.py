@@ -52,7 +52,7 @@ def create_map_file(user, path=''):
     mapimage = MapImage.all().filter('user =', user).get()
     if not mapimage:
       mapimage            = MapImage()
-    mapimage.user       = user
+      mapimage.user       = user
     mapimage.centerlat  = float(centerlat)
     mapimage.centerlng  = float(centerlng)
     mapimage.northlat   = float(northlat)
