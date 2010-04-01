@@ -41,6 +41,7 @@ class IndexHandler(webapp.RequestHandler):
       'width': constants.default_dimension,
       'height': constants.default_dimension,
     }
+    foursquare_is_happy = True
     user = users.get_current_user()
     if user:
       welcome_data['user'] = user
@@ -48,7 +49,13 @@ class IndexHandler(webapp.RequestHandler):
       userinfo = UserInfo.all().filter('user =', user).order('-created').get()
       if userinfo:
         if userinfo.is_authorized:
-          fetch_foursquare_data.update_user_info(userinfo)
+          try:
+            fetch_foursquare_data.update_user_info(userinfo)
+          except foursquare.FoursquareRemoteException, err:
+            if str(err).find('403 Forbidden') >= 0:
+              foursquare_is_happy = False
+            else:
+              raise err
         welcome_data['userinfo'] = userinfo
         welcome_data['real_name'] = userinfo.real_name
         welcome_data['photo_url'] = userinfo.photo_url
@@ -59,7 +66,9 @@ class IndexHandler(webapp.RequestHandler):
     os_path = os.path.dirname(__file__)
     self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), {'key': constants.get_google_maps_apikey()}))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/private_welcome.html'), welcome_data))
-    if user and userinfo:
+    if not foursquare_is_happy:
+        self.response.out.write(template.render(os.path.join(os_path, 'templates/private_forbidden.html'), None))
+    elif user and userinfo:
       if userinfo.is_authorized:
         self.response.out.write(template.render(os.path.join(os_path, 'templates/private_sidebar.html'), sidebar_data))
       else:
@@ -89,9 +98,16 @@ class AuthHandler(webapp.RequestHandler):
         user_token = fs.access_token(oauth.OAuthToken(apptoken.token, apptoken.secret))
         credentials.set_access_token(user_token)
         userinfo = UserInfo(user = user, token = credentials.access_token.key, secret = credentials.access_token.secret, is_ready=False, is_authorized=True, last_checkin=0, last_updated=datetime.now(), color_scheme='fire', level_max=int(constants.level_const), checkin_count=0, venue_count=0)
-        fetch_foursquare_data.update_user_info(userinfo)
-        fetch_foursquare_data.fetch_and_store_checkins(userinfo, limit=10)
-        taskqueue.add(url='/fetch_foursquare_data/all_for_user/%s' % userinfo.key())#, queue_name='initial-checkin-fetching')
+        try:
+          fetch_foursquare_data.update_user_info(userinfo)
+          fetch_foursquare_data.fetch_and_store_checkins(userinfo, limit=10)
+          taskqueue.add(url='/fetch_foursquare_data/all_for_user/%s' % userinfo.key())
+        except foursquare.FoursquareRemoteException, err:
+          if str(err).find('403 Forbidden') >= 0:
+            pass # if a user tries to sign up while my app is blocked, then it currently just redirects to the signup page
+                 #TODO find a better way to handle this case, but it's not clear there is a simple way to do it without messing up a bunch of code
+          else:
+            raise err
         self.redirect("/")
       else:
         fs, credentials = get_new_fs_and_credentials()

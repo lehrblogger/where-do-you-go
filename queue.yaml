@@ -1,4 +1,4 @@
 queue:
 - name: default
-  rate: 4/m
+  rate: 6/m
   bucket_size: 20
