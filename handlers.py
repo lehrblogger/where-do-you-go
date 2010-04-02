@@ -15,6 +15,7 @@ import time
 import oauth
 import foursquare
 import constants
+import time
 from datetime import datetime
 from scripts import fetch_foursquare_data
 from gheatae import color_scheme, tile, provider
@@ -243,6 +244,7 @@ class StaticMapHtmlWriter(webapp.RequestHandler):
           'domain': environ['HTTP_HOST'],
           'mapimage_url': 'map/%s.png' % mapimage.key(),
           'public_url': 'public/%s.html' % mapimage.key(),
+          'timestamp': str(time.time())
         }
         os_path = os.path.dirname(__file__)
         self.response.out.write(template.render(os.path.join(os_path, 'templates/static_map.html'), template_data))
