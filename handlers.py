@@ -96,9 +96,17 @@ class AuthHandler(webapp.RequestHandler):
         db.delete(old_userinfos)
         fs, credentials = get_new_fs_and_credentials()
         apptoken = AppToken.all().filter('token =', oauth_token).get()
-        user_token = fs.access_token(oauth.OAuthToken(apptoken.token, apptoken.secret))
-        credentials.set_access_token(user_token)
-        userinfo = UserInfo(user = user, token = credentials.access_token.key, secret = credentials.access_token.secret, is_ready=False, is_authorized=True, last_checkin=0, last_updated=datetime.now(), color_scheme='fire', level_max=int(constants.level_const), checkin_count=0, venue_count=0)
+        
+        try:
+          user_token = fs.access_token(oauth.OAuthToken(apptoken.token, apptoken.secret))
+          credentials.set_access_token(user_token)
+          userinfo = UserInfo(user = user, token = credentials.access_token.key, secret = credentials.access_token.secret, is_ready=False, is_authorized=True, last_checkin=0, last_updated=datetime.now(), color_scheme='fire', level_max=int(constants.level_const), checkin_count=0, venue_count=0)
+        except DownloadError, err:
+          if str(err).find('ApplicationError: 5') >= 0:
+            pass # if something bad happens on OAuth, then it currently just redirects to the signup page
+                 #TODO find a better way to handle this case, but it's not clear there is a simple way to do it without messing up a bunch of code
+          else:
+            raise err
         try:
           fetch_foursquare_data.update_user_info(userinfo)
           fetch_foursquare_data.fetch_and_store_checkins(userinfo, limit=10)
