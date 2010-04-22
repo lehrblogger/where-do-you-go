@@ -17,7 +17,7 @@ def update_map_image(user, zoom, width, height, northlat, westlng):
   input_tuples = []
   for offset_x_px in range (0, width, 256):
     for offset_y_px in range (0, height, 256):
-      new_tile = tile.CustomTile(user, zoom, northlat, westlng, offset_x_px, offset_y_px)
+      new_tile = tile.CustomTile(user, int(zoom), northlat, westlng, offset_x_px, offset_y_px)
       input_tuples.append((new_tile.image_out(), offset_x_px, offset_y_px, 1.0, images.TOP_LEFT)) # http://code.google.com/appengine/docs/python/images/functions.html
   img = images.composite(inputs=input_tuples, width=width, height=height, color=0, output_encoding=images.PNG)
   return img
