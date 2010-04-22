@@ -4,14 +4,17 @@
   </div>
   <div id="descriptions" class="span-8">
     <ol>
-      <li class="indented">send this link to your friends! <a name="http://{{ domain }}/{{ public_url }}" id="tweet_link" href="http://twitter.com">go to Twitter</a>
-      <li class="indented"><a href="http://en.wikipedia.org/wiki/Hotlink">hotlink</a> this url in an &#60;img&#62; tag on your blog!
+      <li class="indented">send this link to your friends! <a name="http://{{ domain }}/{{ public_url }}" id="tweet_link" href="http://twitter.com">go to Twitter</a></li>
+      <li class="indented"><a href="http://en.wikipedia.org/wiki/Hotlink">hotlink</a> this url in an &#60;img&#62; tag on your blog!</li>
+	  <li class="indented">to set the background map with CSS, copy</li>
+	
     </ol>
   </div >
   <div id="urls" class="span-16 last">
     <ol>
       <li><a href="{{ public_url }}">http://{{ domain }}/{{ public_url }}</a></li>
       <li><a href="{{ mapimage_url }}">http://{{ domain }}/{{ mapimage_url }}</a></li>
+	  <li><a href="{{ static_url }}">this link</a> and then nest your &lt;img&gt; in something like &lt;div style="background-image:url('paste that link here')"&gt;</li>
     </ol>
   </div>
   <div id="privacy-note" class="span-8">
@@ -22,7 +25,7 @@
       <p>You only get one map at a time, and creating a new snapshot will change the old image but won't break your old links. If you want maps for multiple cities (both New York and San Francisco, for example) just log in with a second Google account and re-authorize Foursquare.</p>
     </div>
   </div>
-  <div id="static_map_div" class="span-16 last">
+  <div id="static_map_div" class="span-16 last" style="width: 640px; background-image:url('{{ static_url }}'); background-repeat:no-repeat;">
     <img src="http://{{ domain }}/{{ mapimage_url }}?{{ timestamp }}"/>
   </div>
 </div>

@@ -13,14 +13,11 @@ from datetime import datetime
 from gheatae import tile
 from models import MapImage, UserInfo
 
-def update_map_image(user, google_data, width, height, northlat, westlng):
-  result = urlfetch.fetch(url="http://maps.google.com/maps/api/staticmap?" + urllib.urlencode(google_data),
-                          method=urlfetch.GET)
+def update_map_image(user, zoom, width, height, northlat, westlng):
   input_tuples = []
-  input_tuples.append((result.content, 0, 0, 1.0, images.TOP_LEFT))
   for offset_x_px in range (0, width, 256):
     for offset_y_px in range (0, height, 256):
-      new_tile = tile.CustomTile(user, int(google_data['zoom']), northlat, westlng, offset_x_px, offset_y_px)
+      new_tile = tile.CustomTile(user, zoom, northlat, westlng, offset_x_px, offset_y_px)
       input_tuples.append((new_tile.image_out(), offset_x_px, offset_y_px, 1.0, images.TOP_LEFT)) # http://code.google.com/appengine/docs/python/images/functions.html
   img = images.composite(inputs=input_tuples, width=width, height=height, color=0, output_encoding=images.PNG)
   return img
@@ -51,8 +48,9 @@ def create_map_file(user, path=''):
     }
     mapimage = MapImage.all().filter('user =', user).get()
     if not mapimage:
-      mapimage            = MapImage()
-      mapimage.user       = user
+      mapimage              = MapImage()
+      mapimage.user         = user
+      mapimage.update_count = 0
     mapimage.centerlat  = float(centerlat)
     mapimage.centerlng  = float(centerlng)
     mapimage.northlat   = float(northlat)
@@ -60,9 +58,10 @@ def create_map_file(user, path=''):
     mapimage.zoom       = int(zoom)
     mapimage.height     = int(height)
     mapimage.width      = int(width)
-    img = update_map_image(user, google_data, int(width), int(height), float(northlat), float(westlng))
+    img = update_map_image(user, int(zoom), int(width), int(height), float(northlat), float(westlng))
     mapimage.img          = db.Blob(img)
     mapimage.last_updated = datetime.now()
+    mapimage.static_url = "http://maps.google.com/maps/api/staticmap?" + urllib.urlencode(google_data)
     mapimage.put()
   except DeadlineExceededError, err:    
     logging.error("Ran out of time before creating a map! %s" % err)
@@ -70,6 +69,9 @@ def create_map_file(user, path=''):
 def update_map_file(): # really there should be a flag in the user object to indicate the map needs updating, but for that to be reliable that needs to put with each new checkin, so these need to have the user as the parent so the transaction works, and that's just a nightmare.
   mapimages = MapImage.all().order('last_updated').fetch(10)
   for mapimage in mapimages:
+    if not mapimage.update_count:
+      mapimage.update_count = 0
+      mapimage.put()
     userinfo = UserInfo.all().filter('user = ', mapimage.user).get()
     if not userinfo:
       #TODO consider deleting these maps?
@@ -87,9 +89,11 @@ def update_map_file(): # really there should be a flag in the user object to ind
           'sensor':'false',
           'format':'png',
         }
-        img = update_map_image(mapimage.user, google_data, mapimage.width, mapimage.height, mapimage.northlat, mapimage.westlng)
+        img = update_map_image(mapimage.user, mapimage.zoom, mapimage.width, mapimage.height, mapimage.northlat, mapimage.westlng)
         mapimage.img = db.Blob(img)
         mapimage.last_updated = datetime.now()
+        mapimage.static_url = "http://maps.google.com/maps/api/staticmap?" + urllib.urlencode(google_data)
+        mapimage.update_count += 1
         mapimage.put()
         logging.info("Updated user map for %s" % mapimage.user)
         return # only update one map

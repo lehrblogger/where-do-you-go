@@ -1,6 +1,10 @@
 .container {
+  width: 960px;
   padding-top: 3em;
   padding-bottom: 5em;
+}
+.span-24, div .span-24 {
+  width: 960px;
 }
 p {
   padding-left: 1.5em;
@@ -16,6 +20,11 @@ h2 {
 }
 #left-lower, #static_map_div, #status_info {
   padding-top: 2em;
+}
+#static_map_div, #static_map_pub {
+  width: 640px;
+  background-repeat: no-repeat;
+  padding-top: 0px;
 }
 #information {
   padding-top: 1em;

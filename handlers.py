@@ -211,6 +211,7 @@ class PublicPageHandler(webapp.RequestHandler):
       }
       map_data = {
         'domain': environ['HTTP_HOST'],
+        'static_url': mapimage.static_url,
         'mapimage_url': 'map/%s.png' % mapimage.key(),
       }
       userinfo = UserInfo.all().filter('user =', mapimage.user).order('-created').get()
@@ -250,6 +251,7 @@ class StaticMapHtmlWriter(webapp.RequestHandler):
       if mapimage:
         template_data = {
           'domain': environ['HTTP_HOST'],
+          'static_url': mapimage.static_url,
           'mapimage_url': 'map/%s.png' % mapimage.key(),
           'public_url': 'public/%s.html' % mapimage.key(),
           'timestamp': str(time.time())
