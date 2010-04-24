@@ -37,7 +37,10 @@ handlers:
   script: scripts/update_user_level.py
   login: required
 
-
+- url: /update_jorge_venue/.*
+  script: scripts/update_jorge_venue.py
+  login: required
+    
 - url: /generate_static_map/one
   script: scripts/update_user_maps.py
   login: admin
