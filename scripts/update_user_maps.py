@@ -80,7 +80,7 @@ def update_map_file(): # really there should be a flag in the user object to ind
       logging.warning("No userinfo found for mapimage with user %s" % mapimage.user)
       continue
     try:
-      if userinfo.last_updated > mapimage.last_updated:
+      if userinfo.last_updated > mapimage.last_updated or mapimage.update_count == 0:
         google_data = {
           'key': constants.get_google_maps_apikey(),
           'zoom': mapimage.zoom,
