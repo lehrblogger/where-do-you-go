@@ -76,6 +76,7 @@ def update_map_file(): # really there should be a flag in the user object to ind
     if not userinfo:
       #TODO consider deleting these maps?
       mapimage.last_updated = datetime.now()
+      mapimage.update_count = -1 # flag for now to indicate that there's no userinfo
       mapimage.put()
       logging.warning("No userinfo found for mapimage with user %s" % mapimage.user)
       continue

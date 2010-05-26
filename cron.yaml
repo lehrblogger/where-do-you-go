@@ -6,7 +6,7 @@ cron:
 
 - description: update one map (60 * 24 = 1440 a day)
   url: /generate_static_map/one
-  schedule: every 1 minutes
+  schedule: every 7 minutes
 
 - description: clear duplicate user venues by searching for the ones with a parent and deleting the ones with the same guid that don't have a parent
   url: /clear_parentless_uservenues
