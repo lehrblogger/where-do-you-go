@@ -117,8 +117,9 @@ class AuthHandler(webapp.RequestHandler):
             pass # if a user tries to sign up while my app is blocked, then it currently just redirects to the signup page
                  #TODO find a better way to handle this case, but it's not clear there is a simple way to do it without messing up a bunch of code
           else:
-            pass #raise err
-            #TODO make this better, but I'd rather throw the user back to the main page to try again than show the user an error.
+            raise err
+        except DownloadError:
+          pass #TODO make this better, but I'd rather throw the user back to the main page to try again than show the user an error.
         self.redirect("/")
       else:
         fs, credentials = get_new_fs_and_credentials()
