@@ -176,7 +176,12 @@ def update_user_info(userinfo):
       raise err
   except DownloadError:    
     logging.warning("DownloadError for user %s, retrying once" % userinfo.user)
-    user_data = fs.user()
+    try:
+      user_data = fs.user()
+    except DownloadError:
+      logging.warning("DownloadError for user %s on first retry, returning" % userinfo.user)
+      raise foursquare.FoursquareRemoteException
+      #TODO handle this case better, it's currently a bit of a hack to just get it to return to signin page
   if 'user' in user_data:
     userinfo.real_name = user_data['user']['firstname']
     if 'gender' in user_data['user']:
