@@ -76,7 +76,7 @@ def fetch_and_store_checkins(userinfo, limit=50):
             if 'name' in j_venue_param:
               new_uservenue.name         = j_venue_param['name']
             if 'address' in j_venue_param:
-              new_uservenue.address      = j_venue_param['address']
+              new_uservenue.address      = j_venue_param['address'].replace('\n', ' ').replace('\r', ' ')
             if 'cross_street' in j_venue_param:
               new_uservenue.cross_street = j_venue_param['cross_street']
             if 'state' in j_venue_param:
