@@ -127,7 +127,7 @@ $(document).ready(function() {
       $("#regenerate").html("");
       resizeMapToWidthHeight(640, 640);
       $("#static_map").html("");
-      $('#status_info').html('<a href="/go_to_foursquare"><img src="static/signinwith-foursquare.png"></a><br/>');
+      $('#status_info').html('<b>New logins have been temporarily disabled! Come back soon, and ping @<a href="http://twitter.com/lehrblogger">lehrblogger</a> with questions.</b><br/>');
     });
   });
 
