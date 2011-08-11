@@ -57,7 +57,7 @@ class IndexHandler(webapp.RequestHandler):
             if str(err).find('403 Forbidden') >= 0:
               foursquare_is_happy = False
             else:
-              raise err
+              pass # raise err  #TODO keep this error, but removing it now so that you can log in
         welcome_data['userinfo'] = userinfo
         welcome_data['real_name'] = userinfo.real_name
         welcome_data['photo_url'] = userinfo.photo_url
