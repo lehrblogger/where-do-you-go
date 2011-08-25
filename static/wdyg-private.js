@@ -82,7 +82,7 @@ $(document).ready(function() {
     }, 3000);
   }
 
-  if (GBrowserIsCompatible()) {
+  if (GBrowserIsCompatible() && is_logged_in) {
     map = new GMap2(document.getElementById("map_canvas"));
     map.setCenter(new GLatLng(global_centerlat, global_centerlng), global_zoom);
 
@@ -127,7 +127,7 @@ $(document).ready(function() {
       $("#regenerate").html("");
       resizeMapToWidthHeight(640, 640);
       $("#static_map").html("");
-      $('#status_info').html('<b>New logins have been temporarily disabled! Come back soon, and ping @<a href="http://twitter.com/lehrblogger">lehrblogger</a> with questions.</b><br/>');
+      $('#status_info').html('<b>New Foursquare connections have been temporarily disabled! Ping @<a href="http://twitter.com/lehrblogger">lehrblogger</a> with questions.</b><br/>');
     });
   });
 

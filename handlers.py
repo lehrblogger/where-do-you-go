@@ -65,6 +65,12 @@ class IndexHandler(webapp.RequestHandler):
         sidebar_data['color_scheme'] = userinfo.color_scheme
         map_data['citylat'] = userinfo.citylat
         map_data['citylng'] = userinfo.citylng
+    else: # make a default map_data object if user is not logged in, see is_logged_in JS variable, sorry this is so hacky
+      map_data = {
+        'domain': environ['HTTP_HOST'],
+        'static_url': 'http://maps.google.com/maps/api/staticmap?center=40.7427050566%2C-73.9888000488&format=png&zoom=13&key=ABQIAAAAwA6oEsCLgzz6I150wm3ELBQO7aMTgd18mR6eRdj9blrVCeGU7BS14EnkGH_2LpNpZ8DJW0u7G5ocLQ&sensor=false&size=640x640',
+        'mapimage_url': 'map/%s.png' % 'ag93aGVyZS1kby15b3UtZ29yEAsSCE1hcEltYWdlGM2LRgw',
+      }
     os_path = os.path.dirname(__file__)
     self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), {'key': constants.get_google_maps_apikey()}))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/private_welcome.html'), welcome_data))

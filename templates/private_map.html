@@ -7,6 +7,9 @@
 <div id="map_container" class="span-16 last">
   <div id="map_bounds">
     <div id="map_canvas" style="width: {{ width }}px; height: {{ height }}px">
+		<div style="background-image:url('{{ static_url }}');">
+		  <img src="http://{{ domain }}/{{ mapimage_url }}"/>
+		</div>
     </div>
   </div>
 </div>

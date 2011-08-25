@@ -14,6 +14,10 @@ h2 {
 }
 #hello h4 {
   white-space: nowrap;
+} 
+#hello h5 {
+  color: red;
+  margin-bottom: 0;
 }
 #status_info h4 {
   margin-bottom: 0;

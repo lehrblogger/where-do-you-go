@@ -1,7 +1,7 @@
   <div id="hello" class="span-4 last">
 {% if user %}
   {% if real_name %}
-    <h4<span>Hi {{ real_name }}! <a href="{{ url }}">Logout?</a></span></h4>
+    <h4><span>Hi {{ real_name }}! <a href="{{ url }}">Logout?</a></span></h4>
   {% else %}
     <h4><span>Hi {{ user }}! <a href="{{ url }}">Logout?</a></span></h4>
   {% endif %}
@@ -19,11 +19,14 @@
       <span id="fetching_span" class="span-3 last">Fetching the rest...<img src='static/spinner-small.gif'/></span>
     </h4>
   {% else %}
-    <span name="not_oauthed" id="oauth_span"><b>New logins have been temporarily disabled! Come back soon, and ping @<a href="http://twitter.com/lehrblogger">lehrblogger</a> with questions.</b></span>
+    <span name="not_oauthed" id="oauth_span"><b>New Foursquare connections have been temporarily disabled! Ping @<a href="http://twitter.com/lehrblogger">lehrblogger</a> with questions.</b></span>
   {% endif %}
   </div>
 {% else %}
-    <h4><a href="{{ url }}">Login</a>, then OAuth!</h4>
-    <img height="75" src="{{ photo_url }}" />
+    <h5>
+	  UNDER CONSTRUCTION
+	  <br/>
+	  Foursquare connections are currently disabled. <a href="https://www.google.com/accounts/ServiceLogin?service=ah&amp;passive=true&amp;continue=https://appengine.google.com/_ah/conflogin%3Fcontinue%3Dhttp://www.wheredoyougo.net/&amp;ltmpl=gm&amp;shdf=ChsLEgZhaG5hbWUaD1doZXJlIERvIFlvdSBHbwwSAmFoIhQMI9YWo9xqBvi1HTTdwbwPSZCWqigBMhT5tfWKTwQLRnyZpRTx9ctVC747WA">Login</a> to see your existing data, or ping @<a href="http://twitter.com/lehrblogger">lehrblogger</a> with questions.
+	</h5>
   </div>
 {% endif %}
