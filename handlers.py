@@ -15,6 +15,7 @@ import logging
 import time
 import oauth
 import foursquare
+import foursquarev2
 import constants
 import time
 from datetime import datetime
@@ -90,24 +91,23 @@ class AuthHandler(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
     if user:
-      oauth_token = self.request.get("oauth_token")
+      code = self.request.get("code")
 
       def get_new_fs_and_credentials():
-        oauth_token, oauth_secret = constants.get_oauth_strings()
-        credentials = foursquare.OAuthCredentials(oauth_token, oauth_secret)
-        fs = foursquare.Foursquare(credentials)
-        return fs, credentials
+        consumer_key, oauth_secret, url = constants.get_oauth_strings()
+        fs = foursquarev2.FoursquareAuthHelper(key=consumer_key, secret=oauth_secret, redirect_uri=url)
+        #credentials = foursquare.OAuthCredentials(oauth_token, oauth_secret)
+        #fs = foursquare.Foursquare(credentials)
+        return fs, None
 
-      if oauth_token:
+      if code:
         old_userinfos = UserInfo.all().filter('user =', user).fetch(500)
         db.delete(old_userinfos)
         fs, credentials = get_new_fs_and_credentials()
-        apptoken = AppToken.all().filter('token =', oauth_token).get()
         
         try:
-          user_token = fs.access_token(oauth.OAuthToken(apptoken.token, apptoken.secret))
-          credentials.set_access_token(user_token)
-          userinfo = UserInfo(user = user, token = credentials.access_token.key, secret = credentials.access_token.secret, is_ready=False, is_authorized=True, last_checkin=0, last_updated=datetime.now(), color_scheme='fire', level_max=int(constants.level_const), checkin_count=0, venue_count=0)
+          user_token = fs.get_access_token(code)
+          userinfo = UserInfo(user = user, token = user_token, secret = None, is_ready=False, is_authorized=True, last_checkin=0, last_updated=datetime.now(), color_scheme='fire', level_max=int(constants.level_const), checkin_count=0, venue_count=0)
         except DownloadError, err:
           if str(err).find('ApplicationError: 5') >= 0:
             pass # if something bad happens on OAuth, then it currently just redirects to the signup page
@@ -129,11 +129,12 @@ class AuthHandler(webapp.RequestHandler):
         self.redirect("/")
       else:
         fs, credentials = get_new_fs_and_credentials()
-        app_token = fs.request_token()
-        auth_url = fs.authorize(app_token)
-        new_apptoken = AppToken(token = app_token.key, secret = app_token.secret)
-        new_apptoken.put()
-        self.redirect(auth_url)
+        #app_token = fs.request_token()
+        #auth_url = fs.authorize(app_token)
+        #new_apptoken = AppToken(token = app_token.key, secret = app_token.secret)
+        #new_apptoken.put()
+        logging.info(fs.get_authentication_url())
+        self.redirect(fs.get_authentication_url())
     else:
       self.redirect(users.create_login_url(self.request.uri))
 

@@ -1,7 +1,8 @@
 from os import environ
 import constants
 import oauth
-import foursquare
+#import foursquare
+import foursquarev2
 import logging
 from google.appengine.ext import db
 from google.appengine.api.labs import taskqueue
@@ -12,11 +13,7 @@ from datetime import datetime, timedelta
 from models import UserInfo, UserVenue
 
 def get_new_fs_for_userinfo(userinfo):
-  oauth_token, oauth_secret = constants.get_oauth_strings()
-  credentials = foursquare.OAuthCredentials(oauth_token, oauth_secret)
-  user_token = oauth.OAuthToken(userinfo.token, userinfo.secret)
-  credentials.set_access_token(user_token)
-  return foursquare.Foursquare(credentials)
+  return foursquarev2.FoursquareClient(userinfo.token)
 
 def fetch_and_store_checkins(userinfo, limit=50):
   num_added = 0
@@ -165,23 +162,24 @@ def fetch_and_store_checkins_for_batch():
 def update_user_info(userinfo):
   fs = get_new_fs_for_userinfo(userinfo)
   try:
-    user_data = fs.user()
-  except foursquare.FoursquareRemoteException, err:
-    if str(err).find('{"unauthorized":"TOKEN_EXPIRED"}') >= 0:
-      userinfo.is_authorized = False
-      userinfo.put()
-      logging.warning("User %s has unauthorized with %s" % (userinfo.user, err))
-      return
-    else:
-      raise err
+    user_data = fs.users()
+ # except:
+  #  if str(err).find('{"unauthorized":"TOKEN_EXPIRED"}') >= 0:
+   #   userinfo.is_authorized = False
+    #  userinfo.put()
+     # logging.warning("User %s has unauthorized with %s" % (userinfo.user, err))
+      #return
+    #else:
+     # raise err
   except DownloadError:    
     logging.warning("DownloadError for user %s, retrying once" % userinfo.user)
     try:
-      user_data = fs.user()
+      user_data = fs.users()
     except DownloadError, err:
       logging.warning("DownloadError for user %s on first retry, returning" % userinfo.user)
       raise err
       #TODO handle this case better, it's currently a bit of a hack to just get it to return to signin page
+  logging.info(user_data)
   if 'user' in user_data:
     userinfo.real_name = user_data['user']['firstname']
     if 'gender' in user_data['user']:
@@ -202,7 +200,7 @@ def update_user_info(userinfo):
       userinfo.citylng = constants.default_lng
     userinfo.put()
   else:
-    logging.error('no "user" key in json: %s' % user)
+    logging.error('no "user" key in json: %s' % user_data)
 
 if __name__ == '__main__':
   raw = environ['PATH_INFO']

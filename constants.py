@@ -31,7 +31,7 @@ def get_google_maps_apikey():
   else:
     logging.error('No Google maps key found for domain ' + domain)
 
-def get_oauth_strings(force_primary_domain=True):
+def get_oauth_strings(force_primary_domain=False):
   if force_primary_domain: # I was getting SIGNATURE_INVALID oauth errors on many of my backend calls because 
                            # I was not using the same domain for the requests as I was when the users signed up
                            # Always forcing this will break support for other domains, but will fix some OAuth
@@ -39,6 +39,8 @@ def get_oauth_strings(force_primary_domain=True):
       domain = 'www.wheredoyougo.net'
   else:
       domain = environ['HTTP_HOST']
+  logging.info('-------------------------------')
+  logging.info(domain)
   if domain == 'www.wheredoyougo.net':
     consumer_key = 'KTNXGQJ4JXDZGAG35MGZ3WN0EQIO5XHNALYQZATHVEPDR3TI'
     callback_url = 'http://www.wheredoyougo.net/authenticated'
@@ -48,10 +50,16 @@ def get_oauth_strings(force_primary_domain=True):
   elif domain == 'www.heredoyougo.com':
     consumer_key = 'EGB1JZBOMTTNBPVDCHVB3VGGMIXMEYIJKPPTCQGKMPQ4NPCY'
     callback_url = 'http://www.heredoyougo.com/authenticated'
+  elif domain == 'localhost:8080':
+    consumer_key = 'P2LOANSQME5RAIM2GX2TBMVS1QKBBVRPJUECFWC3ACDYCGS5'
+    callback_url = 'http://localhost:8080/authenticated'
+  elif domain == 'checkalor.appspot.com':
+    consumer_key = 'P2LOANSQME5RAIM2GX2TBMVS1QKBBVRPJUECFWC3ACDYCGS5'
+    callback_url = 'http://localhost:8080/authenticated'
   else:
     consumer_key = ''
     callback_url = ''
     logging.error('No Foursquare OAuth consumer key found for domain ' + domain)
-  return consumer_key, oauth_secrets.get_oauth_consumer_secret_for_domain(domain)#, callback_url)
+  return consumer_key, oauth_secrets.get_oauth_consumer_secret_for_domain(domain), callback_url
 
 provider = None
