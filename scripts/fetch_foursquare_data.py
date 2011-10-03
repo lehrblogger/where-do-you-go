@@ -22,19 +22,19 @@ def fetch_and_store_checkins(userinfo, limit=50):
   userinfo.is_authorized = True
   try:
     fs = get_new_fs_for_userinfo(userinfo)
-    history = fs.history(l=limit, sinceid=userinfo.last_checkin)
-  except foursquare.FoursquareRemoteException, err:
-    if str(err).find('SIGNATURE_INVALID') >= 0:
-      userinfo.valid_signature = False
-      logging.info("User %s is no longer authorized with SIGNATURE_INVALID" % userinfo.user)
-      userinfo.put() 
-    elif str(err).find('TOKEN_EXPIRED') >= 0:
-      userinfo.is_authorized = False
-      logging.info("User %s is no longer authorized with TOKEN_EXPIRED" % userinfo.user)
-      userinfo.put()
-    else:
-      logging.warning("History not fetched for %s with %s" % (userinfo.user, err))
-    return 0, 0, 0
+    history = fs.users_checkins()#(l=limit, sinceid=userinfo.last_checkin)
+#  except foursquare.FoursquareRemoteException, err:
+ #   if str(err).find('SIGNATURE_INVALID') >= 0:
+  #    userinfo.valid_signature = False
+   #   logging.info("User %s is no longer authorized with SIGNATURE_INVALID" % userinfo.user)
+#      userinfo.put() 
+ #   elif str(err).find('TOKEN_EXPIRED') >= 0:
+  #    userinfo.is_authorized = False
+   #   logging.info("User %s is no longer authorized with TOKEN_EXPIRED" % userinfo.user)
+#      userinfo.put()
+ #   else:
+  #    logging.warning("History not fetched for %s with %s" % (userinfo.user, err))
+  #  return 0, 0, 0
   except DownloadError, err:
     logging.warning("History not fetched for %s with %s" % (userinfo.user, err))
     return 0, 0, 0
@@ -175,11 +175,11 @@ def update_user_info(userinfo):
     logging.warning("DownloadError for user %s, retrying once" % userinfo.user)
     try:
       user_data = fs.users()
+      logging.info(user_data)
     except DownloadError, err:
       logging.warning("DownloadError for user %s on first retry, returning" % userinfo.user)
       raise err
       #TODO handle this case better, it's currently a bit of a hack to just get it to return to signin page
-  logging.info(user_data)
   if 'user' in user_data:
     userinfo.real_name = user_data['user']['firstname']
     if 'gender' in user_data['user']:
