@@ -22,7 +22,8 @@ def fetch_and_store_checkins(userinfo, limit=50):
   userinfo.is_authorized = True
   try:
     fs = get_new_fs_for_userinfo(userinfo)
-    history = fs.users_checkins()#(l=limit, sinceid=userinfo.last_checkin)
+    history = fs.users_checkins()['response']#(l=limit, sinceid=userinfo.last_checkin)
+    logging.info('HADOUKEN')
 #  except foursquare.FoursquareRemoteException, err:
  #   if str(err).find('SIGNATURE_INVALID') >= 0:
   #    userinfo.valid_signature = False
@@ -38,18 +39,19 @@ def fetch_and_store_checkins(userinfo, limit=50):
   except DownloadError, err:
     logging.warning("History not fetched for %s with %s" % (userinfo.user, err))
     return 0, 0, 0
-  logging.debug(history)
+  logging.info(history)
   try:
     if not 'checkins' in history:
       logging.error("no value for 'checkins' in history: " + str(history))
       userinfo.put()
       return -1, 0, 0
     elif history['checkins'] == None:
+      logging.error('SHORYUKEN')
       userinfo.put()
       return 0, 0, 0
     if not userinfo.gender is 'male' and not userinfo.gender is 'female':
       try:
-        user_data = fs.user()
+        user_data = fs.users()['response']
         if 'gender' in user_data['user']:
           userinfo.gender = user_data['user']['gender']
           if user_data['user']['gender'] is 'male':
@@ -60,26 +62,30 @@ def fetch_and_store_checkins(userinfo, limit=50):
       except DownloadError, err:
         logging.warning("User data not fetched for %s with %s" % (userinfo.user, err))
         return 0, 0, 0
-    for checkin in history['checkins']:
+    for checkin in history['checkins']['items']:
+      logging.info('VAI PROCESSAR')
       if 'venue' in checkin:
+        logging.info('PROCESSANDO')
         j_venue = checkin['venue']
-        if 'id' in j_venue and 'geolat' in j_venue and 'geolong' in j_venue:
+        logging.info(j_venue)
+        if 'id' in j_venue and 'location' in j_venue:
           
           def uservenue_factory(userinfo_param, j_venue_param, checkin_guid_list_param, checkin_list_param, is_unique_param):
-            new_uservenue = UserVenue(parent=userinfo_param, location = db.GeoPt(j_venue_param['geolat'], j_venue_param['geolong']))
+            new_uservenue = UserVenue(parent=userinfo_param, location = db.GeoPt(j_venue_param['location']['lat'], j_venue_param['location']['lng']))
+            j_venue_param_loc = j_venue_param['location']
             new_uservenue.update_location()
             new_uservenue.user = userinfo_param.user
             new_uservenue.venue_guid     = str(j_venue_param['id'])
             if 'name' in j_venue_param:
               new_uservenue.name         = j_venue_param['name']
-            if 'address' in j_venue_param:
-              new_uservenue.address      = j_venue_param['address'].replace('\n', ' ').replace('\r', ' ')
-            if 'cross_street' in j_venue_param:
-              new_uservenue.cross_street = j_venue_param['cross_street']
-            if 'state' in j_venue_param:
-              new_uservenue.state        = j_venue_param['state']
-            if 'zip' in j_venue_param:
-              new_uservenue.zipcode      = j_venue_param['zip']
+            if 'address' in j_venue_param_loc:
+              new_uservenue.address      = j_venue_param_loc['address'].replace('\n', ' ').replace('\r', ' ')
+            if 'cross_street' in j_venue_param_loc:
+              new_uservenue.cross_street = j_venue_param_loc['cross_street']
+            if 'state' in j_venue_param_loc:
+              new_uservenue.state        = j_venue_param_loc['state']
+            if 'zip' in j_venue_param_loc:
+              new_uservenue.zipcode      = j_venue_param_loc['zip']
             if 'phone' in j_venue_param:
               new_uservenue.phone        = j_venue_param['phone']
             new_uservenue.has_parent = True
@@ -127,8 +133,10 @@ def fetch_and_store_checkins(userinfo, limit=50):
           except BadRequestError, err:
             logging.warning("Database transaction error due to entity restrictions? %s" % err)
   except KeyError:
-    logging.error("There was a KeyError when processing the response: " + content)
+    #FIX
+    logging.error("There was a KeyError when processing the response: " + histor)
     raise
+  #FIX
   return num_added, num_ignored, len(history['checkins'])
 
 def fetch_and_store_checkins_initial(userinfo):
@@ -162,7 +170,8 @@ def fetch_and_store_checkins_for_batch():
 def update_user_info(userinfo):
   fs = get_new_fs_for_userinfo(userinfo)
   try:
-    user_data = fs.users()
+    user_data = fs.users()['response']
+    logging.info(user_data)
  # except:
   #  if str(err).find('{"unauthorized":"TOKEN_EXPIRED"}') >= 0:
    #   userinfo.is_authorized = False
@@ -174,14 +183,14 @@ def update_user_info(userinfo):
   except DownloadError:    
     logging.warning("DownloadError for user %s, retrying once" % userinfo.user)
     try:
-      user_data = fs.users()
+      user_data = fs.users()['response']
       logging.info(user_data)
     except DownloadError, err:
       logging.warning("DownloadError for user %s on first retry, returning" % userinfo.user)
       raise err
       #TODO handle this case better, it's currently a bit of a hack to just get it to return to signin page
   if 'user' in user_data:
-    userinfo.real_name = user_data['user']['firstname']
+    userinfo.real_name = user_data['user']['firstName']
     if 'gender' in user_data['user']:
       userinfo.gender = user_data['user']['gender']
     if 'photo' in user_data['user'] and not user_data['user']['photo'] == '' :
