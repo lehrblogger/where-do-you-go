@@ -5,3 +5,4 @@ gheatae/*.pyc
 oauth_testing/
 bulkloader-*
 bulkloader_files/
+.DS_Store
