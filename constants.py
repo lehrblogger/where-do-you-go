@@ -55,7 +55,7 @@ def get_oauth_strings(force_primary_domain=False):
     consumer_key = 'EGB1JZBOMTTNBPVDCHVB3VGGMIXMEYIJKPPTCQGKMPQ4NPCY'
     callback_url = 'http://www.heredoyougo.com/authenticated'
   elif domain == 'localhost:8080':
-    consumer_key = 'P2LOANSQME5RAIM2GX2TBMVS1QKBBVRPJUECFWC3ACDYCGS5'
+    consumer_key = 'KPFTYKFG3YNREEQIZYJOL321HI13SDMF2KZJERFXLIZWTRVZ'
     callback_url = 'http://localhost:8080/authenticated'
   elif domain == 'checkalor.appspot.com':
     consumer_key = 'P2LOANSQME5RAIM2GX2TBMVS1QKBBVRPJUECFWC3ACDYCGS5'

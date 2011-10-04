@@ -23,15 +23,21 @@ def fetch_and_store_checkins(userinfo, limit=50):
   userinfo.is_authorized = True
   try:
     fs = get_new_fs_for_userinfo(userinfo)
-    if userinfo.last_checkin:
+    total_count = int(fs.users()['response']['user']['checkins']['count'])
+    logging.info('COUNT: %s'%total_count)
+    if userinfo.checkin_count >= total_count:
+      return 0, 0, 0
+    if userinfo.checkin_count > 0:
       dt = userinfo.last_checkin_at
       seconds = int(mktime(dt.timetuple()))
       logging.info('SECONDS: %s'%(seconds))
-      history = fs.users_checkins(limit=limit, after_timestamp=seconds)['response']
+      to_skip = total_count - limit
+      if to_skip >= userinfo.checkin_count and to_skip > limit:
+        to_skip-=userinfo.checkin_count
+      logging.info('SKIP: %s'%to_skip)
+      history = fs.users_checkins(limit=limit, offset=to_skip)['response']
     else:
-      count = int(fs.users()['response']['user']['checkins']['count'])
-      logging.info('COUNT: %s'%count)
-      to_skip = count - limit
+      to_skip = total_count - limit
       logging.info('SKIP: %s'%to_skip)
       history = fs.users_checkins(limit=limit, offset=to_skip)['response']
     logging.info('HADOUKEN')
@@ -128,7 +134,8 @@ def fetch_and_store_checkins(userinfo, limit=50):
           uservenue.checkin_guid_list.append(str(checkin['id']))
           userinfo.checkin_count += 1
           userinfo.last_updated = datetime.now()
-          #if checkin['id'] > userinfo.last_checkin: 
+          #if checkin['id'] == userinfo.last_checkin:
+          #    num_added = 0
           userinfo.last_checkin = checkin['id']                                                # because the checkins are ordered with most recent first!
           if userinfo.last_checkin_at is None or datetime.fromtimestamp(checkin['createdAt']) > userinfo.last_checkin_at: 
             userinfo.last_checkin_at = datetime.fromtimestamp(checkin['createdAt']) # because the checkins are ordered with most recent first!
