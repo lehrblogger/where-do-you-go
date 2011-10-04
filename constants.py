@@ -30,6 +30,8 @@ def get_google_maps_apikey():
     return 'ABQIAAAAwA6oEsCLgzz6I150wm3ELBSsSgGJ9VrJSemFFJvFbS88IsMvVhSj9Nx7jlLtQGoB4gR4tshPH1Hvew'
   elif domain == 'localhost:8080':
     return 'ABQIAAAAwA6oEsCLgzz6I150wm3ELBSsSgGJ9VrJSemFFJvFbS88IsMvVhSj9Nx7jlLtQGoB4gR4tshPH1Hvew'
+  elif 'checkalor.appspot.com':
+    return 'ABQIAAAAJu2Rho4iToAzJ7UAN1wprBRHTZt2NTrab8OefNAvxH2qHq_dUBSG0EAbgPCqAGo_i4aZyIK2CKnvGg'
   else:
     logging.error('No Google maps key found for domain ' + domain)
 
@@ -57,7 +59,7 @@ def get_oauth_strings(force_primary_domain=False):
     callback_url = 'http://localhost:8080/authenticated'
   elif domain == 'checkalor.appspot.com':
     consumer_key = 'P2LOANSQME5RAIM2GX2TBMVS1QKBBVRPJUECFWC3ACDYCGS5'
-    callback_url = 'http://localhost:8080/authenticated'
+    callback_url = 'http://checkalor.appspot.com/authenticated'
   else:
     consumer_key = ''
     callback_url = ''
