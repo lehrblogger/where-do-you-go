@@ -111,17 +111,17 @@ def fetch_and_store_checkins(userinfo, limit=50):
               else:
                 userinfo.venue_count = userinfo.venue_count + 1
                 uservenue = uservenue_factory(userinfo, j_venue, [], [], True)
-          uservenue.last_updated = datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000") #WARNING last_updated is confusing and should be last_checkin_at
+          uservenue.last_updated = datetime.fromtimestamp(checkin['createdAt']) #WARNING last_updated is confusing and should be last_checkin_at
           if datetime.now() < uservenue.last_updated + timedelta(hours=12):                             #WARNING last_updated is confusing and should be last_checkin_at   
             num_ignored += 1
             continue
           uservenue.checkin_guid_list.append(str(checkin['id']))
           userinfo.checkin_count += 1
           userinfo.last_updated = datetime.now()
-          if checkin['id'] > userinfo.last_checkin: 
-            userinfo.last_checkin = checkin['id']                                                           # because the checkins are ordered with most recent first!
-          if userinfo.last_checkin_at is None or datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000") > userinfo.last_checkin_at: 
-            userinfo.last_checkin_at = datetime.strptime(checkin['created'], "%a, %d %b %y %H:%M:%S +0000") # because the checkins are ordered with most recent first!
+          #if checkin['id'] > userinfo.last_checkin: 
+          userinfo.last_checkin = checkin['id']                                                # because the checkins are ordered with most recent first!
+          if userinfo.last_checkin_at is None or datetime.fromtimestamp(checkin['createdAt']) > userinfo.last_checkin_at: 
+            userinfo.last_checkin_at = datetime.fromtimestamp(checkin['createdAt']) # because the checkins are ordered with most recent first!
           
           def put_updated_uservenue_and_userinfo(uservenue, userinfo, num_added):
             uservenue.put()
@@ -133,11 +133,9 @@ def fetch_and_store_checkins(userinfo, limit=50):
           except BadRequestError, err:
             logging.warning("Database transaction error due to entity restrictions? %s" % err)
   except KeyError:
-    #FIX
-    logging.error("There was a KeyError when processing the response: " + histor)
+    logging.error("There was a KeyError when processing the response: " + str(history))
     raise
-  #FIX
-  return num_added, num_ignored, len(history['checkins'])
+  return num_added, num_ignored, int(history['checkins']['count'])	
 
 def fetch_and_store_checkins_initial(userinfo):
   num_added, num_ignored, num_received = fetch_and_store_checkins(userinfo)

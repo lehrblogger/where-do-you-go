@@ -107,7 +107,7 @@ class AuthHandler(webapp.RequestHandler):
         
         try:
           user_token = fs.get_access_token(code)
-          userinfo = UserInfo(user = user, token = user_token, secret = None, is_ready=False, is_authorized=True, last_checkin=0, last_updated=datetime.now(), color_scheme='fire', level_max=int(constants.level_const), checkin_count=0, venue_count=0)
+          userinfo = UserInfo(user = user, token = user_token, secret = None, is_ready=False, is_authorized=True, last_checkin='', last_updated=datetime.now(), color_scheme='fire', level_max=int(constants.level_const), checkin_count=0, venue_count=0)
         except DownloadError, err:
           if str(err).find('ApplicationError: 5') >= 0:
             pass # if something bad happens on OAuth, then it currently just redirects to the signup page
