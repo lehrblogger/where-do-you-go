@@ -133,8 +133,10 @@ class FoursquareClient(object):
         url = self.API_URL + '/users/%s/badges' % user_id
         return self.make_api_call(url, method='GET')
     
-    def users_checkins(self, user_id='self'):
-        url = self.API_URL + '/users/%s/checkins' % user_id
+    def users_checkins(self, user_id='self', limit=250, after_timestamp=None, offset=0):
+        url = self.API_URL + '/users/%s/checkins?offset=%s&limit=%s'%(user_id, offset, limit)
+        if after_timestamp:
+            url = url+'&afterTimestamp=%s'%(after_timestamp)
         return self.make_api_call(url, method='GET')
     
     def users_friends(self, user_id='self'):

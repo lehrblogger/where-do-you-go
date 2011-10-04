@@ -15,8 +15,8 @@ default_photo = 'static/foursquare_girl.png'
 #   else:
 #     return 'static/foursquare_girl.png'   
 default_color = color_scheme.color_schemes.keys()[0]
-default_lat = 40.73607172122901 #NYC
-default_lng = -73.96699905395508
+default_lat = -23.526218 #SaoPaulo
+default_lng = -46.632843
 default_zoom = 13
 default_dimension = 640
 

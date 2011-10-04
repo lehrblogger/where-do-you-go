@@ -10,6 +10,7 @@ from google.appengine.api.urlfetch import DownloadError
 from google.appengine.api.datastore_errors import BadRequestError
 from google.appengine.runtime import DeadlineExceededError
 from datetime import datetime, timedelta
+from time import mktime
 from models import UserInfo, UserVenue
 
 def get_new_fs_for_userinfo(userinfo):
@@ -22,8 +23,19 @@ def fetch_and_store_checkins(userinfo, limit=50):
   userinfo.is_authorized = True
   try:
     fs = get_new_fs_for_userinfo(userinfo)
-    history = fs.users_checkins()['response']#(l=limit, sinceid=userinfo.last_checkin)
+    if userinfo.last_checkin:
+      dt = userinfo.last_checkin_at
+      seconds = int(mktime(dt.timetuple()))
+      logging.info('SECONDS: %s'%(seconds))
+      history = fs.users_checkins(limit=limit, after_timestamp=seconds)['response']
+    else:
+      count = int(fs.users()['response']['user']['checkins']['count'])
+      logging.info('COUNT: %s'%count)
+      to_skip = count - limit
+      logging.info('SKIP: %s'%to_skip)
+      history = fs.users_checkins(limit=limit, offset=to_skip)['response']
     logging.info('HADOUKEN')
+    logging.info(history)
 #  except foursquare.FoursquareRemoteException, err:
  #   if str(err).find('SIGNATURE_INVALID') >= 0:
   #    userinfo.valid_signature = False
@@ -39,14 +51,12 @@ def fetch_and_store_checkins(userinfo, limit=50):
   except DownloadError, err:
     logging.warning("History not fetched for %s with %s" % (userinfo.user, err))
     return 0, 0, 0
-  logging.info(history)
   try:
     if not 'checkins' in history:
       logging.error("no value for 'checkins' in history: " + str(history))
       userinfo.put()
       return -1, 0, 0
     elif history['checkins'] == None:
-      logging.error('SHORYUKEN')
       userinfo.put()
       return 0, 0, 0
     if not userinfo.gender is 'male' and not userinfo.gender is 'female':
@@ -63,7 +73,7 @@ def fetch_and_store_checkins(userinfo, limit=50):
         logging.warning("User data not fetched for %s with %s" % (userinfo.user, err))
         return 0, 0, 0
     for checkin in history['checkins']['items']:
-      logging.info('VAI PROCESSAR')
+      logging.info('VAI PROCESSAR: %s'%(len(history['checkins']['items'])))
       if 'venue' in checkin:
         logging.info('PROCESSANDO')
         j_venue = checkin['venue']
