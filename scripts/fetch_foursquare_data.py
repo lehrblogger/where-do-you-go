@@ -27,19 +27,22 @@ def fetch_and_store_checkins(userinfo, limit=50):
     logging.info('COUNT: %s'%total_count)
     if userinfo.checkin_count >= total_count:
       return 0, 0, 0
-    if userinfo.checkin_count > 0:
-      dt = userinfo.last_checkin_at
-      seconds = int(mktime(dt.timetuple()))
-      logging.info('SECONDS: %s'%(seconds))
-      to_skip = total_count - limit
-      if to_skip >= userinfo.checkin_count and to_skip > limit:
-        to_skip-=userinfo.checkin_count
-      logging.info('SKIP: %s'%to_skip)
-      history = fs.users_checkins(limit=limit, offset=to_skip)['response']
+   # if userinfo.checkin_count > 0:
+   #   dt = userinfo.last_checkin_at
+   #   seconds = int(mktime(dt.timetuple()))
+   #   logging.info('SECONDS: %s'%(seconds))
+
+    to_skip = total_count - limit
+
+    if to_skip >= userinfo.checkin_count:
+      to_skip-=userinfo.checkin_count
     else:
-      to_skip = total_count - limit
-      logging.info('SKIP: %s'%to_skip)
-      history = fs.users_checkins(limit=limit, offset=to_skip)['response']
+      to_skip = 0
+      limit = total_count - userinfo.checkin_count
+	
+    history = fs.users_checkins(limit=limit, offset=to_skip)['response']
+    logging.info('SKIP: %s'%to_skip)
+    history = fs.users_checkins(limit=limit, offset=to_skip)['response']
     logging.info('HADOUKEN')
     logging.info(history)
 #  except foursquare.FoursquareRemoteException, err:
@@ -62,7 +65,7 @@ def fetch_and_store_checkins(userinfo, limit=50):
       logging.error("no value for 'checkins' in history: " + str(history))
       userinfo.put()
       return -1, 0, 0
-    elif history['checkins'] == None:
+    elif history['checkins']['items'] == None:
       userinfo.put()
       return 0, 0, 0
     if not userinfo.gender is 'male' and not userinfo.gender is 'female':
@@ -78,6 +81,7 @@ def fetch_and_store_checkins(userinfo, limit=50):
       except DownloadError, err:
         logging.warning("User data not fetched for %s with %s" % (userinfo.user, err))
         return 0, 0, 0
+	history['checkins']['items'].reverse()
     for checkin in history['checkins']['items']:
       logging.info('VAI PROCESSAR: %s'%(len(history['checkins']['items'])))
       if 'venue' in checkin:

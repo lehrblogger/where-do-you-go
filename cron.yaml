@@ -2,7 +2,7 @@ cron:
   
  - description: get most recent user checkins
    url: /fetch_foursquare_data/update_users_batch
-   schedule: every 10 minutes
+   schedule: every 60 minutes
  
  - description: update one map (60 * 24 = 1440 a day)
    url: /generate_static_map/one
