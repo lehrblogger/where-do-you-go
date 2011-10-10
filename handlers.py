@@ -129,10 +129,6 @@ class AuthHandler(webapp.RequestHandler):
         self.redirect("/")
       else:
         fs, credentials = get_new_fs_and_credentials()
-        #app_token = fs.request_token()
-        #auth_url = fs.authorize(app_token)
-        #new_apptoken = AppToken(token = app_token.key, secret = app_token.secret)
-        #new_apptoken.put()
         logging.info(fs.get_authentication_url())
         self.redirect(fs.get_authentication_url())
     else:
