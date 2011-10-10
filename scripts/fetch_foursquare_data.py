@@ -27,10 +27,6 @@ def fetch_and_store_checkins(userinfo, limit=50):
     logging.info('COUNT: %s'%total_count)
     if userinfo.checkin_count >= total_count:
       return 0, 0, 0
-   # if userinfo.checkin_count > 0:
-   #   dt = userinfo.last_checkin_at
-   #   seconds = int(mktime(dt.timetuple()))
-   #   logging.info('SECONDS: %s'%(seconds))
 
     to_skip = total_count - limit
 
@@ -43,8 +39,6 @@ def fetch_and_store_checkins(userinfo, limit=50):
     history = fs.users_checkins(limit=limit, offset=to_skip)
     logging.info('SKIP: %s'%to_skip)
     history = fs.users_checkins(limit=limit, offset=to_skip)
-    logging.info('HADOUKEN')
-    logging.info(history)
   except foursquarev2.FoursquareException, err:
     if str(err).find('SIGNATURE_INVALID') >= 0:
       userinfo.valid_signature = False
@@ -83,9 +77,8 @@ def fetch_and_store_checkins(userinfo, limit=50):
         return 0, 0, 0
 	history['checkins']['items'].reverse()
     for checkin in history['checkins']['items']:
-      logging.info('VAI PROCESSAR: %s'%(len(history['checkins']['items'])))
+      logging.info('Will process: %s itens'%(len(history['checkins']['items'])))
       if 'venue' in checkin:
-        logging.info('PROCESSANDO')
         j_venue = checkin['venue']
         logging.info(j_venue)
         if 'id' in j_venue and 'location' in j_venue:
@@ -190,7 +183,6 @@ def update_user_info(userinfo):
   fs = get_new_fs_for_userinfo(userinfo)
   try:
     user_data = fs.users()
-    logging.info(user_data)
   except foursquarev2.FoursquareException, err:
     if str(err).find('{"unauthorized":"TOKEN_EXPIRED"}') >= 0:
       userinfo.is_authorized = False
@@ -203,7 +195,6 @@ def update_user_info(userinfo):
     logging.warning("DownloadError for user %s, retrying once" % userinfo.user)
     try:
       user_data = fs.users()
-      logging.info(user_data)
     except DownloadError, err:
       logging.warning("DownloadError for user %s on first retry, returning" % userinfo.user)
       raise err
