@@ -4,6 +4,6 @@ Where Do You Go provides Foursquare users with a dynamic heat map of the places 
 
 http://lehrblogger.com/2010/03/19/where-do-you-go/
 
-To create your own GAE installation of Where Do You Go you'll need to modify constants.py (and create the gitignore'd oauth_secrets.py) to contain the Google Maps API key and Foursquare consumer key/secret for the domain(s) you're using.
+To create your own GAE installation of Where Do You Go you'll need to modify constants.py (and create the gitignore'd oauth_secrets.py) to contain the Google Maps API key and Foursquare consumer key/secret for the domain(s) you're using. Many thanks to Thiago Ganzarolli (https://github.com/tganzarolli) for updating the app to work with v2 of Foursquare's API!
 
 Feel free to contact me if you have any questions!
