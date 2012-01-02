@@ -1,5 +1,5 @@
-application: checkalor
-version: 0-1
+application: where-do-you-go
+version: 9-0
 runtime: python
 api_version: 1
 

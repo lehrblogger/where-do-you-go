@@ -28,10 +28,6 @@ def get_google_maps_apikey():
     return 'ABQIAAAAwA6oEsCLgzz6I150wm3ELBQO7aMTgd18mR6eRdj9blrVCeGU7BS14EnkGH_2LpNpZ8DJW0u7G5ocLQ'
   elif domain == 'www.heredoyougo.com':
     return 'ABQIAAAAwA6oEsCLgzz6I150wm3ELBSsSgGJ9VrJSemFFJvFbS88IsMvVhSj9Nx7jlLtQGoB4gR4tshPH1Hvew'
-  elif domain == 'localhost:8080':
-    return 'ABQIAAAAwA6oEsCLgzz6I150wm3ELBSsSgGJ9VrJSemFFJvFbS88IsMvVhSj9Nx7jlLtQGoB4gR4tshPH1Hvew'
-  elif 'checkalor.appspot.com':
-    return 'ABQIAAAAJu2Rho4iToAzJ7UAN1wprBRHTZt2NTrab8OefNAvxH2qHq_dUBSG0EAbgPCqAGo_i4aZyIK2CKnvGg'
   else:
     logging.error('No Google maps key found for domain ' + domain)
 
@@ -54,12 +50,6 @@ def get_oauth_strings(force_primary_domain=False):
   elif domain == 'www.heredoyougo.com':
     consumer_key = 'EGB1JZBOMTTNBPVDCHVB3VGGMIXMEYIJKPPTCQGKMPQ4NPCY'
     callback_url = 'http://www.heredoyougo.com/authenticated'
-  elif domain == 'localhost:8080':
-    consumer_key = 'KPFTYKFG3YNREEQIZYJOL321HI13SDMF2KZJERFXLIZWTRVZ'
-    callback_url = 'http://localhost:8080/authenticated'
-  elif domain == 'checkalor.appspot.com':
-    consumer_key = 'P2LOANSQME5RAIM2GX2TBMVS1QKBBVRPJUECFWC3ACDYCGS5'
-    callback_url = 'http://checkalor.appspot.com/authenticated'
   else:
     consumer_key = ''
     callback_url = ''
