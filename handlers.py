@@ -14,8 +14,7 @@ import urllib
 import logging
 import time
 import oauth
-import foursquare
-import foursquarev2
+import foursquarev2 as foursquare
 import constants
 import time
 from datetime import datetime
@@ -95,9 +94,7 @@ class AuthHandler(webapp.RequestHandler):
 
       def get_new_fs_and_credentials():
         consumer_key, oauth_secret, url = constants.get_oauth_strings()
-        fs = foursquarev2.FoursquareAuthHelper(key=consumer_key, secret=oauth_secret, redirect_uri=url)
-        #credentials = foursquare.OAuthCredentials(oauth_token, oauth_secret)
-        #fs = foursquare.Foursquare(credentials)
+        fs = foursquare.FoursquareAuthHelper(key=consumer_key, secret=oauth_secret, redirect_uri=url)
         return fs, None
 
       if code:
