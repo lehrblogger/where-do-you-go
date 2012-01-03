@@ -132,7 +132,7 @@ def fetch_and_store_checkins(userinfo, limit=50):
           userinfo.last_updated = datetime.now()
           #if checkin['id'] == userinfo.last_checkin:
           #    num_added = 0
-          userinfo.last_checkin_str = int(checkin['id'])                                                # because the checkins are ordered with most recent first!
+          userinfo.last_checkin_str = checkin['id']                                                # because the checkins are ordered with most recent first!
           if userinfo.last_checkin_at is None or datetime.fromtimestamp(checkin['createdAt']) > userinfo.last_checkin_at: 
             userinfo.last_checkin_at = datetime.fromtimestamp(checkin['createdAt']) # because the checkins are ordered with most recent first!
           
@@ -204,11 +204,11 @@ def update_user_info(userinfo):
 def clear_old_uservenues():
   num_cleared = 0
   cutoff = datetime.now() - timedelta(days=7)   
-  userinfos = UserInfo.all().filter('last_updated <', cutoff).fetch(100)
+  userinfos = UserInfo.all().filter('last_updated <', cutoff).fetch(200)
   try:
     for userinfo in userinfos:
       while True:
-        uservenues = UserVenue.all().filter('user =', userinfo.user).fetch(500)
+        uservenues = UserVenue.all(keys_only=True).filter('user =', userinfo.user).fetch(1000)
         if not uservenues: break
         db.delete(uservenues)
         num_cleared = num_cleared + len(uservenues)

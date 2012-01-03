@@ -75,14 +75,14 @@ class IndexHandler(webapp.RequestHandler):
     self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), {'key': constants.get_google_maps_apikey()}))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/private_welcome.html'), welcome_data))
     if not foursquare_is_happy:
-        self.response.out.write(template.render(os.path.join(os_path, 'templates/private_forbidden.html'), None))
+      self.response.out.write(template.render(os.path.join(os_path, 'templates/private_forbidden.html'), None))
     elif user and userinfo:
       if userinfo.is_authorized:
         self.response.out.write(template.render(os.path.join(os_path, 'templates/private_sidebar.html'), sidebar_data))
       else:
         self.response.out.write(template.render(os.path.join(os_path, 'templates/private_unauthorized.html'), None))
     else:
-        self.response.out.write(template.render(os.path.join(os_path, 'templates/information.html'), {'user': user }))
+      self.response.out.write(template.render(os.path.join(os_path, 'templates/information.html'), {'user': user }))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/private_map.html'), map_data))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/all_footer.html'), None))
 
