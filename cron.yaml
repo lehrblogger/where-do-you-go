@@ -1,17 +1,8 @@
 cron:
   
- - description: get most recent user checkins
-   url: /fetch_foursquare_data/update_users_batch
-   schedule: every 60 minutes
-
-# this is too expensive, going to use dynamic tiles on static maps instead 
-# - description: update one map (60 * 24 = 1440 a day)
-#   url: /generate_static_map/one
-#   schedule: every 60 minutes
- 
-# - description: clear duplicate user venues by searching for the ones with a parent and deleting the ones with the same guid that don't have a parent
-#   url: /clear_parentless_uservenues
-#   schedule: every 1 minutes
+ - description: clear out old UserVenues
+   url: /fetch_foursquare_data/clear_old_uservenues
+   schedule: every 24 hours
 
 # - description: clear old authtokens
 #   url: /clear_authtokens

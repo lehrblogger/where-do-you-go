@@ -54,6 +54,10 @@ handlers:
   script: scripts/fetch_foursquare_data.py
   login: admin
 
+- url: /fetch_foursquare_data/clear_old_uservenues
+  script: scripts/fetch_foursquare_data.py
+  login: admin
+  
 - url: /clear_authtokens
   script: scripts/clear_authtokens.py
   login: admin

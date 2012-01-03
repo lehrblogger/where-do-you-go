@@ -76,7 +76,7 @@ def fetch_and_store_checkins(userinfo, limit=50):
         return 0, 0, 0
 	history['checkins']['items'].reverse()
     for checkin in history['checkins']['items']:
-      logging.info('Will process: %s itens'%(len(history['checkins']['items'])))
+      logging.info('Will process: %s items'%(len(history['checkins']['items'])))
       if 'venue' in checkin:
         j_venue = checkin['venue']
         logging.info(j_venue)
@@ -132,7 +132,7 @@ def fetch_and_store_checkins(userinfo, limit=50):
           userinfo.last_updated = datetime.now()
           #if checkin['id'] == userinfo.last_checkin:
           #    num_added = 0
-          userinfo.last_checkin = checkin['id']                                                # because the checkins are ordered with most recent first!
+          userinfo.last_checkin_str = int(checkin['id'])                                                # because the checkins are ordered with most recent first!
           if userinfo.last_checkin_at is None or datetime.fromtimestamp(checkin['createdAt']) > userinfo.last_checkin_at: 
             userinfo.last_checkin_at = datetime.fromtimestamp(checkin['createdAt']) # because the checkins are ordered with most recent first!
           
@@ -158,25 +158,6 @@ def fetch_and_store_checkins_initial(userinfo):
     userinfo.is_ready = True
   userinfo.level_max = int(3 * constants.level_const)
   userinfo.put()
-
-def fetch_and_store_checkins_for_batch():
-  userinfos = UserInfo.all().order('last_updated').filter('is_authorized = ', True).fetch(50)
-  logging.info("performing batch update for up to %d users-------------------------------" % len(userinfos))
-  num_users_completed = 0
-  current_userinfo = None
-  try:
-    for userinfo in userinfos:
-      current_userinfo = userinfo
-      num_added, num_ignored, num_received = fetch_and_store_checkins(userinfo)
-      if not (num_added + num_ignored) == num_received:
-        logging.info("updating %d and ignoring %d of %d checkins for %s but they don't match - there are probably shouts or venues without a lat/lon!" % (num_added, num_ignored, num_received, userinfo.user))
-      elif num_received > 0:
-        logging.info("updating %d and ignoring %d of %d checkins for %s" % (num_added, num_ignored, num_received, userinfo.user))
-      userinfo.last_updated = datetime.now() # redundant with the above but oh well
-      userinfo.put()
-      num_users_completed += 1
-  except DeadlineExceededError:
-    logging.info("exceeded deadline after %d users, unfinished user was %s" % (num_users_completed, current_userinfo.user))
 
 def update_user_info(userinfo):
   fs = get_new_fs_for_userinfo(userinfo)
@@ -220,6 +201,26 @@ def update_user_info(userinfo):
   else:
     logging.error('no "user" key in json: %s' % user_data)
 
+def clear_old_uservenues():
+  num_cleared = 0
+  cutoff = datetime.now() - timedelta(days=7)   
+  userinfos = UserInfo.all().filter('last_updated <', cutoff).fetch(100)
+  try:
+    for userinfo in userinfos:
+      while True:
+        uservenues = UserVenue.all().filter('user =', userinfo.user).fetch(500)
+        if not uservenues: break
+        db.delete(uservenues)
+        num_cleared = num_cleared + len(uservenues)
+      userinfo.last_checkin_str = str(userinfo.last_checkin)
+      if userinfo.last_checkin:
+        delattr(userinfo, 'last_checkin')
+      userinfo.last_updated = datetime.now()
+      userinfo.put()
+    logging.info("finished after deleting at least %d UserVenues" % (num_cleared))
+  except DeadlineExceededError:
+    logging.info("exceeded deadline after deleting at least %d UserVenues" % (num_cleared))
+    
 if __name__ == '__main__':
   raw = environ['PATH_INFO']
   assert raw.count('/') == 2 or raw.count('/') == 3, "%d /'s" % raw.count('/')
@@ -229,8 +230,8 @@ if __name__ == '__main__':
   elif raw.count('/') == 3:
     foo, bar, rest, userinfo_key = raw.split('/')
 
-  if rest == 'update_users_batch':
-    fetch_and_store_checkins_for_batch()
+  if rest == 'clear_old_uservenues':
+    clear_old_uservenues()
   elif rest == 'all_for_user':
     userinfo = db.get(userinfo_key)
     if userinfo:
