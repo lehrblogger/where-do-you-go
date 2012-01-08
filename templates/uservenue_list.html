@@ -4,7 +4,7 @@ This user has {{ uservenues|length }} venues.
   <li><strong>{{ uservenue.name }}</strong>
     <ul>
       <li>num checkins : {{ uservenue.checkin_guid_list|length }}</li>
-      <li>last there at: {{ uservenue.last_updated }}</li>
+      <li>last there at: {{ uservenue.last_checkin_at }}</li>
       <li>located at   : {{ uservenue.location.lat }}, {{ uservenue.location.lon }}</li>
     </ul>
   </li>

@@ -3,7 +3,7 @@ from os import environ
 import constants
 from google.appengine.ext import db
 from google.appengine.api import users
-from models import AuthToken, UserInfo, UserVenue, MapImage
+from models import UserInfo, UserVenue, MapImage
 from gheatae import provider
 
 if __name__ == '__main__':
@@ -14,19 +14,19 @@ if __name__ == '__main__':
   if not constants.provider:
     constants.provider = provider.DBProvider()
 
-  if rest == 'all':
-    while(MapImage.all().count() > 0):
-      mapimages = MapImage.all().fetch(500)
-      db.delete(mapimages)
-    while(UserVenue.all().count() > 0):
-      uservenues = UserVenue.all().fetch(500)
-      db.delete(uservenues)
-    while(AuthToken.all().count() > 0):
-      authtokens = AuthToken.all().fetch(500)
-      db.delete(authtokens)
-    while(UserInfo.all().count() > 0):
-      userinfos = UserInfo.all().fetch(500)
-      db.delete(userinfos)
+  # if rest == 'all':
+  #   while(MapImage.all().count() > 0):
+  #     mapimages = MapImage.all().fetch(500)
+  #     db.delete(mapimages)
+  #   while(UserVenue.all().count() > 0):
+  #     uservenues = UserVenue.all().fetch(500)
+  #     db.delete(uservenues)
+  #   while(AuthToken.all().count() > 0):
+  #     authtokens = AuthToken.all().fetch(500)
+  #     db.delete(authtokens)
+  #   while(UserInfo.all().count() > 0):
+  #     userinfos = UserInfo.all().fetch(500)
+  #     db.delete(userinfos)
 
   elif rest == 'user':
     user = users.get_current_user()

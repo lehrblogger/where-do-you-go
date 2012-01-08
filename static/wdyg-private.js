@@ -120,14 +120,16 @@ $(document).ready(function() {
   $('#delete_all_button').click(function() {
     $('#checkin_count').html("");
     $('#delete_all_span').html("deleting your data... <img src='static/spinner-small.gif'/>");
-    $.get("/delete_data/user", function(){
+    $.get("/delete_data/user", function() {
       map.clearOverlays();
       $("#hello img").attr("src", "/static/foursquare_girl.png"); //TODO also in constants.py - this duplication is ugly, but oh well for now
       $("#left-lower").html("");
       $("#regenerate").html("");
       resizeMapToWidthHeight(640, 640);
       $("#static_map").html("");
-      $('#status_info').html('<b>New Foursquare connections have been temporarily disabled! Ping @<a href="http://twitter.com/lehrblogger">lehrblogger</a> with questions.</b><br/>');
+			$.get("/information", function(data) {
+      	$('#status_info').html('<span name="not_oauthed" id="oauth_span"><a href="/go_to_foursquare"><img src="static/signinwith-foursquare.png"></a></span>' + data);
+			});
     });
   });
 

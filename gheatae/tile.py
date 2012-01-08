@@ -14,6 +14,8 @@ log = logging.getLogger('space_level')
 rdm = Random()
 
 DOT_MULT = 3
+SIZE = 256
+MAX_ALPHA = 100
 
 class BasicTile(object):
   def __init__(self, user, lat_north, lng_west, range_lat, range_lng):
@@ -31,42 +33,39 @@ class BasicTile(object):
 
     if not constants.provider:
       constants.provider = provider.DBProvider()
-    uservenues = constants.provider.get_user_data(user, lat_north, lng_west, range_lat, range_lng)  
-    for uservenue in uservenues:
-      if not uservenue.checkin_guid_list or len(uservenue.checkin_guid_list) is 0:
-        uservenue.checkin_guid_list = [str(checkin_id) for checkin_id in uservenue.checkin_list]
-        uservenue.put()
-    self.tile_img = self.plot_image(uservenues)
+    uservenues = constants.provider.get_user_data(user, lat_north, lng_west, range_lat, range_lng)
+    if uservenues and len(uservenues):
+      self.tile_img = self.plot_image(uservenues)
+    else: # don't do any more math if we don't have any venues
+      self.tile_img = PNGCanvas(SIZE, SIZE, bgcolor=self.color_scheme.canvas[self.cache_levels[0]][0])
 
   def plot_image(self, points):
     space_level = self.__create_empty_space()
-    #start = datetime.now()
+    rad = int(self.zoom * DOT_MULT)
+    start = datetime.now()
     for i, point in enumerate(points):
-      self.__merge_point_in_space(space_level, point)
-      #logging.warning('   point %d of %d, start at %s, done at %s' % (i, len(points), start, datetime.now()))
+      self.__merge_point_in_space(space_level, point, rad, self.latlng_diff[0] * 256., self.latlng_diff[1] * 256.)
+      logging.warning('   point %d of %d, start at %s, done at %s' % (i, len(points), start, datetime.now()))
     return self.convert_image(space_level)
 
-  def __merge_point_in_space(self, space_level, point):
-    dot_levels = []
-    rad = int(self.zoom * DOT_MULT)
-    for i in range(rad * 2):
-      dot_levels.append([0.] * (rad * 2))
-    y_off = int(math.ceil((-1 * self.northwest_ll[0] + point.location.lat) / self.latlng_diff[0] * 256. - rad))
-    x_off = int(math.ceil((-1 * self.northwest_ll[1] + point.location.lon) / self.latlng_diff[1] * 256. - rad))
-    for y in range(y_off, y_off + (rad * 2)):
-      if y < 0 or y >= len(space_level):
+  def __merge_point_in_space(self, space_level, point, rad, lat_diff, lng_diff):
+    weight = len(point.checkin_guid_list)
+    twice_rad = rad * 2
+    y_off = int(math.ceil((-1 * self.northwest_ll[0] + point.location.lat) / lat_diff -rad))
+    x_off = int(math.ceil((-1 * self.northwest_ll[1] + point.location.lon) / lng_diff - rad))
+    for y in range(y_off, y_off + twice_rad):
+      if y < 0 or y >= SIZE:
         continue
-      for x in range(x_off, x_off + (rad * 2)):
-        if x < 0 or x >= len(space_level[0]):
+      y_adj = math.pow((y - rad - y_off), 2)
+      for x in range(x_off, x_off + twice_rad):
+        if x < 0 or x >= SIZE:
           continue
-        y_adj = math.pow((y - rad - y_off), 2)
         x_adj = math.pow((x - rad - x_off), 2)
         pt_rad = math.sqrt(y_adj + x_adj)
-        temp_rad = rad
-        if pt_rad > temp_rad:
+        if pt_rad > rad:
           continue
-        space_level[y][x] += self.calc_point(rad, pt_rad, len(point.checkin_guid_list))
-
+        space_level[y][x] += (MAX_ALPHA * math.pow((rad - pt_rad) / rad, math.pow(weight, 0.25)) * weight)
+        
   def scale_value(self, value):
     #ret_float = math.log(max((value + 50) / 50, 1), 1.01) + 30
     #ret_float = math.log(max((value + 30) / 40, 1), 1.01) + 30
@@ -75,28 +74,22 @@ class BasicTile(object):
     return int(ret_float)
 
   def convert_image(self, space_level):
-    tile = PNGCanvas(len(space_level[0]), len(space_level), bgcolor=[0xff,0xff,0xff,0])
+    tile = PNGCanvas(SIZE, SIZE, bgcolor=[0xff,0xff,0xff,0])
     temp_color_scheme = []
     for i in range(self.level_max):
       temp_color_scheme.append(self.color_scheme.canvas[self.cache_levels[i]][0])
-    for y in xrange(len(space_level[0])):
-      for x in xrange(len(space_level[0])):
+    for y in xrange(SIZE):
+      for x in xrange(SIZE):
         if len(temp_color_scheme) > 0:
           tile.canvas[y][x] = [int(e) for e in temp_color_scheme[max(0, min(len(temp_color_scheme) - 1, self.scale_value(space_level[y][x])))]]
         else:
           tile.canvas[y][x] = [0,0,0,0]
     return tile
 
-  def calc_point(self, rad, pt_rad, weight):
-    max_alpha = 100
-    fraction = (rad - pt_rad) / rad
-    return max_alpha * math.pow(fraction, math.pow(weight, 0.25)) * weight
-    #return max_alpha * math.pow(fraction, math.pow(weight, fraction)) * weight
-
   def __create_empty_space(self):
     space = []
-    for i in range(256):
-      space.append( [0.] * 256 )
+    for i in range(SIZE):
+      space.append( [0.] * SIZE )
     return space
 
   def image_out(self):

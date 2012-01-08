@@ -5,8 +5,6 @@ from models import UserInfo
 import constants
 import logging
 
-
-
 user = users.get_current_user()
 if user:
   path = environ['PATH_INFO']
@@ -25,9 +23,6 @@ if user:
 
     visible_checkin_count = 0
     for uservenue in visible_uservenues:
-      if not uservenue.checkin_guid_list or len(uservenue.checkin_guid_list) is 0:
-        uservenue.checkin_guid_list = [str(checkin_id) for checkin_id in uservenue.checkin_list]
-        uservenue.put()
       visible_checkin_count += len(uservenue.checkin_guid_list)
 
     userinfo = UserInfo.all().filter('user =', user).order('-created').get()

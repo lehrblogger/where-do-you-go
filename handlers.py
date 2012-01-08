@@ -20,7 +20,7 @@ import time
 from datetime import datetime
 from scripts import fetch_foursquare_data
 from gheatae import color_scheme, tile, provider
-from models import UserInfo, UserVenue, MapImage, AppToken
+from models import UserInfo, UserVenue, MapImage
 
 class IndexHandler(webapp.RequestHandler):
   def get(self):
@@ -37,15 +37,20 @@ class IndexHandler(webapp.RequestHandler):
       'color_scheme': constants.default_color,
     }
     map_data = {
-      'citylat': constants.default_lat,
-      'citylng': constants.default_lng,
-      'zoom': constants.default_zoom,
-      'width': constants.default_dimension,
-      'height': constants.default_dimension,
+      'domain': environ['HTTP_HOST'],
+      'static_url': 'http://maps.google.com/maps/api/staticmap?center=40.7427050566%2C-73.9888000488&format=png&zoom=13&key=ABQIAAAAwA6oEsCLgzz6I150wm3ELBQO7aMTgd18mR6eRdj9blrVCeGU7BS14EnkGH_2LpNpZ8DJW0u7G5ocLQ&sensor=false&size=640x640',
+      'mapimage_url': 'map/%s.png' % 'ag93aGVyZS1kby15b3UtZ29yEAsSCE1hcEltYWdlGM2LRgw',
     }
     foursquare_is_happy = True
     user = users.get_current_user()
     if user:
+      map_data = {
+        'citylat': constants.default_lat,
+        'citylng': constants.default_lng,
+        'zoom': constants.default_zoom,
+        'width': constants.default_dimension,
+        'height': constants.default_dimension,
+      }
       welcome_data['user'] = user
       welcome_data['url'] = users.create_logout_url(self.request.uri)
       userinfo = UserInfo.all().filter('user =', user).order('-created').get()
@@ -57,7 +62,7 @@ class IndexHandler(webapp.RequestHandler):
             if str(err).find('403 Forbidden') >= 0:
               foursquare_is_happy = False
             else:
-              pass # raise err  #TODO keep this error, but removing it now so that you can log in
+              raise err
         welcome_data['userinfo'] = userinfo
         welcome_data['real_name'] = userinfo.real_name
         welcome_data['photo_url'] = userinfo.photo_url
@@ -65,12 +70,6 @@ class IndexHandler(webapp.RequestHandler):
         sidebar_data['color_scheme'] = userinfo.color_scheme
         map_data['citylat'] = userinfo.citylat
         map_data['citylng'] = userinfo.citylng
-    else: # make a default map_data object if user is not logged in, see is_logged_in JS variable, sorry this is so hacky
-      map_data = {
-        'domain': environ['HTTP_HOST'],
-        'static_url': 'http://maps.google.com/maps/api/staticmap?center=40.7427050566%2C-73.9888000488&format=png&zoom=13&key=ABQIAAAAwA6oEsCLgzz6I150wm3ELBQO7aMTgd18mR6eRdj9blrVCeGU7BS14EnkGH_2LpNpZ8DJW0u7G5ocLQ&sensor=false&size=640x640',
-        'mapimage_url': 'map/%s.png' % 'ag93aGVyZS1kby15b3UtZ29yEAsSCE1hcEltYWdlGM2LRgw',
-      }
     os_path = os.path.dirname(__file__)
     self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), {'key': constants.get_google_maps_apikey()}))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/private_welcome.html'), welcome_data))
@@ -86,22 +85,26 @@ class IndexHandler(webapp.RequestHandler):
     self.response.out.write(template.render(os.path.join(os_path, 'templates/private_map.html'), map_data))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/all_footer.html'), None))
 
+class InformationHandler(webapp.RequestHandler):
+  def get(self):
+    user = users.get_current_user()
+    os_path = os.path.dirname(__file__)
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/information.html'), {'user': user }))
+
 class AuthHandler(webapp.RequestHandler):
+  def _get_new_fs_and_credentials(self):
+    consumer_key, oauth_secret, url = constants.get_oauth_strings()
+    fs = foursquare.FoursquareAuthHelper(key=consumer_key, secret=oauth_secret, redirect_uri=url)
+    return fs, None
+    
   def get(self):
     user = users.get_current_user()
     if user:
       code = self.request.get("code")
-
-      def get_new_fs_and_credentials():
-        consumer_key, oauth_secret, url = constants.get_oauth_strings()
-        fs = foursquare.FoursquareAuthHelper(key=consumer_key, secret=oauth_secret, redirect_uri=url)
-        return fs, None
-
       if code:
         old_userinfos = UserInfo.all().filter('user =', user).fetch(500)
         db.delete(old_userinfos)
-        fs, credentials = get_new_fs_and_credentials()
-        
+        fs, credentials = self._get_new_fs_and_credentials()
         try:
           user_token = fs.get_access_token(code)
           userinfo = UserInfo(user = user, token = user_token, secret = None, is_ready=False, is_authorized=True, last_checkin='', last_updated=datetime.now(), color_scheme='fire', level_max=int(constants.level_const), checkin_count=0, venue_count=0)
@@ -113,8 +116,7 @@ class AuthHandler(webapp.RequestHandler):
             raise err
         try:
           fetch_foursquare_data.update_user_info(userinfo)
-          fetch_foursquare_data.fetch_and_store_checkins(userinfo, limit=10)
-          taskqueue.add(url='/fetch_foursquare_data/all_for_user/%s' % userinfo.key())
+          fetch_foursquare_data.fetch_and_store_checkins_next(userinfo, limit=50)
         except foursquare.FoursquareRemoteException, err:
           if str(err).find('403 Forbidden') >= 0:
             pass # if a user tries to sign up while my app is blocked, then it currently just redirects to the signup page
@@ -125,7 +127,7 @@ class AuthHandler(webapp.RequestHandler):
           pass #TODO make this better, but I'd rather throw the user back to the main page to try again than show the user an error.
         self.redirect("/")
       else:
-        fs, credentials = get_new_fs_and_credentials()
+        fs, credentials = self._get_new_fs_and_credentials()
         logging.info(fs.get_authentication_url())
         self.redirect(fs.get_authentication_url())
     else:
@@ -239,9 +241,6 @@ class UserVenueWriter(webapp.RequestHandler):
       if userinfo:
           self.response.out.write(str(userinfo))
       usevenues = constants.provider.get_user_data(user=user)
-      if not uservenue.checkin_guid_list or len(uservenue.checkin_guid_list) is 0:
-        uservenue.checkin_guid_list = [str(checkin_id) for checkin_id in uservenue.checkin_list]
-        usevenue.put()
       template_data = { 'uservenues': usevenues}
       os_path = os.path.dirname(__file__)
       self.response.out.write(template.render(os.path.join(os_path, 'templates/uservenue_list.html'), template_data))
@@ -276,6 +275,7 @@ class ReadyInfoWriter(webapp.RequestHandler):
 
 def main():
   application = webapp.WSGIApplication([('/', IndexHandler),
+                                        ('/information', InformationHandler),
                                         ('/go_to_foursquare', AuthHandler),
                                         ('/authenticated', AuthHandler),
                                         ('/tile/.*', TileHandler),
