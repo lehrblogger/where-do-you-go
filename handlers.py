@@ -178,7 +178,6 @@ class TileHandler(webapp.RequestHandler):
       else:
         self.respondError("Invalid path")
         return
-
       start = datetime.now()
       try:
         new_tile = tile.GoogleTile(user, zoom, x, y)

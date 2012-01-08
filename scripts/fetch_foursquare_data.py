@@ -92,13 +92,12 @@ def fetch_and_store_checkins(userinfo, limit):
   return num_added, int(history['checkins']['count'])	
 
 def fetch_and_store_checkins_next(userinfo, limit=100):
-  num_added, num_received = fetch_and_store_checkins(userinfo)
+  num_added, num_received = fetch_and_store_checkins(userinfo, limit)
   logging.info("num_added = %d, num_received = %d" % (num_added, num_received))
   if num_added == 0:
     userinfo.is_ready = True
   else:
     taskqueue.add(url='/fetch_foursquare_data/next_for_user/%s' % userinfo.key())
-    
   userinfo.level_max = int(3 * constants.level_const)
   userinfo.put()
 
@@ -107,7 +106,7 @@ def update_user_info(userinfo):
   try:
     user_data = fs.users()
   except foursquarev2.FoursquareException, err:
-    if str(err).find('{"unauthorized":"TOKEN_EXPIRED"}') >= 0:
+    if str(err).find('{"unauthorized":"TOKEN_EXPIRED"}') >= 0 or str(err).find('OAuth token invalid or revoked') >= 0:
       userinfo.is_authorized = False
       userinfo.put()
       logging.warning("User %s has unauthorized with %s" % (userinfo.user, err))

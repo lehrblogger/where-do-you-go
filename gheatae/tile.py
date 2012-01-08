@@ -42,16 +42,20 @@ class BasicTile(object):
   def plot_image(self, points):
     space_level = self.__create_empty_space()
     rad = int(self.zoom * DOT_MULT)
+    lat_diff =  self.latlng_diff[0] * 256.
+    lng_diff = self.latlng_diff[1] * 256.
     start = datetime.now()
     for i, point in enumerate(points):
-      self.__merge_point_in_space(space_level, point, rad, self.latlng_diff[0] * 256., self.latlng_diff[1] * 256.)
+      self.__merge_point_in_space(space_level, point, rad, lat_diff, lng_diff)
       logging.warning('   point %d of %d, start at %s, done at %s' % (i, len(points), start, datetime.now()))
     return self.convert_image(space_level)
 
   def __merge_point_in_space(self, space_level, point, rad, lat_diff, lng_diff):
     weight = len(point.checkin_guid_list)
+    rad_exp = math.pow(weight, 0.25)
+    alpha_weight = MAX_ALPHA * weight
     twice_rad = rad * 2
-    y_off = int(math.ceil((-1 * self.northwest_ll[0] + point.location.lat) / lat_diff -rad))
+    y_off = int(math.ceil((-1 * self.northwest_ll[0] + point.location.lat) / lat_diff - rad))
     x_off = int(math.ceil((-1 * self.northwest_ll[1] + point.location.lon) / lng_diff - rad))
     for y in range(y_off, y_off + twice_rad):
       if y < 0 or y >= SIZE:
@@ -64,7 +68,7 @@ class BasicTile(object):
         pt_rad = math.sqrt(y_adj + x_adj)
         if pt_rad > rad:
           continue
-        space_level[y][x] += (MAX_ALPHA * math.pow((rad - pt_rad) / rad, math.pow(weight, 0.25)) * weight)
+        space_level[y][x] += (math.pow((rad - pt_rad) / rad, rad_exp) * alpha_weight)
         
   def scale_value(self, value):
     #ret_float = math.log(max((value + 50) / 50, 1), 1.01) + 30
@@ -103,6 +107,7 @@ class BasicTile(object):
 
 class CustomTile(BasicTile):
   def __init__(self, user, zoom, lat_north, lng_west, offset_x_px, offset_y_px):
+    logging.info("drawing new custom tile")
     self.zoom = zoom
     self.decay = 0.5
     #dot_radius = int(math.ceil(len(dot[self.zoom]) / 2))
