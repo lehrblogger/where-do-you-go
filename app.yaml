@@ -41,6 +41,10 @@ handlers:
   script: scripts/fetch_foursquare_data.py
   login: admin
 
+- url: /temp
+  script: scripts/temp.py
+  login: admin
+  
 - url: /static
   static_dir: static
 

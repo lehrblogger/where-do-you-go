@@ -1,27 +1,5 @@
 indexes:
 
-- kind: UserInfo
-  properties:
-  - name: is_authorized
-  - name: last_updated
-
-- kind: UserInfo # for oauth debugging queries
-  properties:
-  - name: is_authorized
-  - name: created
-
-- kind: UserInfo # for oauth debugging queries
-  properties:
-  - name: is_authorized
-  - name: created
-    direction: desc
-      
-- kind: UserInfo
-  properties:
-  - name: user
-  - name: created
-    direction: desc
-
 - kind: UserVenue
   properties:
   - name: location_geocells

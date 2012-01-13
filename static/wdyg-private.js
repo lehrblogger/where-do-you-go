@@ -39,6 +39,12 @@ function updateLevels(offset) {
   });
 }
 
+function resetSidebartoSigninState() {
+	$.get("/information", function(data) {
+  	$('#status_info').html('<span name="not_oauthed" id="oauth_span"><a href="/go_to_foursquare"><img src="static/signinwith-foursquare.png"></a></span>' + data);
+	});
+}
+
 $(document).ready(function() {
   $('#dimension_error').hide();
   $("#regenerate_status").hide();
@@ -60,21 +66,27 @@ $(document).ready(function() {
     $('#fetching_span').show();
     $('#delete_all_span').hide();
     is_ready_interval = setInterval(function() {
+			uncacher++;
       $.ajax({
         type: "GET",
-        url: "/user_is_ready",
+        url: "/user_is_ready/" + uncacher + "/",
         success: function(data){
           data_arr = data.split(',');
-          $('#checkin_count').html(data_arr[1] + ' checkins logged!');
-          if (data_arr[0] == 'True') {
+		  		$('#checkin_count').html(data_arr[2] + ' checkins logged!');
+		  		if (data_arr[0] == 'True') {
+            clearInterval(is_ready_interval);
+            resetSidebartoSigninState();
+            level_offset = 0;
+            uncacher++;
+            updateLevels(0);
+          } else if (data_arr[1] == 'True') {
             clearInterval(is_ready_interval);
             $('#fetching_span').hide();
             $('#delete_all_span').show();
             level_offset = 0;
             uncacher++;
             updateLevels(0);
-          }
-          else if (data == '') {
+          } else if (data == '') {
             clearInterval(is_ready_interval);
           }
         }
@@ -95,6 +107,11 @@ $(document).ready(function() {
     customUI.controls.smallzoomcontrol3d = true;
     customUI.controls.scalecontrol   = false;
     map.setUI(customUI);
+	  var mt = map.getMapTypes(); //http://groups.google.com/group/google-maps-api/browse_thread/thread/1fca64809be388a8
+	  for (var i=0; i<mt.length; i++) {
+	    mt[i].getMinimumResolution = function() {return 10;}; // note these must also be in constants.py
+	    mt[i].getMaximumResolution = function() {return 18;};
+	  }
 
     createHeatMap(map);
 
@@ -127,9 +144,7 @@ $(document).ready(function() {
       $("#regenerate").html("");
       resizeMapToWidthHeight(640, 640);
       $("#static_map").html("");
-			$.get("/information", function(data) {
-      	$('#status_info').html('<span name="not_oauthed" id="oauth_span"><a href="/go_to_foursquare"><img src="static/signinwith-foursquare.png"></a></span>' + data);
-			});
+			resetSidebartoSigninState();
     });
   });
 
@@ -202,10 +217,4 @@ $(document).ready(function() {
       });
     });
   });
-
-  var mt = map.getMapTypes(); //http://groups.google.com/group/google-maps-api/browse_thread/thread/1fca64809be388a8
-  for (var i=0; i<mt.length; i++) {
-    mt[i].getMinimumResolution = function() {return 10;}; // note these must also be in constants.py
-    mt[i].getMaximumResolution = function() {return 18;};
-  }
 });

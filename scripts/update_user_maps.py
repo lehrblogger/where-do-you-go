@@ -14,14 +14,22 @@ from datetime import datetime
 from gheatae import tile
 from models import MapImage, UserInfo
 
-def draw_static_tile(mapimage, zoom, northlat, westlng, offset_x_px, offset_y_px):
-  new_tile = tile.CustomTile(mapimage.user, zoom, northlat, westlng, offset_x_px, offset_y_px)
-  input_tuples = [(mapimage.img, 0, 0, 1.0, images.TOP_LEFT)]
-  input_tuples.append((new_tile.image_out(), offset_x_px, offset_y_px, 1.0, images.TOP_LEFT)) # http://code.google.com/appengine/docs/python/images/functions.html
-  img = images.composite(inputs=input_tuples, width=mapimage.width, height=mapimage.height, color=0, output_encoding=images.PNG) # redraw main image every time to show progress
-  mapimage.img = db.Blob(img)
-  mapimage.last_updated = datetime.now()
-  mapimage.put()
+def draw_static_tile(user, mapimage_key, zoom, northlat, westlng, offset_x_px, offset_y_px):
+  new_tile = tile.CustomTile(user, zoom, northlat, westlng, offset_x_px, offset_y_px)
+  def compose_and_save(key, tile, x, y): # this has to be done in a transaction - otherwise the different threads will overwrite each other's progress on the share mapimage
+    mapimage = db.get(key)
+    input_tuples = [(new_tile.image_out(), x, y, 1.0, images.TOP_LEFT)] # http://code.google.com/appengine/docs/python/images/functions.html
+    logging.warning('in the transaction')
+    if mapimage.img:
+      input_tuples.append((mapimage.img, 0, 0, 1.0, images.TOP_LEFT))
+    img = images.composite(inputs=input_tuples, width=mapimage.width, height=mapimage.height, color=0, output_encoding=images.PNG) # redraw main image every time to show progress
+    mapimage.img = db.Blob(img)
+    mapimage.last_updated = datetime.now()
+    mapimage.put()
+  try:
+    db.run_in_transaction(compose_and_save, mapimage_key, new_tile, offset_x_px, offset_y_px)
+  except err:
+    logging.error(err)
 
 # def update_map_image(user, zoom, width, height, northlat, westlng):
 #   input_tuples = []

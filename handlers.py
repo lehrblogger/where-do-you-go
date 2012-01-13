@@ -37,6 +37,11 @@ class IndexHandler(webapp.RequestHandler):
       'color_scheme': constants.default_color,
     }
     map_data = {
+      'citylat': constants.default_lat,
+      'citylng': constants.default_lng,
+      'zoom': constants.default_zoom,
+      'width': constants.default_dimension,
+      'height': constants.default_dimension,
       'domain': environ['HTTP_HOST'],
       'static_url': 'http://maps.google.com/maps/api/staticmap?center=40.7427050566%2C-73.9888000488&format=png&zoom=13&key=ABQIAAAAwA6oEsCLgzz6I150wm3ELBQO7aMTgd18mR6eRdj9blrVCeGU7BS14EnkGH_2LpNpZ8DJW0u7G5ocLQ&sensor=false&size=640x640',
       'mapimage_url': 'map/%s.png' % 'ag93aGVyZS1kby15b3UtZ29yEAsSCE1hcEltYWdlGM2LRgw',
@@ -44,16 +49,9 @@ class IndexHandler(webapp.RequestHandler):
     foursquare_is_happy = True
     user = users.get_current_user()
     if user:
-      map_data = {
-        'citylat': constants.default_lat,
-        'citylng': constants.default_lng,
-        'zoom': constants.default_zoom,
-        'width': constants.default_dimension,
-        'height': constants.default_dimension,
-      }
       welcome_data['user'] = user
       welcome_data['url'] = users.create_logout_url(self.request.uri)
-      userinfo = UserInfo.all().filter('user =', user).order('-created').get()
+      userinfo = UserInfo.all().filter('user =', user).get()
       if userinfo:
         if userinfo.is_authorized:
           try:
@@ -107,7 +105,7 @@ class AuthHandler(webapp.RequestHandler):
         fs, credentials = self._get_new_fs_and_credentials()
         try:
           user_token = fs.get_access_token(code)
-          userinfo = UserInfo(user = user, token = user_token, secret = None, is_ready=False, is_authorized=True, last_checkin='', last_updated=datetime.now(), color_scheme='fire', level_max=int(constants.level_const), checkin_count=0, venue_count=0)
+          userinfo = UserInfo(user = user, token = user_token, secret = None, is_ready=False, is_authorized=True)
         except DownloadError, err:
           if str(err).find('ApplicationError: 5') >= 0:
             pass # if something bad happens on OAuth, then it currently just redirects to the signup page
@@ -116,7 +114,7 @@ class AuthHandler(webapp.RequestHandler):
             raise err
         try:
           fetch_foursquare_data.update_user_info(userinfo)
-          fetch_foursquare_data.fetch_and_store_checkins_next(userinfo, limit=50)
+          fetch_foursquare_data.fetch_and_store_checkins_next(userinfo, limit=2)
         except foursquare.FoursquareRemoteException, err:
           if str(err).find('403 Forbidden') >= 0:
             pass # if a user tries to sign up while my app is blocked, then it currently just redirects to the signup page
@@ -128,7 +126,6 @@ class AuthHandler(webapp.RequestHandler):
         self.redirect("/")
       else:
         fs, credentials = self._get_new_fs_and_credentials()
-        logging.info(fs.get_authentication_url())
         self.redirect(fs.get_authentication_url())
     else:
       self.redirect(users.create_login_url(self.request.uri))
@@ -218,7 +215,7 @@ class PublicPageHandler(webapp.RequestHandler):
         'static_url': mapimage.static_url,
         'mapimage_url': 'map/%s.png' % mapimage.key(),
       }
-      userinfo = UserInfo.all().filter('user =', mapimage.user).order('-created').get()
+      userinfo = UserInfo.all().filter('user =', mapimage.user).get()
       if userinfo:
         welcome_data['real_name'] = userinfo.real_name
         welcome_data['photo_url'] = userinfo.photo_url
@@ -236,7 +233,7 @@ class UserVenueWriter(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
     if user:
-      userinfo = UserInfo.all().filter('user =', user).order('-created').get()
+      userinfo = UserInfo.all().filter('user =', user).get()
       if userinfo:
           self.response.out.write(str(userinfo))
       usevenues = constants.provider.get_user_data(user=user)
@@ -266,11 +263,11 @@ class ReadyInfoWriter(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
     if user:
-      userinfo = UserInfo.all().filter('user =', user).get() #.order('-created')
+      userinfo = UserInfo.all().filter('user =', user).get()
       if userinfo:
-          self.response.out.write(str(userinfo.is_ready) + ',' + str(userinfo.checkin_count))
-          return
-    self.response.out.write("")
+        self.response.out.write(str(userinfo.has_been_cleared) + ',' + str(userinfo.is_ready) + ',' + str(userinfo.checkin_count))
+        return
+    self.response.out.write('')
 
 def main():
   application = webapp.WSGIApplication([('/', IndexHandler),
@@ -281,7 +278,7 @@ def main():
                                         ('/map/.*', StaticMapHandler),
                                         ('/public/.*', PublicPageHandler),
                                         ('/static_map_html', StaticMapHtmlWriter),
-                                        ('/user_is_ready', ReadyInfoWriter),
+                                        ('/user_is_ready/.*', ReadyInfoWriter),
                                         ('/view_uservenues', UserVenueWriter)],
                                       debug=True)
   constants.provider = provider.DBProvider()

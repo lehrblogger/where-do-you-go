@@ -17,12 +17,12 @@ def get_new_fs_for_userinfo(userinfo):
 
 def fetch_and_store_checkins(userinfo, limit):
   num_added = 0
-  userinfo.valid_signature = True
   userinfo.is_authorized = True
+  logging.warning('in fetch_and_store_checkins for user %s' % userinfo.user)
   try:
     fs = get_new_fs_for_userinfo(userinfo)
     total_count = int(fs.users()['user']['checkins']['count'])
-    logging.info('COUNT: %s'%total_count)
+    logging.info('total checkin count for user %s: %d' % (userinfo.user, total_count))
     if userinfo.checkin_count >= total_count:
       return 0, 0
     to_skip = total_count - limit
@@ -32,15 +32,11 @@ def fetch_and_store_checkins(userinfo, limit):
       to_skip = 0
       limit = total_count - userinfo.checkin_count
     history = fs.users_checkins(limit=limit, offset=to_skip)
-    logging.info('SKIP: %s'%to_skip)
+    logging.info('number skipped for user %s: %d' % (userinfo.user, to_skip))
   except foursquarev2.FoursquareException, err:  
-    if str(err).find('SIGNATURE_INVALID') >= 0:
-      userinfo.valid_signature = False
-      logging.info("User %s is no longer authorized with SIGNATURE_INVALID" % userinfo.user)
-      userinfo.put()
-    elif str(err).find('TOKEN_EXPIRED') >= 0:
+    if str(err).find('SIGNATURE_INVALID') >= 0 or str(err).find('TOKEN_EXPIRED') >= 0:
       userinfo.is_authorized = False
-      logging.info("User %s is no longer authorized with TOKEN_EXPIRED" % userinfo.user)
+      logging.warning("User %s is no longer authorized with err: %s" % (userinfo.user, err))
       userinfo.put()
     else:
       logging.warning("History not fetched for %s with %s" % (userinfo.user, err))
@@ -49,7 +45,6 @@ def fetch_and_store_checkins(userinfo, limit):
     logging.warning("History not fetched for %s with %s" % (userinfo.user, err))
     return 0, 0
   try:
-    logging.info(history['checkins']['items'])
     if not 'checkins' in history:
       logging.error("no value for 'checkins' in history: " + str(history))
       userinfo.put()
@@ -71,21 +66,16 @@ def fetch_and_store_checkins(userinfo, limit):
             uservenue.update_location()
             uservenue.user = userinfo.user
             uservenue.checkin_guid_list = []
-          uservenue.last_checkin_at = datetime.fromtimestamp(checkin['createdAt'])
           uservenue.checkin_guid_list.append(str(checkin['id']))
           userinfo.checkin_count += 1
-          if userinfo.last_checkin_at is None or datetime.fromtimestamp(checkin['createdAt']) > userinfo.last_checkin_at: 
-            userinfo.last_checkin_at = datetime.fromtimestamp(checkin['createdAt']) # because the checkins are ordered with most recent first!
-          
-          def put_updated_uservenue_and_userinfo(uservenue, userinfo, num_added):
-            uservenue.put()
-            userinfo.put()
+          def put_updated_uservenue_and_userinfo(uservenue_param, userinfo_param, num_added):
+            uservenue_param.put()
+            userinfo_param.put()
             return num_added + 1
-          
           try:
             num_added = db.run_in_transaction(put_updated_uservenue_and_userinfo, uservenue, userinfo, num_added)
           except BadRequestError, err:
-            logging.warning("Database transaction error due to entity restrictions? %s" % err)
+            logging.warning("Database transaction error due to entity restrictions: %s" % err)
   except KeyError:
     logging.error("There was a KeyError when processing the response: " + str(history))
     raise
@@ -99,7 +89,9 @@ def fetch_and_store_checkins_next(userinfo, limit=100):
   else:
     taskqueue.add(url='/fetch_foursquare_data/next_for_user/%s' % userinfo.key())
   userinfo.level_max = int(3 * constants.level_const)
-  userinfo.put()
+  def put_ready_userinfo(userinfo_param):
+      userinfo_param.put()
+  db.run_in_transaction(put_ready_userinfo, userinfo)
 
 def update_user_info(userinfo):
   fs = get_new_fs_for_userinfo(userinfo)
@@ -146,7 +138,7 @@ def update_user_info(userinfo):
 def clear_old_uservenues():
   num_cleared = 0
   cutoff = datetime.now() - timedelta(days=7)   
-  userinfos = UserInfo.all().filter('last_updated <', cutoff).fetch(200)
+  userinfos = UserInfo.all().filter('has_been_cleared = ', False).filter('last_updated <', cutoff).fetch(200)
   try:
     for userinfo in userinfos:
       while True:
@@ -155,9 +147,9 @@ def clear_old_uservenues():
         if not uservenues: break
         db.delete(uservenues)
         num_cleared = num_cleared + len(uservenues)
-      # userinfo.last_checkin_str = str(userinfo.last_checkin)
-      # if userinfo.last_checkin:
-      #   delattr(userinfo, 'last_checkin')
+      userinfo.has_been_cleared = True
+      userinfo.checkin_count = 0
+      userinfo.venue_count = 0
       userinfo.last_updated = datetime.now()
       userinfo.put()
     logging.info("finished after deleting at least %d UserVenues" % (num_cleared))

@@ -11,12 +11,8 @@
   {% if userinfo %}
     <h4>
       <span id="checkin_count" class="span-5">{{ userinfo.checkin_count }} checkins logged!</span>
-      {% if userinfo.is_ready %}
-        <span id="delete_all_span" name="started_ready" class="span-3 last"><input type="submit" name="submit" class="button" id="delete_all_button" value="delete your data" /></span>
-      {% else %}
-        <span id="delete_all_span" name="" class="span-3 last"><input type="submit" name="submit" class="button" id="delete_all_button" value="delete your data" /></span>
-      {% endif %}
-        <span id="fetching_span" class="span-3 last">Fetching the rest...<img src='static/spinner-small.gif'/></span>
+      <span id="delete_all_span" name="{% if userinfo.is_ready %}started_ready{% endif %}" class="span-3 last"><input type="submit" name="submit" class="button" id="delete_all_button" value="delete your data" /></span>
+      <span id="fetching_span" class="span-3 last">Fetching the rest...<img src='static/spinner-small.gif'/></span>
     </h4>
   {% else %}
     <span name="not_oauthed" id="oauth_span"><a href="/go_to_foursquare"><img src="static/signinwith-foursquare.png"></a></span>

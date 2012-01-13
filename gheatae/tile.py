@@ -19,18 +19,16 @@ MAX_ALPHA = 100
 
 class BasicTile(object):
   def __init__(self, user, lat_north, lng_west, range_lat, range_lng):
-    userinfo = UserInfo.all().filter('user =', user).order('-created').get()
+    userinfo = UserInfo.all().filter('user =', user).get()
     if userinfo:
       self.level_max = userinfo.level_max
       self.color_scheme = color_scheme.color_schemes[userinfo.color_scheme]
     else:
       self.level_max = int(constants.level_const)
       self.color_scheme = color_scheme.color_schemes[constants.default_color]
-
     self.cache_levels = []
     for i in range(self.level_max - 1, -1, -1):
       self.cache_levels.append(int(((-(pow(float(i) - self.level_max, 2))/self.level_max) + self.level_max) / self.level_max * 255))
-
     if not constants.provider:
       constants.provider = provider.DBProvider()
     uservenues = constants.provider.get_user_data(user, lat_north, lng_west, range_lat, range_lng)

@@ -25,7 +25,7 @@ if user:
     for uservenue in visible_uservenues:
       visible_checkin_count += len(uservenue.checkin_guid_list)
 
-    userinfo = UserInfo.all().filter('user =', user).order('-created').get()
+    userinfo = UserInfo.all().filter('user =', user).get()
     level_offset = level_offset * 15
     #logging.info("level_offset=%d  visible_checkin_count=%d  len(visible_uservenues)=%d" % (level_offset, visible_checkin_count, len(visible_uservenues)))
     userinfo.level_max = int(float(visible_checkin_count) / float(max(len(visible_uservenues), 1)) * (constants.level_const + level_offset))

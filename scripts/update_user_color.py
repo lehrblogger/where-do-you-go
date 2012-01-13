@@ -8,7 +8,7 @@ if user:
   try:
     assert path.count('/') == 2, "%d /'s" % path.count('/')
     foo, bar, color_scheme = path.split('/')
-    userinfo = UserInfo.all().filter('user =', user).order('-created').get()
+    userinfo = UserInfo.all().filter('user =', user).get()
     userinfo.color_scheme = color_scheme
     userinfo.put()
   except AssertionError, err:
