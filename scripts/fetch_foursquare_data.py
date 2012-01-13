@@ -86,12 +86,12 @@ def fetch_and_store_checkins_next(userinfo, limit=100):
   logging.info("num_added = %d, num_received = %d" % (num_added, num_received))
   if num_added == 0:
     userinfo.is_ready = True
+    userinfo.put()
   else:
     taskqueue.add(url='/fetch_foursquare_data/next_for_user/%s' % userinfo.key())
-  userinfo.level_max = int(3 * constants.level_const)
-  def put_ready_userinfo(userinfo_param):
-      userinfo_param.put()
-  db.run_in_transaction(put_ready_userinfo, userinfo)
+  # def put_ready_userinfo(userinfo_param):
+  #     userinfo_param.put()
+  # db.run_in_transaction(put_ready_userinfo, userinfo)
 
 def update_user_info(userinfo):
   fs = get_new_fs_for_userinfo(userinfo)
@@ -171,5 +171,6 @@ if __name__ == '__main__':
     userinfo = db.get(userinfo_key)
     if userinfo:
       fetch_and_store_checkins_next(userinfo)
+      logging.info('venues fetched for user=%s' % UserInfo.all().filter('user =', userinfo.user).get()) #DEL
     else: 
       logging.warning('No userinfo found for key %s' % userinfo_key)

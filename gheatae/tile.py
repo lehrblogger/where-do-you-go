@@ -26,9 +26,11 @@ class BasicTile(object):
     else:
       self.level_max = int(constants.level_const)
       self.color_scheme = color_scheme.color_schemes[constants.default_color]
+    
     self.cache_levels = []
     for i in range(self.level_max - 1, -1, -1):
       self.cache_levels.append(int(((-(pow(float(i) - self.level_max, 2))/self.level_max) + self.level_max) / self.level_max * 255))
+    
     if not constants.provider:
       constants.provider = provider.DBProvider()
     uservenues = constants.provider.get_user_data(user, lat_north, lng_west, range_lat, range_lng)
@@ -40,21 +42,19 @@ class BasicTile(object):
   def plot_image(self, points):
     space_level = self.__create_empty_space()
     rad = int(self.zoom * DOT_MULT)
-    lat_diff =  self.latlng_diff[0] * 256.
-    lng_diff = self.latlng_diff[1] * 256.
     start = datetime.now()
     for i, point in enumerate(points):
-      self.__merge_point_in_space(space_level, point, rad, lat_diff, lng_diff)
-      logging.warning('   point %d of %d, start at %s, done at %s' % (i, len(points), start, datetime.now()))
+      self.__merge_point_in_space(space_level, point, rad)
+      logging.debug('   point %d of %d, start at %s, done at %s' % (i, len(points), start, datetime.now()))
     return self.convert_image(space_level)
 
-  def __merge_point_in_space(self, space_level, point, rad, lat_diff, lng_diff):
+  def __merge_point_in_space(self, space_level, point, rad):
     weight = len(point.checkin_guid_list)
     rad_exp = math.pow(weight, 0.25)
     alpha_weight = MAX_ALPHA * weight
     twice_rad = rad * 2
-    y_off = int(math.ceil((-1 * self.northwest_ll[0] + point.location.lat) / lat_diff - rad))
-    x_off = int(math.ceil((-1 * self.northwest_ll[1] + point.location.lon) / lng_diff - rad))
+    y_off = int(math.ceil((-1 * self.northwest_ll[0] + point.location.lat) / self.latlng_diff[0] * 256. - rad))
+    x_off = int(math.ceil((-1 * self.northwest_ll[1] + point.location.lon) / self.latlng_diff[1] * 256. - rad))
     for y in range(y_off, y_off + twice_rad):
       if y < 0 or y >= SIZE:
         continue
