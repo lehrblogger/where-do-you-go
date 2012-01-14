@@ -26,11 +26,9 @@ class BasicTile(object):
     else:
       self.level_max = int(constants.level_const)
       self.color_scheme = color_scheme.color_schemes[constants.default_color]
-    
     self.cache_levels = []
     for i in range(self.level_max - 1, -1, -1):
       self.cache_levels.append(int(((-(pow(float(i) - self.level_max, 2))/self.level_max) + self.level_max) / self.level_max * 255))
-    
     if not constants.provider:
       constants.provider = provider.DBProvider()
     uservenues = constants.provider.get_user_data(user, lat_north, lng_west, range_lat, range_lng)
@@ -45,7 +43,7 @@ class BasicTile(object):
     start = datetime.now()
     for i, point in enumerate(points):
       self.__merge_point_in_space(space_level, point, rad)
-      logging.debug('   point %d of %d, start at %s, done at %s' % (i, len(points), start, datetime.now()))
+      # logging.debug('   point %d of %d, start at %s, done at %s' % (i, len(points), start, datetime.now()))
     return self.convert_image(space_level)
 
   def __merge_point_in_space(self, space_level, point, rad):
@@ -105,7 +103,6 @@ class BasicTile(object):
 
 class CustomTile(BasicTile):
   def __init__(self, user, zoom, lat_north, lng_west, offset_x_px, offset_y_px):
-    logging.info("drawing new custom tile")
     self.zoom = zoom
     self.decay = 0.5
     #dot_radius = int(math.ceil(len(dot[self.zoom]) / 2))

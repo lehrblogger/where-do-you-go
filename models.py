@@ -44,7 +44,6 @@ class MapImage(db.Model):
   zoom = db.IntegerProperty()
   width = db.IntegerProperty()
   height = db.IntegerProperty()
-  input_imgs = db.ListProperty(db.Blob, default=[])
   img = db.BlobProperty()
   static_url = db.StringProperty()
   update_count = db.IntegerProperty(default=0)

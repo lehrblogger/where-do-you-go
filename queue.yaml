@@ -1,4 +1,9 @@
 queue:
-- name: default
-  rate: 6/m
-  bucket_size: 20
+
+- name: checkins
+  rate: 60/m
+  bucket_size: 30
+  
+- name: tiles
+  rate: 120/m
+  bucket_size: 60

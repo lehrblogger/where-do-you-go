@@ -85,13 +85,12 @@ def fetch_and_store_checkins_next(userinfo, limit=100):
   num_added, num_received = fetch_and_store_checkins(userinfo, limit)
   logging.info("num_added = %d, num_received = %d" % (num_added, num_received))
   if num_added == 0:
-    userinfo.is_ready = True
-    userinfo.put()
+    def put_ready_userinfo(userinfo_param):
+      userinfo_param.is_ready = True
+      userinfo_param.put()
+    db.run_in_transaction(put_ready_userinfo, userinfo)
   else:
-    taskqueue.add(url='/fetch_foursquare_data/next_for_user/%s' % userinfo.key())
-  # def put_ready_userinfo(userinfo_param):
-  #     userinfo_param.put()
-  # db.run_in_transaction(put_ready_userinfo, userinfo)
+    taskqueue.add(queue_name='checkins', url='/fetch_foursquare_data/next_for_user/%s' % userinfo.key())
 
 def update_user_info(userinfo):
   fs = get_new_fs_for_userinfo(userinfo)

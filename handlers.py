@@ -46,21 +46,12 @@ class IndexHandler(webapp.RequestHandler):
       'static_url': 'http://maps.google.com/maps/api/staticmap?center=40.7427050566%2C-73.9888000488&format=png&zoom=13&key=ABQIAAAAwA6oEsCLgzz6I150wm3ELBQO7aMTgd18mR6eRdj9blrVCeGU7BS14EnkGH_2LpNpZ8DJW0u7G5ocLQ&sensor=false&size=640x640',
       'mapimage_url': 'map/%s.png' % 'ag93aGVyZS1kby15b3UtZ29yEAsSCE1hcEltYWdlGM2LRgw',
     }
-    foursquare_is_happy = True
     user = users.get_current_user()
     if user:
       welcome_data['user'] = user
       welcome_data['url'] = users.create_logout_url(self.request.uri)
       userinfo = UserInfo.all().filter('user =', user).get()
       if userinfo:
-        if userinfo.is_authorized:
-          try:
-            fetch_foursquare_data.update_user_info(userinfo)
-          except foursquare.FoursquareRemoteException, err:
-            if str(err).find('403 Forbidden') >= 0:
-              foursquare_is_happy = False
-            else:
-              raise err
         welcome_data['userinfo'] = userinfo
         welcome_data['real_name'] = userinfo.real_name
         welcome_data['photo_url'] = userinfo.photo_url
@@ -71,9 +62,7 @@ class IndexHandler(webapp.RequestHandler):
     os_path = os.path.dirname(__file__)
     self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), {'key': constants.get_google_maps_apikey()}))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/private_welcome.html'), welcome_data))
-    if not foursquare_is_happy:
-      self.response.out.write(template.render(os.path.join(os_path, 'templates/private_forbidden.html'), None))
-    elif user and userinfo:
+    if user and userinfo:
       if userinfo.is_authorized:
         self.response.out.write(template.render(os.path.join(os_path, 'templates/private_sidebar.html'), sidebar_data))
       else:
@@ -114,7 +103,7 @@ class AuthHandler(webapp.RequestHandler):
             raise err
         try:
           fetch_foursquare_data.update_user_info(userinfo)
-          fetch_foursquare_data.fetch_and_store_checkins_next(userinfo, limit=2)
+          fetch_foursquare_data.fetch_and_store_checkins_next(userinfo, limit=50)
         except foursquare.FoursquareRemoteException, err:
           if str(err).find('403 Forbidden') >= 0:
             pass # if a user tries to sign up while my app is blocked, then it currently just redirects to the signup page

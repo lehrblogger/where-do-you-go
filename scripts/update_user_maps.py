@@ -16,29 +16,16 @@ from models import MapImage, UserInfo
 
 def draw_static_tile(user, mapimage_key, zoom, northlat, westlng, offset_x_px, offset_y_px):
   new_tile = tile.CustomTile(user, zoom, northlat, westlng, offset_x_px, offset_y_px)
-  def compose_and_save(key, tile, x, y): # this has to be done in a transaction - otherwise the different threads will overwrite each other's progress on the share mapimage
+  def compose_and_save(key, tile, x, y): # this has to be done in a transaction - otherwise the different threads will overwrite each other's progress on the shared mapimage
     mapimage = db.get(key)
-    input_tuples = [(new_tile.image_out(), x, y, 1.0, images.TOP_LEFT)] # http://code.google.com/appengine/docs/python/images/functions.html
-    logging.warning('in the transaction')
+    input_tuples = [(tile.image_out(), x, y, 1.0, images.TOP_LEFT)]
     if mapimage.img:
       input_tuples.append((mapimage.img, 0, 0, 1.0, images.TOP_LEFT))
     img = images.composite(inputs=input_tuples, width=mapimage.width, height=mapimage.height, color=0, output_encoding=images.PNG) # redraw main image every time to show progress
     mapimage.img = db.Blob(img)
     mapimage.last_updated = datetime.now()
     mapimage.put()
-  try:
-    db.run_in_transaction(compose_and_save, mapimage_key, new_tile, offset_x_px, offset_y_px)
-  except err:
-    logging.error(err)
-
-# def update_map_image(user, zoom, width, height, northlat, westlng):
-#   input_tuples = []
-#   for offset_x_px in range (0, width, 256):
-#     for offset_y_px in range (0, height, 256):
-#       new_tile = tile.CustomTile(user, int(zoom), northlat, westlng, offset_x_px, offset_y_px)
-#       input_tuples.append() # http://code.google.com/appengine/docs/python/images/functions.html
-#   img = images.composite(inputs=input_tuples, width=width, height=height, color=0, output_encoding=images.PNG)
-#   return img
+  db.run_in_transaction(compose_and_save, mapimage_key, new_tile, offset_x_px, offset_y_px)
 
 def generate_static_map(user, widthxheight, zoom, centerpoint, northwest):
   try:
@@ -74,36 +61,30 @@ def generate_static_map(user, widthxheight, zoom, centerpoint, northwest):
     mapimage.height     = int(height)
     mapimage.width      = int(width)
     mapimage.static_url = "http://maps.google.com/maps/api/staticmap?" + urllib.urlencode(google_data)
-    mapimage.input_tuples = [];
     mapimage.put()
     for offset_x_px in range (0, mapimage.width, 256):
       for offset_y_px in range (0, mapimage.height, 256):
-        taskqueue.add(url='/draw_static_tile/%s/%d/%d/%d/%d/%d' % (mapimage.key(), mapimage.zoom, mapimage.northlat, mapimage.westlng, offset_x_px, offset_y_px))
+        taskqueue.add(queue_name='tiles', url='/draw_static_tile/%s/%d/%f/%f/%d/%d' % (mapimage.key(), mapimage.zoom, mapimage.northlat, mapimage.westlng, offset_x_px, offset_y_px))
   except DeadlineExceededError, err:    
     logging.error("Ran out of time before creating a map! %s" % err)
 
 if __name__ == '__main__':
   fragments = environ['PATH_INFO'].split('/')
-  logging.warning(fragments)
   fragments.pop(0)
   func = fragments.pop(0)
   user = users.get_current_user()
   try:
     if user and func == 'generate_static_map':
-      logging.warning('generate_static_map')
-      logging.warning(fragments)
       assert len(fragments) == 4, "fragments should have 4 elements %s" % str(fragments)
       widthxheight, zoom, centerpoint, northwest = fragments
       generate_static_map(user, widthxheight, zoom, centerpoint, northwest)
     elif func == 'draw_static_tile':
-      logging.warning('draw_static_tile')
-      logging.warning(fragments)
       mapimage_key = fragments.pop(0)
       mapimage = db.get(mapimage_key)
       if mapimage:
         assert len(fragments) == 5, "fragments should have 5 elements %s" % str(fragments)
         zoom, northlat, westlng, offset_x_px, offset_y_px = fragments
-        draw_static_tile(mapimage, int(zoom), float(northlat), float(westlng), int(offset_x_px), int(offset_y_px))
+        draw_static_tile(mapimage.user, mapimage_key, int(zoom), float(northlat), float(westlng), int(offset_x_px), int(offset_y_px))
       else: 
         logging.warning('No mapimage found for key %s' % mapimage_key)
   except AssertionError, err:
