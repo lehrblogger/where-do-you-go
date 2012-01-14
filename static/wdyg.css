@@ -22,6 +22,10 @@ h2 {
 #left-lower, #static_map_div, #status_info {
   padding-top: 2em;
 }
+#regenerate label {
+	display: block;
+	padding-left: 4px;
+}
 #static_map_div, #static_map_pub {
   width: 640px;
   background-repeat: no-repeat;

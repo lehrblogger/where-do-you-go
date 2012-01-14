@@ -23,6 +23,7 @@ def draw_static_tile(user, mapimage_key, zoom, northlat, westlng, offset_x_px, o
       input_tuples.append((mapimage.img, 0, 0, 1.0, images.TOP_LEFT))
     img = images.composite(inputs=input_tuples, width=mapimage.width, height=mapimage.height, color=0, output_encoding=images.PNG) # redraw main image every time to show progress
     mapimage.img = db.Blob(img)
+    mapimage.tiles_remaining -= 1
     mapimage.last_updated = datetime.now()
     mapimage.put()
   db.run_in_transaction_custom_retries(10, compose_and_save, mapimage_key, new_tile, offset_x_px, offset_y_px)
@@ -57,6 +58,7 @@ def generate_static_map(user, widthxheight, zoom, centerpoint, northwest):
       mapimage              = MapImage()
       mapimage.user         = user
     def reset_map_image(mapimage_param, centerlat_param, centerlng_param, northlat_param, westlng_param, zoom_param, height_param, width_param, google_data_param):
+      mapimage_param.tiles_remaining = len(range(0, width_param, 256)) * len(range(0, height_param, 256))
       mapimage_param.centerlat  = centerlat_param
       mapimage_param.centerlng  = centerlng_param
       mapimage_param.northlat   = northlat_param
@@ -68,8 +70,8 @@ def generate_static_map(user, widthxheight, zoom, centerpoint, northwest):
       mapimage_param.img = None
       mapimage_param.put()
     db.run_in_transaction(reset_map_image, mapimage, centerlat, centerlng, northlat, westlng, zoom, height, width, google_data)
-    for offset_x_px in range (0, width, 256):
-      for offset_y_px in range (0, height, 256):
+    for offset_x_px in range(0, width, 256):
+      for offset_y_px in range(0, height, 256):
         taskqueue.add(queue_name='tiles', url='/draw_static_tile/%s/%d/%f/%f/%d/%d' % (mapimage.key(), zoom, northlat, westlng, offset_x_px, offset_y_px))
   except DeadlineExceededError, err:    
     logging.error("Ran out of time before creating a map! %s" % err)

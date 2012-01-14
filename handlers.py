@@ -236,7 +236,7 @@ class StaticMapHtmlWriter(webapp.RequestHandler):
       else:
         self.response.out.write("")
 
-class ReadyInfoWriter(webapp.RequestHandler):
+class UserReadyEndpoint(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
     if user:
@@ -244,18 +244,29 @@ class ReadyInfoWriter(webapp.RequestHandler):
       if userinfo:
         self.response.out.write(str(userinfo.has_been_cleared) + ',' + str(userinfo.is_ready) + ',' + str(userinfo.checkin_count))
         return
-    self.response.out.write('')
+    self.response.out.write('error')
+
+class MapDoneEndpoint(webapp.RequestHandler):
+  def get(self):
+    user = users.get_current_user()
+    if user:
+      mapimage = MapImage.all().filter('user =', user).get()
+      if mapimage:
+        self.response.out.write(str(mapimage.tiles_remaining == 0))
+        return
+    self.response.out.write('error')
 
 def main():
   application = webapp.WSGIApplication([('/', IndexHandler),
-                                        ('/information', InformationWriter),
                                         ('/go_to_foursquare', AuthHandler),
                                         ('/authenticated', AuthHandler),
                                         ('/tile/.*', TileHandler),
                                         ('/map/.*', StaticMapHandler),
                                         ('/public/.*', PublicPageHandler),
+                                        ('/information', InformationWriter),
                                         ('/static_map_html', StaticMapHtmlWriter),
-                                        ('/user_is_ready/.*', ReadyInfoWriter)],
+                                        ('/user_is_ready/.*', UserReadyEndpoint),
+                                        ('/map_is_done/', MapDoneEndpoint)],
                                       debug=True)
   constants.provider = provider.DBProvider()
   wsgiref.handlers.CGIHandler().run(application)

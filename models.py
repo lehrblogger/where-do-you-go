@@ -37,6 +37,7 @@ class UserVenue(GeoModel):
 class MapImage(db.Model):
   last_updated = db.DateTimeProperty(auto_now_add=True)
   user = db.UserProperty()
+  tiles_remaining = db.IntegerProperty(default=0)
   centerlat = db.FloatProperty()
   centerlng = db.FloatProperty()
   northlat = db.FloatProperty()

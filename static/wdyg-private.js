@@ -3,7 +3,8 @@ var tile_timeout;
 var geocoder;
 var level_offset = 0;
 var uncacher = 0;
-var is_ready_interval;
+var user_is_ready_interval;
+var map_is_done_interval;
 
 function redrawTiles() {
   var myCopyright = new GCopyrightCollection("© ");
@@ -73,7 +74,7 @@ $(document).ready(function() {
   } else {
     $('#fetching_span').show();
     $('#delete_all_span').hide();
-    is_ready_interval = setInterval(function() {
+    user_is_ready_interval = setInterval(function() {
 			uncacher++;
       $.ajax({
         type: "GET",
@@ -82,20 +83,20 @@ $(document).ready(function() {
           data_arr = data.split(',');
 		  		$('#checkin_count').html(data_arr[2] + ' checkins logged!');
 		  		if (data_arr[0] == 'True') {
-            clearInterval(is_ready_interval);
+            clearInterval(user_is_ready_interval);
             resetSidebarToSigninState();
             level_offset = 0;
             uncacher++;
             updateLevels(0);
           } else if (data_arr[1] == 'True') {
-            clearInterval(is_ready_interval);
+            clearInterval(user_is_ready_interval);
             $('#fetching_span').hide();
             $('#delete_all_span').show();
             level_offset = 0;
             uncacher++;
             updateLevels(0);
-          } else if (data == '') {
-            clearInterval(is_ready_interval);
+          } else if (data == 'error') {
+            clearInterval(user_is_ready_interval);
           }
         }
       });
@@ -222,11 +223,24 @@ $(document).ready(function() {
     $("#regenerate_button").hide();
     $("#regenerate_status").show();
     $.get("generate_static_map/" + size.width + "x" + size.height + "/" + zoom + "/" + center_lat + "," + center_lng + "/" + north + "," + west, function() {
-      $.get("static_map_html", function(data){
-        $("#static_map").html(data);
-        $("#delete_map_button").show();
-        $("#regenerate_button").show();
-        $("#regenerate_status").hide();
+      $.get("static_map_html", function(html_data){
+      	$("#delete_map_button").show();
+        $("#static_map").html(html_data);
+				var img = $("#static_map_div img");
+				map_is_done_interval = setInterval(function() {
+				  $.ajax({
+				    type: "GET",
+				    url: "/map_is_done/",
+				    success: function(done_data){
+							img.attr('src', img.attr('src'));
+							if (done_data == 'True') {
+				        clearInterval(map_is_done_interval);
+				        $("#regenerate_button").show();
+				        $("#regenerate_status").hide();
+				      }
+				    }
+				  });
+				}, 3000);
       });
     });
   });
