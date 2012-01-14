@@ -1,20 +1,28 @@
 var map;
+var tile_timeout;
 var geocoder;
 var level_offset = 0;
 var uncacher = 0;
 var is_ready_interval;
 
-function createHeatMap(map) {
+function redrawTiles() {
   var myCopyright = new GCopyrightCollection("© ");
   myCopyright.addCopyright(new GCopyright('', new GLatLngBounds(new GLatLng(-90,-180), new GLatLng(90,180)), 0,''));
 
   var tilelayer = new GTileLayer(myCopyright);
-  tilelayer.getTileUrl = function(point, zoom) { return "tile/" + $("#color_select").val() + uncacher + "/" + zoom + "/" + point.y + "," + point.x +".png"; };
+  tilelayer.getTileUrl = function(point, zoom) { 
+		console.log("tile/" + $("#color_select").val() + uncacher + "/" + zoom + "/" + point.y + "," + point.x +".png");
+		return "tile/" + $("#color_select").val() + uncacher + "/" + zoom + "/" + point.y + "," + point.x +".png";
+	};
   tilelayer.isPng = function() { return true; };
   tilelayer.getOpacity = function() { return 1.0; };
 
   var tilelayeroverlay = new GTileLayerOverlay(tilelayer);
   map.addOverlay(tilelayeroverlay);
+}
+function createHeatMap(timeout) {
+	clearTimeout(tile_timeout);
+	tile_timeout = setTimeout('redrawTiles();', timeout);
 }
 
 function resizeMapToWidthHeight(width, height) {
@@ -35,11 +43,11 @@ function updateLevels(offset) {
   map.clearOverlays();
   level_offset += offset;
   $.get("/update_user_level/" + level_offset + "/" + north + "," + west + "/" + south + "," + east, function(){
-    createHeatMap(map);
+    createHeatMap(500);
   });
 }
 
-function resetSidebartoSigninState() {
+function resetSidebarToSigninState() {
 	$.get("/information", function(data) {
   	$('#status_info').html('<span name="not_oauthed" id="oauth_span"><a href="/go_to_foursquare"><img src="static/signinwith-foursquare.png"></a></span>' + data);
 	});
@@ -75,7 +83,7 @@ $(document).ready(function() {
 		  		$('#checkin_count').html(data_arr[2] + ' checkins logged!');
 		  		if (data_arr[0] == 'True') {
             clearInterval(is_ready_interval);
-            resetSidebartoSigninState();
+            resetSidebarToSigninState();
             level_offset = 0;
             uncacher++;
             updateLevels(0);
@@ -97,7 +105,12 @@ $(document).ready(function() {
   if (GBrowserIsCompatible() && is_logged_in) {
     map = new GMap2(document.getElementById("map_canvas"));
     map.setCenter(new GLatLng(global_centerlat, global_centerlng), global_zoom);
-
+		
+		GEvent.addListener(map, "zoomend", function(oldLevel, newLevel) {
+			map.clearOverlays();
+			createHeatMap(1000);
+		});
+		
     var customUI = map.getDefaultUI();
     customUI.maptypes.satellite  = false;
     customUI.maptypes.hybrid  = false;
@@ -113,7 +126,7 @@ $(document).ready(function() {
 	    mt[i].getMaximumResolution = function() {return 18;};
 	  }
 
-    createHeatMap(map);
+    createHeatMap();
 
     geocoder = new GClientGeocoder();
   }
@@ -144,7 +157,7 @@ $(document).ready(function() {
       $("#regenerate").html("");
       resizeMapToWidthHeight(640, 640);
       $("#static_map").html("");
-			resetSidebartoSigninState();
+			resetSidebarToSigninState();
     });
   });
 
@@ -160,7 +173,7 @@ $(document).ready(function() {
   $("#color_select").change(function() {
     map.clearOverlays();
     $.get("/update_user_color/" + $("#color_select").val(), function(){
-      createHeatMap(map);
+      createHeatMap(0);
     });
   });
 
