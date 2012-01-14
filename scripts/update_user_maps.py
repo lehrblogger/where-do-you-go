@@ -25,17 +25,21 @@ def draw_static_tile(user, mapimage_key, zoom, northlat, westlng, offset_x_px, o
     mapimage.img = db.Blob(img)
     mapimage.last_updated = datetime.now()
     mapimage.put()
-  db.run_in_transaction(compose_and_save, mapimage_key, new_tile, offset_x_px, offset_y_px)
+  db.run_in_transaction_custom_retries(10, compose_and_save, mapimage_key, new_tile, offset_x_px, offset_y_px)
 
 def generate_static_map(user, widthxheight, zoom, centerpoint, northwest):
   try:
     assert widthxheight.count('x') == 1, "%d x's" % centerpoint.count('x')
     width, height = widthxheight.split('x')
+    width, height = int(width), int(height)
     assert zoom.isdigit(), "not digits"
+    zoom = int(zoom)
     assert centerpoint.count(',') == 1, "%d ,'s" % centerpoint.count(',')
     centerlat, centerlng = centerpoint.split(',')
+    centerlat, centerlng = float(centerlat), float(centerlng)
     assert northwest.count(',') == 1, "%d ,'s" % northwest.count(',')
     northlat, westlng = northwest.split(',')
+    northlat, westlng = float(northlat), float(westlng)
   except AssertionError, err:
     logging.error(err.args[0])
     return
@@ -49,24 +53,24 @@ def generate_static_map(user, widthxheight, zoom, centerpoint, northwest):
       'format':'png',
     }
     mapimage = MapImage.all().filter('user =', user).get()
-    def reset_map_image(mapimage_param, user_param, centerlat_param, centerlng_param, northlat_param, westlng_param, zoom_param, height_param, width_param, google_data_param):
-      if not mapimage:
-        mapimage_param              = MapImage()
-        mapimage_param.user         = user_param
-      mapimage_param.centerlat  = float(centerlat_param)
-      mapimage_param.centerlng  = float(centerlng_param)
-      mapimage_param.northlat   = float(northlat_param)
-      mapimage_param.westlng    = float(westlng_param)
-      mapimage_param.zoom       = int(zoom_param)
-      mapimage_param.height     = int(height_param)
-      mapimage_param.width      = int(width_param)
+    if not mapimage:
+      mapimage              = MapImage()
+      mapimage.user         = user
+    def reset_map_image(mapimage_param, centerlat_param, centerlng_param, northlat_param, westlng_param, zoom_param, height_param, width_param, google_data_param):
+      mapimage_param.centerlat  = centerlat_param
+      mapimage_param.centerlng  = centerlng_param
+      mapimage_param.northlat   = northlat_param
+      mapimage_param.westlng    = westlng_param
+      mapimage_param.zoom       = zoom_param
+      mapimage_param.height     = height_param
+      mapimage_param.width      = width_param
       mapimage_param.static_url = "http://maps.google.com/maps/api/staticmap?" + urllib.urlencode(google_data_param)
       mapimage_param.img = None
       mapimage_param.put()
-    db.run_in_transaction(reset_map_image, mapimage, user, centerlat, centerlng, northlat, westlng, zoom, height, width, google_data)
-    for offset_x_px in range (0, mapimage.width, 256):
-      for offset_y_px in range (0, mapimage.height, 256):
-        taskqueue.add(queue_name='tiles', url='/draw_static_tile/%s/%d/%f/%f/%d/%d' % (mapimage.key(), mapimage.zoom, mapimage.northlat, mapimage.westlng, offset_x_px, offset_y_px))
+    db.run_in_transaction(reset_map_image, mapimage, centerlat, centerlng, northlat, westlng, zoom, height, width, google_data)
+    for offset_x_px in range (0, width, 256):
+      for offset_y_px in range (0, height, 256):
+        taskqueue.add(queue_name='tiles', url='/draw_static_tile/%s/%d/%f/%f/%d/%d' % (mapimage.key(), zoom, northlat, westlng, offset_x_px, offset_y_px))
   except DeadlineExceededError, err:    
     logging.error("Ran out of time before creating a map! %s" % err)
 
