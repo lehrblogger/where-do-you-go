@@ -13,7 +13,6 @@ from os import environ
 import urllib
 import logging
 import time
-import oauth
 import foursquarev2 as foursquare
 import constants
 import time
@@ -72,7 +71,7 @@ class IndexHandler(webapp.RequestHandler):
     self.response.out.write(template.render(os.path.join(os_path, 'templates/private_map.html'), map_data))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/all_footer.html'), None))
 
-class InformationHandler(webapp.RequestHandler):
+class InformationWriter(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
     os_path = os.path.dirname(__file__)
@@ -218,17 +217,6 @@ class PublicPageHandler(webapp.RequestHandler):
     else:
       self.redirect("/")
 
-class UserVenueWriter(webapp.RequestHandler):
-  def get(self):
-    user = users.get_current_user()
-    if user:
-      userinfo = UserInfo.all().filter('user =', user).get()
-      if userinfo:
-          self.response.out.write(str(userinfo))
-      usevenues = constants.provider.get_user_data(user=user)
-      template_data = { 'uservenues': usevenues}
-      os_path = os.path.dirname(__file__)
-      self.response.out.write(template.render(os.path.join(os_path, 'templates/uservenue_list.html'), template_data))
 
 class StaticMapHtmlWriter(webapp.RequestHandler):
   def get(self):
@@ -260,15 +248,14 @@ class ReadyInfoWriter(webapp.RequestHandler):
 
 def main():
   application = webapp.WSGIApplication([('/', IndexHandler),
-                                        ('/information', InformationHandler),
+                                        ('/information', InformationWriter),
                                         ('/go_to_foursquare', AuthHandler),
                                         ('/authenticated', AuthHandler),
                                         ('/tile/.*', TileHandler),
                                         ('/map/.*', StaticMapHandler),
                                         ('/public/.*', PublicPageHandler),
                                         ('/static_map_html', StaticMapHtmlWriter),
-                                        ('/user_is_ready/.*', ReadyInfoWriter),
-                                        ('/view_uservenues', UserVenueWriter)],
+                                        ('/user_is_ready/.*', ReadyInfoWriter)],
                                       debug=True)
   constants.provider = provider.DBProvider()
   wsgiref.handlers.CGIHandler().run(application)

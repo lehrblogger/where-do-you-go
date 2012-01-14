@@ -1,6 +1,5 @@
 from os import environ
 import constants
-import oauth
 import foursquarev2
 import logging
 from google.appengine.ext import db
