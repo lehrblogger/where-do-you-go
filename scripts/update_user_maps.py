@@ -49,19 +49,21 @@ def generate_static_map(user, widthxheight, zoom, centerpoint, northwest):
       'format':'png',
     }
     mapimage = MapImage.all().filter('user =', user).get()
-    if not mapimage:
-      mapimage              = MapImage()
-      mapimage.user         = user
-      mapimage.update_count = 0
-    mapimage.centerlat  = float(centerlat)
-    mapimage.centerlng  = float(centerlng)
-    mapimage.northlat   = float(northlat)
-    mapimage.westlng    = float(westlng)
-    mapimage.zoom       = int(zoom)
-    mapimage.height     = int(height)
-    mapimage.width      = int(width)
-    mapimage.static_url = "http://maps.google.com/maps/api/staticmap?" + urllib.urlencode(google_data)
-    mapimage.put()
+    def reset_map_image(mapimage_param, user_param, centerlat_param, centerlng_param, northlat_param, westlng_param, zoom_param, height_param, width_param, google_data_param):
+      if not mapimage:
+        mapimage_param              = MapImage()
+        mapimage_param.user         = user_param
+      mapimage_param.centerlat  = float(centerlat_param)
+      mapimage_param.centerlng  = float(centerlng_param)
+      mapimage_param.northlat   = float(northlat_param)
+      mapimage_param.westlng    = float(westlng_param)
+      mapimage_param.zoom       = int(zoom_param)
+      mapimage_param.height     = int(height_param)
+      mapimage_param.width      = int(width_param)
+      mapimage_param.static_url = "http://maps.google.com/maps/api/staticmap?" + urllib.urlencode(google_data_param)
+      mapimage_param.img = None
+      mapimage_param.put()
+    db.run_in_transaction(reset_map_image, mapimage, user, centerlat, centerlng, northlat, westlng, zoom, height, width, google_data)
     for offset_x_px in range (0, mapimage.width, 256):
       for offset_y_px in range (0, mapimage.height, 256):
         taskqueue.add(queue_name='tiles', url='/draw_static_tile/%s/%d/%f/%f/%d/%d' % (mapimage.key(), mapimage.zoom, mapimage.northlat, mapimage.westlng, offset_x_px, offset_y_px))

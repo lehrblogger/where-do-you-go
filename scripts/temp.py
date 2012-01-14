@@ -21,22 +21,10 @@ def deleteAttribute(obj, attr):
 if __name__ == '__main__':
   num_cleared = 0
   num_updated = 0
-  userinfos = UserInfo.all().filter('venue_count >=', 0).fetch(1000)
+  userinfos = UserInfo.all().filter('venue_count <', 0).fetch(2000)
   try:
     for userinfo in userinfos:
-      while True:
-        uservenues = UserVenue.all(keys_only=True).filter('user =', userinfo.user).fetch(1000)
-        #logging.info("you haz %d UserVenues for %s" % (len(uservenues), userinfo.user))
-        if not uservenues: break
-        db.delete(uservenues)
-        num_cleared = num_cleared + len(uservenues)
-      deleteAttribute(userinfo, 'last_checkin')  
-      deleteAttribute(userinfo, 'last_checkin_at')
-      deleteAttribute(userinfo, 'last_checkin_str')  
-      deleteAttribute(userinfo, 'valid_signature')
-      userinfo.has_been_cleared = True
-      userinfo.checkin_count = 0
-      userinfo.venue_count = -1 # just to keep track of which I've deleted
+      userinfo.venue_count = 0
       userinfo.last_updated = datetime.now()
       userinfo.put()
       num_updated += 1

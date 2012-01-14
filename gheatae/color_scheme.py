@@ -32,7 +32,7 @@ def loadScheme(name, steps=255):
   f.close()
   return img
 
-color_schemes = {'fire': loadScheme("fire"),
+color_schemes = { 'fire': loadScheme("fire"),
                   'water': loadScheme("water"),
                   #'wp-barthelme': loadScheme("wp-barthelme"),
                   'cyan-red': createScheme(),

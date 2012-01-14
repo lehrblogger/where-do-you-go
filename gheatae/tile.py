@@ -26,16 +26,18 @@ class BasicTile(object):
     else:
       self.level_max = int(constants.level_const)
       self.color_scheme = color_scheme.color_schemes[constants.default_color]
-    self.cache_levels = []
-    for i in range(self.level_max - 1, -1, -1):
-      self.cache_levels.append(int(((-(pow(float(i) - self.level_max, 2))/self.level_max) + self.level_max) / self.level_max * 255))
     if not constants.provider:
       constants.provider = provider.DBProvider()
     uservenues = constants.provider.get_user_data(user, lat_north, lng_west, range_lat, range_lng)
     if uservenues and len(uservenues):
+      if len(uservenues) > 1000:
+        logging.warning("%d uservenues found for this tile - maybe too many?" % len(uservenues))
+      self.cache_levels = []
+      for i in range(self.level_max - 1, -1, -1):
+        self.cache_levels.append(int(((-(pow(float(i) - self.level_max, 2))/self.level_max) + self.level_max) / self.level_max * 255))
       self.tile_img = self.plot_image(uservenues)
     else: # don't do any more math if we don't have any venues
-      self.tile_img = PNGCanvas(SIZE, SIZE, bgcolor=self.color_scheme.canvas[self.cache_levels[0]][0])
+      self.tile_img = PNGCanvas(SIZE, SIZE, bgcolor=self.color_scheme.canvas[255][0]) #NOTE I'm only somewhat sure that 255 is a safe index here, but for users with negative level_max's, self.cache_levels was an empty list and thus this was erroring
 
   def plot_image(self, points):
     space_level = self.__create_empty_space()
