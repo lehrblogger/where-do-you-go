@@ -1,3 +1,8 @@
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+from google.appengine.dist import use_library
+use_library('django', '1.0')
+
 import wsgiref.handlers
 from google.appengine.ext import webapp
 from google.appengine.ext import db
@@ -8,7 +13,6 @@ from google.appengine.api.labs import taskqueue
 from google.appengine.api.urlfetch import DownloadError
 from google.appengine.runtime import DeadlineExceededError
 from django.utils import simplejson as json
-import os
 from os import environ
 import urllib
 import logging
@@ -20,9 +24,6 @@ from datetime import datetime
 from scripts import fetch_foursquare_data
 from gheatae import color_scheme, tile, provider
 from models import UserInfo, UserVenue, MapImage
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
-from google.appengine.dist import use_library
-use_library('django', '0.96')
 
 class IndexHandler(webapp.RequestHandler):
   def get(self):

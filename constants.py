@@ -3,7 +3,7 @@ from os import environ
 from gheatae import color_scheme
 import logging
 
-min_zoom = 10
+min_zoom = 3
 max_zoom = 18 # note that these must also be in the static wdyg-private.js file
 
 level_const = 140. #TODO fix this from being hard coded in models.py for UserInfo - I was getting a <type 'exceptions.AttributeError'>: 'module' object has no attribute 'level_const'
