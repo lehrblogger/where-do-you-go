@@ -1,5 +1,5 @@
 cron:
   
  - description: clear out old UserVenues
-   url: /fetch_foursquare_data/clear_old_uservenues
+   url: /manage_foursquare_data/clear_old_uservenues
    schedule: every 24 hours

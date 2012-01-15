@@ -1,4 +1,7 @@
 <div id="left-lower" class="span-8 last">
+  <h4 id="patient">
+    <strong>please be patient!</strong> each of your heat map image tiles can take up to a minute to load
+  </h4>
   <h2>customize your heat map:</h2>
   <p id="level">
     adjust if things look <input type="submit" name="submit_hot" class="button" id="hot_button" value="too hot" /> or <input type="submit" name="submit_cold" class="button" id="cold_button" value="too cold" />
@@ -24,7 +27,7 @@
     <label for="width_field" id="width_label">width</label> and <label for="height_field" id="height_label">height</label> in px:
     <input type="text" name="width_field" id="width_field" size="3" value="640" class="text-input" />
     <input type="text" name="height_field" id="height_field" size="3" value="640" class="text-input" />
-    <input type="submit" name="submit_size" class="button" id="size_button" value="update" />
+    <input type="submit" name="submit_size" class="button" id="size_button" value="resize" />
     <label for="size_button" id="dimension_error"><br/>Must be a number between 0 and 640 pixels.</label>
   </p>
 </div>
@@ -33,7 +36,7 @@
   <p>
     <input type="submit" name="submit_regenerate" class="button" id="regenerate_button" value="create your map with the current view" />
     <span id="regenerate_status">(re)generating map... <img src='static/spinner-small.gif'/></span>
-    <label for="regenerate_button">check-ins are only stored for a week, so come<br/>back here when you want to update your map</label>
+    <span for="regenerate_button">check-ins are only stored for a week, so come<br/>back here when you want to update your map</span>
   </p>
   <p>
     <input type="submit" name="submit_delete_map" class="button" id="delete_map_button" value="delete your public map and personalized page" />

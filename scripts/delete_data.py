@@ -14,7 +14,7 @@ if __name__ == '__main__':
   if not constants.provider:
     constants.provider = provider.DBProvider()
 
-  # if rest == 'all':
+  # if rest == 'all': # This is dangerous, so I'm commenting it out :)
   #   while(MapImage.all().count() > 0):
   #     mapimages = MapImage.all().fetch(500)
   #     db.delete(mapimages)

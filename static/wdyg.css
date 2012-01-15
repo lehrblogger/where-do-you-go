@@ -13,20 +13,31 @@ p {
   padding-left: 1.5em;
 }
 h2 {
-  padding-top: 0.5em;
 	margin-bottom: 0.6em;
+}
+#information {
+  padding-top: 1em;
+	white-space: normal;
 }
 #hello h5 {
   color: red;
   margin-bottom: 0;
 }
+#patient {
+	margin: 0.5em 0 1em 0px;
+	line-height: 1.4em;
+	white-space: normal;
+}
 #status_info h4 {
   margin-bottom: 0;
 }
 #left-lower, #static_map_div, #status_info {
-  padding-top: 2em;
+  padding-top: 1em;
 }
-#regenerate label {
+#regenerate p {
+	margin-bottom: 0em;
+}
+#regenerate span {
 	display: block;
 	padding-left: 4px;
 }
@@ -35,19 +46,14 @@ h2 {
   background-repeat: no-repeat;
   padding-top: 0px;
 }
-#information {
-  padding-top: 1em;
-}
 #about {
   padding-top: 3em;
 }
-
 #map_bounds {
   background-color: #cdcdcd;
   width: 640px;
   height: 640px;
 }
-
 li {
   padding-top: 0.5em;
   list-style: none;

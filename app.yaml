@@ -9,14 +9,14 @@ handlers:
   static_files: static/favicon.ico
   upload: static/favicon.ico
 
-- url: /delete_data/mapimage
+- url: /delete_data/user|/delete_data/mapimage
   script: scripts/delete_data.py
   login: required
 
-- url: /delete_data/user|/delete_data/all
+- url: /delete_data/all
   script: scripts/delete_data.py
-  login: required
-
+  login: admin
+  
 - url: /update_user_color/.*
   script: scripts/update_user_color.py
   login: required
@@ -33,16 +33,8 @@ handlers:
   script: scripts/update_user_maps.py
   login: admin
 
-- url: /fetch_foursquare_data/refetch_for_user/
-  script: scripts/fetch_foursquare_data.py
-  login: required
-
-- url: /fetch_foursquare_data/clear_old_uservenues|/fetch_foursquare_data/next_for_user/.*
-  script: scripts/fetch_foursquare_data.py
-  login: admin
-
-- url: /temp
-  script: scripts/temp.py
+- url: /manage_foursquare_data/clear_old_uservenues|/manage_foursquare_data/next_for_user/.*
+  script: scripts/manage_foursquare_data.py
   login: admin
   
 - url: /static

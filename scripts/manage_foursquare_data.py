@@ -89,7 +89,7 @@ def fetch_and_store_checkins_next(userinfo, limit=100):
       userinfo_param.put()
     db.run_in_transaction(put_ready_userinfo, userinfo)
   else:
-    taskqueue.add(queue_name='checkins', url='/fetch_foursquare_data/next_for_user/%s' % userinfo.key())
+    taskqueue.add(queue_name='checkins', url='/manage_foursquare_data/next_for_user/%s' % userinfo.key())
 
 def update_user_info(userinfo):
   fs = get_new_fs_for_userinfo(userinfo)
@@ -141,7 +141,6 @@ def clear_old_uservenues():
     for userinfo in userinfos:
       while True:
         uservenues = UserVenue.all(keys_only=True).filter('user =', userinfo.user).fetch(1000)
-        logging.info("you haz %d UserVenues for %s" % (len(uservenues), userinfo.user))
         if not uservenues: break
         db.delete(uservenues)
         num_cleared = num_cleared + len(uservenues)
@@ -150,9 +149,9 @@ def clear_old_uservenues():
       userinfo.venue_count = 0
       userinfo.last_updated = datetime.now()
       userinfo.put()
-    logging.info("finished after deleting at least %d UserVenues" % (num_cleared))
+    logging.info("finished after deleting at least %d UserVenues for %d UserInfos" % (num_cleared, len(userinfos)))
   except DeadlineExceededError:
-    logging.info("exceeded deadline after deleting at least %d UserVenues" % (num_cleared))
+    logging.info("exceeded deadline after deleting at least %d UserVenues for %d UserInfos" % (num_cleared, len(userinfos)))
     
 if __name__ == '__main__':
   raw = environ['PATH_INFO']

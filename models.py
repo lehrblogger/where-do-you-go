@@ -3,9 +3,6 @@ from geo.geomodel import GeoModel
 import constants
 from datetime import datetime
 
-class LastOffset(db.Model):
-  offset = db.IntegerProperty(default=0)
-
 class UserInfo(db.Model):  
   user = db.UserProperty()
   created = db.DateTimeProperty(auto_now_add=True) # unused to save index space, but keep anyway

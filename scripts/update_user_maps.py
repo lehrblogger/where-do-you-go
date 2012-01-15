@@ -15,8 +15,8 @@ from gheatae import tile
 from models import MapImage, UserInfo
 
 def draw_static_tile(user, mapimage_key, zoom, northlat, westlng, offset_x_px, offset_y_px):
-  new_tile = tile.CustomTile(user, zoom, northlat, westlng, offset_x_px, offset_y_px)
-  def compose_and_save(key, tile, x, y): # this has to be done in a transaction - otherwise the different threads will overwrite each other's progress on the shared mapimage
+  new_tile = tile.CustomTile(user, zoom, northlat, westlng, offset_x_px, offset_y_px) # do the hard work of drawing the tiles in parallel
+  def compose_and_save(key, tile, x, y): # but this has to be done in a transaction - otherwise the different threads will overwrite each other's progress on the shared mapimage
     mapimage = db.get(key)
     input_tuples = [(tile.image_out(), x, y, 1.0, images.TOP_LEFT)]
     if mapimage.img:

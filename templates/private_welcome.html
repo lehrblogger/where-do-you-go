@@ -3,7 +3,7 @@
     <h4><span>Hi {% if real_name %}{{ real_name }}{% else %}{{ user }}{% endif %}! <a href="{{ url }}">Logout?</a></span></h4>
     <img height="75" src="{{ photo_url }}" />
   {% else %}
-    <h4><span>First, <a href="{{ url }}">login</a> with Google!</span></h4>
+    <h4><strong><a href="{{ url }}">Login with Google!</a></strong></h4>
   {% endif %}
 </div>
 {% if user %}

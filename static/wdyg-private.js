@@ -12,7 +12,6 @@ function redrawTiles() {
 
   var tilelayer = new GTileLayer(myCopyright);
   tilelayer.getTileUrl = function(point, zoom) { 
-		console.log("tile/" + $("#color_select").val() + uncacher + "/" + zoom + "/" + point.y + "," + point.x +".png");
 		return "tile/" + $("#color_select").val() + uncacher + "/" + zoom + "/" + point.y + "," + point.x +".png";
 	};
   tilelayer.isPng = function() { return true; };
@@ -40,7 +39,6 @@ function updateLevels(offset) {
     east = bounds.getNorthEast().lng(),
     south = bounds.getSouthWest().lat(),
     west = bounds.getSouthWest().lng();
-
   map.clearOverlays();
   level_offset += offset;
   $.get("/update_user_level/" + level_offset + "/" + north + "," + west + "/" + south + "," + east, function(){
@@ -68,7 +66,6 @@ $(document).ready(function() {
       $("#static_map").html(data);
     }
   });
-
   if (($('#delete_all_span').attr('name') == 'started_ready') || ($('#oauth_span').attr('name') == 'not_oauthed')) {
     $('#fetching_span').hide();
     $('#delete_all_span').show();
@@ -103,7 +100,6 @@ $(document).ready(function() {
       });
     }, 3000);
   }
-
   if (GBrowserIsCompatible() && is_logged_in) {
     map = new GMap2(document.getElementById("map_canvas"));
     map.setCenter(new GLatLng(global_centerlat, global_centerlng), global_zoom);
@@ -112,7 +108,6 @@ $(document).ready(function() {
 			map.clearOverlays();
 			createHeatMap(1000);
 		});
-		
     var customUI = map.getDefaultUI();
     customUI.maptypes.satellite  = false;
     customUI.maptypes.hybrid  = false;
@@ -122,14 +117,13 @@ $(document).ready(function() {
     customUI.controls.smallzoomcontrol3d = true;
     customUI.controls.scalecontrol   = false;
     map.setUI(customUI);
+		map.disableDoubleClickZoom();
 	  var mt = map.getMapTypes(); //http://groups.google.com/group/google-maps-api/browse_thread/thread/1fca64809be388a8
 	  for (var i=0; i<mt.length; i++) {
 	    mt[i].getMinimumResolution = function() {return 3;}; // note these must also be in constants.py
 	    mt[i].getMaximumResolution = function() {return 18;};
 	  }
-
     createHeatMap();
-
     geocoder = new GClientGeocoder();
   }
 
@@ -179,24 +173,20 @@ $(document).ready(function() {
     });
   });
 
-
   $('#size_button').click(function() { // http://net.tutsplus.com/tutorials/javascript-ajax/submit-a-form-without-page-refresh-using-jquery/
     $('#dimension_error').hide();
-
     var width = parseInt($("input#width_field").val());
     if (isNaN(width) || (0 >= width) || (640 < width)) {
       $("label#dimension_error").show();
       $("input#width_field").focus();
       return false;
     }
-
     var height = parseInt($("input#height_field").val());
     if (isNaN(height) || (0 >= height) || (640 < height)) {
       $("label#dimension_error").show();
       $("input#height_field").focus();
       return false;
     }
-
     resizeMapToWidthHeight(width, height);
   });
 
@@ -210,17 +200,14 @@ $(document).ready(function() {
   });
 
   $('#regenerate_button').click(function() {
-    var bounds = map.getBounds();
-    var north = bounds.getNorthEast().lat();
-    var west = bounds.getSouthWest().lng();
-
-    var center = map.getCenter();
-    var center_lat = center.lat();
-    var center_lng = center.lng();
-
-    var zoom = map.getZoom();
-    var size = map.getSize();
-
+    var bounds = map.getBounds(),
+			north = bounds.getNorthEast().lat(),
+      west = bounds.getSouthWest().lng(),
+      center = map.getCenter(),
+      center_lat = center.lat(),
+      center_lng = center.lng(),
+      zoom = map.getZoom(),
+      size = map.getSize();
     $("#regenerate_button").hide();
     $("#regenerate_status").show();
     $.get("generate_static_map/" + size.width + "x" + size.height + "/" + zoom + "/" + center_lat + "," + center_lng + "/" + north + "," + west, function() {

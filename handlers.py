@@ -21,7 +21,7 @@ import foursquarev2 as foursquare
 import constants
 import time
 from datetime import datetime
-from scripts import fetch_foursquare_data
+from scripts import manage_foursquare_data
 from gheatae import color_scheme, tile, provider
 from models import UserInfo, UserVenue, MapImage
 
@@ -63,7 +63,7 @@ class IndexHandler(webapp.RequestHandler):
         map_data['citylat'] = userinfo.citylat
         map_data['citylng'] = userinfo.citylng
     os_path = os.path.dirname(__file__)
-    self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), {'key': constants.get_google_maps_apikey()}))
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/all_header.html'), {'key': constants.get_google_maps_apikey()}))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/private_welcome.html'), welcome_data))
     if user and userinfo:
       if userinfo.has_been_cleared:
@@ -107,8 +107,8 @@ class AuthHandler(webapp.RequestHandler):
           else:
             raise err
         try:
-          fetch_foursquare_data.update_user_info(userinfo)
-          fetch_foursquare_data.fetch_and_store_checkins_next(userinfo, limit=50)
+          manage_foursquare_data.update_user_info(userinfo)
+          manage_foursquare_data.fetch_and_store_checkins_next(userinfo, limit=50)
         except foursquare.FoursquareRemoteException, err:
           if str(err).find('403 Forbidden') >= 0:
             pass # if a user tries to sign up while my app is blocked, then it currently just redirects to the signup page
@@ -215,7 +215,7 @@ class PublicPageHandler(webapp.RequestHandler):
         welcome_data['photo_url'] = userinfo.photo_url
         #welcome_data['checkin_count'] = userinfo.checkin_count
       os_path = os.path.dirname(__file__)
-      self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), None))
+      self.response.out.write(template.render(os.path.join(os_path, 'templates/all_header.html'), None))
       self.response.out.write(template.render(os.path.join(os_path, 'templates/public_welcome.html'), welcome_data))
       self.response.out.write(template.render(os.path.join(os_path, 'templates/public_sidebar.html'), sidebar_data))
       self.response.out.write(template.render(os.path.join(os_path, 'templates/public_map.html'), map_data))
