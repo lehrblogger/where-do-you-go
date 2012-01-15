@@ -1,11 +1,16 @@
 <div id="information" class="span-8 last">
-{% if user %}
-	<h2>almost there!</h2>
-	<p>Just click above to securely sign in with Foursquare.</p>
+{% if has_been_cleared %}
+  <h2>re-fetch your check-ins!</h2>
+  <p>We've cleared your data, but you can re-authorize with Foursquare to fetch your check-ins again.</p>
 {% else %}
-	<h2>where am i?</h2>
-	<p>Use this site to create and share a heat map of your Foursquare checkins. Login with your Google account first, and then authenticate with Foursquare - don't worry, we don't see either password.</p>
-	<script type="text/javascript">is_logged_in = false;</script>
+  {% if user %}
+	  <h2>almost there!</h2>
+	  <p>Just click above to securely sign in with Foursquare.</p>
+	{% else %}
+	  <h2>where am i?</h2>
+	  <p>Use this site to create and share a heat map of your Foursquare check-ins. Login with your Google account first, and then authenticate with Foursquare - don't worry, we don't see either password.</p>
+	  <script type="text/javascript">is_logged_in = false;</script>
+  {% endif %}
 {% endif %}
 
   <h2><a href="http://foursquare.com/">foursquare</a> says:</h2>

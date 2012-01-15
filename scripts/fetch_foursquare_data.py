@@ -165,10 +165,19 @@ if __name__ == '__main__':
 
   if rest == 'clear_old_uservenues':
     clear_old_uservenues()
+  elif rest == 'all_for_user':
+    user = users.get_current_user()
+    if user:
+      userinfo = UserInfo.all().filter('user =', user).get()
+      if userinfo:
+        fetch_and_store_checkins_next(userinfo)
+      else:
+        logging.warning('No userinfo found for re-fetching user %s' % user)      
+    else:
+      logging.warning('No user found for re-fetch')
   elif rest == 'next_for_user':
     userinfo = db.get(userinfo_key)
     if userinfo:
       fetch_and_store_checkins_next(userinfo)
-      logging.info('venues fetched for user=%s' % UserInfo.all().filter('user =', userinfo.user).get()) #DEL
-    else: 
+    else:
       logging.warning('No userinfo found for key %s' % userinfo_key)

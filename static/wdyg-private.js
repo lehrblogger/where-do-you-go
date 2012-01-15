@@ -1,10 +1,10 @@
-var map;
-var tile_timeout;
-var geocoder;
-var level_offset = 0;
-var uncacher = 0;
-var user_is_ready_interval;
-var map_is_done_interval;
+var map,
+  tile_timeout,
+  geocoder,
+  level_offset = 0,
+  uncacher = 0,
+  user_is_ready_interval,
+  map_is_done_interval;
 
 function redrawTiles() {
   var myCopyright = new GCopyrightCollection("© ");
@@ -35,11 +35,11 @@ function resizeMapToWidthHeight(width, height) {
 }
 
 function updateLevels(offset) {
-  var bounds = map.getBounds();
-  var north = bounds.getNorthEast().lat();
-  var east = bounds.getNorthEast().lng();
-  var south = bounds.getSouthWest().lat();
-  var west = bounds.getSouthWest().lng();
+  var bounds = map.getBounds(),
+    north = bounds.getNorthEast().lat(),
+    east = bounds.getNorthEast().lng(),
+    south = bounds.getSouthWest().lat(),
+    west = bounds.getSouthWest().lng();
 
   map.clearOverlays();
   level_offset += offset;
@@ -51,6 +51,7 @@ function updateLevels(offset) {
 function resetSidebarToSigninState() {
 	$.get("/information", function(data) {
   	$('#status_info').html('<span name="not_oauthed" id="oauth_span"><a href="/go_to_foursquare"><img src="static/signinwith-foursquare.png"></a></span>' + data);
+		$("#left-lower").html("");
 	});
 }
 
@@ -81,8 +82,8 @@ $(document).ready(function() {
         url: "/user_is_ready/" + uncacher + "/",
         success: function(data){
           data_arr = data.split(',');
-		  		$('#checkin_count').html(data_arr[2] + ' checkins logged!');
-		  		if (data_arr[0] == 'True') {
+	   		  $('#checkin_count').html(data_arr[2] + ' check-ins mapped!');
+	  		  if (data_arr[0] == 'True') {
             clearInterval(user_is_ready_interval);
             resetSidebarToSigninState();
             level_offset = 0;

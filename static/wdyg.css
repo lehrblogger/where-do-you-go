@@ -6,11 +6,15 @@
 .span-24, div .span-24 {
   width: 960px;
 }
+.hidden {
+	display: none;
+}
 p {
   padding-left: 1.5em;
 }
 h2 {
   padding-top: 0.5em;
+	margin-bottom: 0.6em;
 }
 #hello h5 {
   color: red;

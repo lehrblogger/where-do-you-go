@@ -8,9 +8,9 @@
 </div>
 {% if user %}
   <div id="status_info" class="span-8 last">
-  {% if userinfo %}
+  {% if userinfo and not userinfo.has_been_cleared %}
     <h4>
-      <span id="checkin_count" class="span-5">{{ userinfo.checkin_count }} checkins logged!</span>
+      <span id="checkin_count" class="span-5">{{ userinfo.checkin_count }} check-ins mapped!</span>
       <span id="delete_all_span" name="{% if userinfo.is_ready %}started_ready{% endif %}" class="span-3 last"><input type="submit" name="submit" class="button" id="delete_all_button" value="delete your data" /></span>
       <span id="fetching_span" class="span-3 last">Fetching the rest...<img src='static/spinner-small.gif'/></span>
     </h4>

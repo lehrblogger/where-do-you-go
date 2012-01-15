@@ -10,8 +10,8 @@ var TweetThisLink = {
             bitly_link = data.results[r]['shortUrl'];
             break;
         }
-        var tweet_text = 'Where do I go? See a heat map of my @foursquare checkins and make your own at'
-        document.location = "http://twitter.com/home?status=" + encodeURIComponent(tweet_text + ' ' + bitly_link);
+        var tweet_text = 'Where do I go? See a heat map of my @foursquare check-ins and make your own at '
+        document.location = "http://twitter.com/home?status=" + encodeURIComponent(tweet_text + bitly_link + ' #WDYG');
     }
 }
 

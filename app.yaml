@@ -33,11 +33,11 @@ handlers:
   script: scripts/update_user_maps.py
   login: admin
 
-- url: /fetch_foursquare_data/next_for_user/.*
+- url: /fetch_foursquare_data/refetch_for_user/
   script: scripts/fetch_foursquare_data.py
-  login: admin
+  login: required
 
-- url: /fetch_foursquare_data/clear_old_uservenues
+- url: /fetch_foursquare_data/clear_old_uservenues|/fetch_foursquare_data/next_for_user/.*
   script: scripts/fetch_foursquare_data.py
   login: admin
 

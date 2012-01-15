@@ -20,6 +20,9 @@ from datetime import datetime
 from scripts import fetch_foursquare_data
 from gheatae import color_scheme, tile, provider
 from models import UserInfo, UserVenue, MapImage
+os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+from google.appengine.dist import use_library
+use_library('django', '0.96')
 
 class IndexHandler(webapp.RequestHandler):
   def get(self):
@@ -62,20 +65,22 @@ class IndexHandler(webapp.RequestHandler):
     self.response.out.write(template.render(os.path.join(os_path, 'templates/header.html'), {'key': constants.get_google_maps_apikey()}))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/private_welcome.html'), welcome_data))
     if user and userinfo:
-      if userinfo.is_authorized:
+      if userinfo.has_been_cleared:
+        self.response.out.write(template.render(os.path.join(os_path, 'templates/information.html'), {'user': user, 'has_been_cleared': userinfo.has_been_cleared}))
+      elif userinfo.is_authorized:
         self.response.out.write(template.render(os.path.join(os_path, 'templates/private_sidebar.html'), sidebar_data))
       else:
         self.response.out.write(template.render(os.path.join(os_path, 'templates/private_unauthorized.html'), None))
     else:
-      self.response.out.write(template.render(os.path.join(os_path, 'templates/information.html'), {'user': user }))
+      self.response.out.write(template.render(os.path.join(os_path, 'templates/information.html'), {'user': user, 'has_been_cleared': False}))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/private_map.html'), map_data))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/all_footer.html'), None))
 
-class InformationWriter(webapp.RequestHandler):
+class InformationWriter(webapp.RequestHandler): #NOTE this defaults to the has_been_cleared case for now, since that's the only one that's used
   def get(self):
     user = users.get_current_user()
     os_path = os.path.dirname(__file__)
-    self.response.out.write(template.render(os.path.join(os_path, 'templates/information.html'), {'user': user }))
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/information.html'), {'user': user, 'has_been_cleared': True}))
 
 class AuthHandler(webapp.RequestHandler):
   def _get_new_fs_and_credentials(self):
@@ -216,7 +221,6 @@ class PublicPageHandler(webapp.RequestHandler):
       self.response.out.write(template.render(os.path.join(os_path, 'templates/all_footer.html'), None))
     else:
       self.redirect("/")
-
 
 class StaticMapHtmlWriter(webapp.RequestHandler):
   def get(self):
