@@ -47,7 +47,7 @@ class IndexHandler(webapp.RequestHandler):
       'height': constants.default_dimension,
       'domain': environ['HTTP_HOST'],
       'static_url': 'http://maps.google.com/maps/api/staticmap?center=40.7427050566%2C-73.9888000488&format=png&zoom=13&key=ABQIAAAAwA6oEsCLgzz6I150wm3ELBQO7aMTgd18mR6eRdj9blrVCeGU7BS14EnkGH_2LpNpZ8DJW0u7G5ocLQ&sensor=false&size=640x640',
-      'mapimage_url': 'map/%s.png' % 'ag93aGVyZS1kby15b3UtZ29yEAsSCE1hcEltYWdlGM2LRgw',
+      'mapimage_url': 'map/%s.png' % 'ag93aGVyZS1kby15b3UtZ29yEQsSCE1hcEltYWdlGNL0_wIM',
     }
     user = users.get_current_user()
     if user:
