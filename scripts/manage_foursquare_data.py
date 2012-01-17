@@ -52,8 +52,8 @@ def fetch_and_store_checkins(userinfo, limit):
       userinfo.put()
       return 0, 0
     history['checkins']['items'].reverse()
+    logging.debug('will process %d items' % (len(history['checkins']['items'])))
     for checkin in history['checkins']['items']:
-      logging.debug('will process %d items' % (len(history['checkins']['items'])))
       if 'venue' in checkin:
         j_venue = checkin['venue']
         if 'id' in j_venue:

@@ -21,6 +21,7 @@ function redrawTiles() {
   map.addOverlay(tilelayeroverlay);
 }
 function createHeatMap(timeout) {
+	map.clearOverlays();
 	clearTimeout(tile_timeout);
 	tile_timeout = setTimeout('redrawTiles();', timeout);
 }
@@ -39,7 +40,6 @@ function updateLevels(offset) {
     east = bounds.getNorthEast().lng(),
     south = bounds.getSouthWest().lat(),
     west = bounds.getSouthWest().lng();
-  map.clearOverlays();
   level_offset += offset;
   $.get("/update_user_level/" + level_offset + "/" + north + "," + west + "/" + south + "," + east, function(){
     createHeatMap(500);
@@ -105,7 +105,6 @@ $(document).ready(function() {
     map.setCenter(new GLatLng(global_centerlat, global_centerlng), global_zoom);
 		
 		GEvent.addListener(map, "zoomend", function(oldLevel, newLevel) {
-			map.clearOverlays();
 			createHeatMap(1000);
 		});
     var customUI = map.getDefaultUI();
@@ -167,7 +166,6 @@ $(document).ready(function() {
   });
 
   $("#color_select").change(function() {
-    map.clearOverlays();
     $.get("/update_user_color/" + $("#color_select").val(), function(){
       createHeatMap(0);
     });
