@@ -17,7 +17,7 @@ def get_new_fs_for_userinfo(userinfo):
 def fetch_and_store_checkins(userinfo, limit):
   num_added = 0
   userinfo.is_authorized = True
-  logging.warning('in fetch_and_store_checkins for user %s' % userinfo.user)
+  logging.info('in fetch_and_store_checkins for user %s' % userinfo.user)
   try:
     fs = get_new_fs_for_userinfo(userinfo)
     total_count = int(fs.users()['user']['checkins']['count'])
@@ -53,7 +53,7 @@ def fetch_and_store_checkins(userinfo, limit):
       return 0, 0
     history['checkins']['items'].reverse()
     for checkin in history['checkins']['items']:
-      logging.info('Will process: %s items'%(len(history['checkins']['items'])))
+      logging.debug('will process %d items' % (len(history['checkins']['items'])))
       if 'venue' in checkin:
         j_venue = checkin['venue']
         if 'id' in j_venue:
@@ -64,18 +64,20 @@ def fetch_and_store_checkins(userinfo, limit):
             uservenue.venue_guid = str(j_venue['id'])
             uservenue.update_location()
             uservenue.user = userinfo.user
-          if not uservenue.checkin_guid_list:
             uservenue.checkin_guid_list = []
-          uservenue.checkin_guid_list.append(str(checkin['id']))
-          userinfo.checkin_count += 1
-          def put_updated_uservenue_and_userinfo(uservenue_param, userinfo_param, num_added):
-            uservenue_param.put()
-            userinfo_param.put()
-            return num_added + 1
-          try:
-            num_added = db.run_in_transaction(put_updated_uservenue_and_userinfo, uservenue, userinfo, num_added)
-          except BadRequestError, err:
-            logging.warning("Database transaction error due to entity restrictions: %s" % err)
+          if uservenue: # if there's no uservenue by this point, then the venue was missing a location
+            uservenue.checkin_guid_list.append(str(checkin['id']))
+            userinfo.checkin_count += 1
+            def put_updated_uservenue_and_userinfo(uservenue_param, userinfo_param, num_added):
+              uservenue_param.put()
+              userinfo_param.put()
+              return num_added + 1
+            try:
+              num_added = db.run_in_transaction(put_updated_uservenue_and_userinfo, uservenue, userinfo, num_added)
+            except BadRequestError, err:
+              logging.warning("Database transaction error due to entity restrictions: %s" % err)
+          else:
+            logging.error("Venue missing location with JSON: %s" % str(j_venue))
   except KeyError:
     logging.error("There was a KeyError when processing the response: " + str(history))
     raise
