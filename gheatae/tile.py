@@ -37,7 +37,8 @@ class BasicTile(object):
         self.cache_levels.append(int(((-(pow(float(i) - self.level_max, 2))/self.level_max) + self.level_max) / self.level_max * 255))
       self.tile_img = self.plot_image(uservenues)
     else: # don't do any more math if we don't have any venues
-      self.tile_img = PNGCanvas(SIZE, SIZE, bgcolor=self.color_scheme.canvas[255][0]) #NOTE I'm only somewhat sure that 255 is a safe index here, but for users with negative level_max's, self.cache_levels was an empty list and thus this was erroring
+      cur_canvas = self.color_scheme.canvas
+      self.tile_img = PNGCanvas(SIZE, SIZE, bgcolor=cur_canvas[len(cur_canvas) - 1][0]) #NOTE the last index should be safe here, but for users with negative level_max's, self.cache_levels was an empty list and thus this was erroring
 
   def plot_image(self, points):
     space_level = self.__create_empty_space()
