@@ -64,6 +64,7 @@ def fetch_and_store_checkins(userinfo, limit):
             uservenue.venue_guid = str(j_venue['id'])
             uservenue.update_location()
             uservenue.user = userinfo.user
+          if not uservenue.checkin_guid_list:
             uservenue.checkin_guid_list = []
           uservenue.checkin_guid_list.append(str(checkin['id']))
           userinfo.checkin_count += 1
