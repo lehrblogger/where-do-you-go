@@ -17,6 +17,7 @@ import simplejson
 import logging
 
 VERSION = '0.7'
+VERSION_DATE = '20120117'
 
 
 class FoursquareException(Exception):
@@ -51,6 +52,7 @@ class FoursquareAuthHelper(object):
     
     def get_authentication_url(self):
         query = {
+            'v': VERSION_DATE,
             'client_id': self._consumer_key,
             'response_type': 'code',
             'redirect_uri': self._oauth_callback_uri
@@ -60,6 +62,7 @@ class FoursquareAuthHelper(object):
 
     def get_access_token_url(self, code):
         query = {
+            'v': VERSION_DATE,
             'client_id': self._consumer_key,
             'client_secret': self._consumer_secret,
             'grant_type': 'authorization_code',
@@ -107,6 +110,8 @@ class FoursquareClient(object):
             
         query = self._remove_empty_params(query)
         body = self._remove_empty_params(body)
+        if 'v' not in query:
+            query['v'] = VERSION_DATE
         query_str = urllib.urlencode(query)
         body_str = urllib.urlencode(body)
         
