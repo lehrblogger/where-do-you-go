@@ -1,6 +1,6 @@
 application: where-do-you-go
-version: 10-0
-runtime: python
+version: 11-0
+runtime: python # Python 2.5, deprecated
 api_version: 1
 
 handlers:
