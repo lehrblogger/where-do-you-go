@@ -17,7 +17,7 @@ import simplejson
 import logging
 
 VERSION = '0.7'
-VERSION_DATE = '20120117'
+VERSION_DATE = '20120609'
 
 
 class FoursquareException(Exception):

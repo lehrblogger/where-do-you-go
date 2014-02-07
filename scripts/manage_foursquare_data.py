@@ -119,7 +119,7 @@ def update_user_info(userinfo):
     if 'gender' in user_data['user']:
       userinfo.gender = user_data['user']['gender']
     if 'photo' in user_data['user'] and not user_data['user']['photo'] == '' :
-      userinfo.photo_url = user_data['user']['photo']
+      userinfo.photo_url = user_data['user']['photo']['prefix'] + '100x100' + user_data['user']['photo']['suffix']
     elif 'gender' in user_data['user'] and user_data['user']['gender'] is 'male':
       userinfo.photo_url = 'static/blank_boy.png'
     elif 'gender' in user_data['user'] and user_data['user']['gender'] is 'female':
