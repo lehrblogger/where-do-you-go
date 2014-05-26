@@ -19,17 +19,7 @@ default_lat = 40.73607172122901 #NYC
 default_lng = -73.96699905395508
 default_zoom = 13
 default_dimension = 640
-
-def get_google_maps_apikey():
-  domain = environ['HTTP_HOST']
-  if domain == 'www.wheredoyougo.net':
-    return 'ABQIAAAAwA6oEsCLgzz6I150wm3ELBSujOi3smKLcjzph36ZE8UXngM_5BTs-xHblsuwK8V9g8bZ_PTfOWR1Fg'
-  elif domain == 'where-do-you-go.appspot.com':
-    return 'ABQIAAAAwA6oEsCLgzz6I150wm3ELBQO7aMTgd18mR6eRdj9blrVCeGU7BS14EnkGH_2LpNpZ8DJW0u7G5ocLQ'
-  elif domain == 'www.heredoyougo.com':
-    return 'ABQIAAAAwA6oEsCLgzz6I150wm3ELBSsSgGJ9VrJSemFFJvFbS88IsMvVhSj9Nx7jlLtQGoB4gR4tshPH1Hvew'
-  else:
-    logging.error('No Google maps key found for domain ' + domain)
+google_maps_apikey = 'ABQIAAAAwA6oEsCLgzz6I150wm3ELBSujOi3smKLcjzph36ZE8UXngM_5BTs-xHblsuwK8V9g8bZ_PTfOWR1Fg'
 
 def get_oauth_strings(force_primary_domain=False):
   if force_primary_domain: # I was getting SIGNATURE_INVALID oauth errors on many of my backend calls because 
@@ -44,12 +34,9 @@ def get_oauth_strings(force_primary_domain=False):
   if domain == 'www.wheredoyougo.net':
     consumer_key = 'KTNXGQJ4JXDZGAG35MGZ3WN0EQIO5XHNALYQZATHVEPDR3TI'
     callback_url = 'http://www.wheredoyougo.net/authenticated'
-  elif domain == 'where-do-you-go.appspot.com':
-    consumer_key = 'S1PL51GWSZORANT244XXZC2UXIZGUUPGGNWNA3YHDGWM4M4U'
-    callback_url = 'http://where-do-you-go.appspot.com/authenticated'
-  elif domain == 'www.heredoyougo.com':
-    consumer_key = 'EGB1JZBOMTTNBPVDCHVB3VGGMIXMEYIJKPPTCQGKMPQ4NPCY'
-    callback_url = 'http://www.heredoyougo.com/authenticated'
+  elif domain == 'where-do-you-go-hrd.appspot.com':
+    consumer_key = '1MVIIQ4S50Z0G3GRXYPG4PYFH44TYFAIZKG431CFLPQOVOND'
+    callback_url = 'http://where-do-you-go-hrd.appspot.com/authenticated'
   else:
     consumer_key = ''
     callback_url = ''

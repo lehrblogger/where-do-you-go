@@ -1,5 +1,5 @@
-application: where-do-you-go
-version: 11-0
+application: where-do-you-go-hrd
+version: 12-0
 runtime: python # Python 2.5, deprecated
 api_version: 1
 

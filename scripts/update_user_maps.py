@@ -46,7 +46,7 @@ def generate_static_map(user, widthxheight, zoom, centerpoint, northwest):
     return
   try:
     google_data = {
-      'key': constants.get_google_maps_apikey(),
+      'key': constants.google_maps_apikey,
       'zoom': zoom,
       'center': centerpoint,
       'size': widthxheight,

@@ -63,7 +63,7 @@ class IndexHandler(webapp.RequestHandler):
         map_data['citylat'] = userinfo.citylat
         map_data['citylng'] = userinfo.citylng
     os_path = os.path.dirname(__file__)
-    self.response.out.write(template.render(os.path.join(os_path, 'templates/all_header.html'), {'key': constants.get_google_maps_apikey()}))
+    self.response.out.write(template.render(os.path.join(os_path, 'templates/all_header.html'), {'key': constants.google_maps_apikey}))
     self.response.out.write(template.render(os.path.join(os_path, 'templates/private_welcome.html'), welcome_data))
     if user and userinfo:
       if userinfo.has_been_cleared:
