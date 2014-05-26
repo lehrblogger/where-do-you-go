@@ -11,6 +11,7 @@ from google.appengine.api import users
 from google.appengine.api import images
 from google.appengine.api.labs import taskqueue
 from google.appengine.api.urlfetch import DownloadError
+from google.appengine.api.datastore_errors import BadRequestError
 from google.appengine.runtime import DeadlineExceededError
 from django.utils import simplejson as json
 from os import environ
@@ -138,7 +139,7 @@ class StaticMapHandler(webapp.RequestHandler):
     else:
       logging.error("Invalid path: " + path)
       return
-    mapimage = db.get(map_key)
+    mapimage = convert_map_key(map_key)
     if mapimage:
       self.response.headers['Content-Type'] = 'image/png'
       self.response.out.write(mapimage.img)
@@ -194,7 +195,7 @@ class PublicPageHandler(webapp.RequestHandler):
     else:
       logging.error("Invalid path: " + path)
       return
-    mapimage = db.get(map_key)
+    mapimage = convert_map_key(map_key)
     if mapimage:
       welcome_data = {
         'real_name': '',
@@ -260,6 +261,17 @@ class MapDoneEndpoint(webapp.RequestHandler):
         self.response.out.write(str(mapimage.tiles_remaining == 0))
         return
     self.response.out.write('error')
+
+def convert_map_key(map_key):
+  try:
+    return db.get(map_key)
+  except BadRequestError, err:
+    if err.message == 'app s~where-do-you-go-hrd cannot access app where-do-you-go\'s data':
+      old_key = db.Key(map_key)
+      new_key = db.Key.from_path(old_key.kind(), old_key.id())
+      return db.get(new_key)
+    else:
+      raise BadRequestError, err
 
 def main():
   application = webapp.WSGIApplication([('/', IndexHandler),
