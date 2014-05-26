@@ -1,6 +1,7 @@
 application: where-do-you-go-hrd
 version: 12-0
-runtime: python # Python 2.5, deprecated
+runtime: python27
+threadsafe: false
 api_version: 1
 
 handlers:

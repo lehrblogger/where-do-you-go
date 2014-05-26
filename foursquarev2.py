@@ -13,7 +13,7 @@ http://developer.foursquare.com/docs/
 
 import urllib
 import httplib2
-import simplejson
+import json
 import logging
 
 VERSION = '0.7'
@@ -75,9 +75,9 @@ class FoursquareAuthHelper(object):
     def get_access_token(self, code):
         http = httplib2.Http()
         resp, content = http.request(self.get_access_token_url(code))
-        json = simplejson.loads(content)        
-        if 'access_token' in json:
-            return json['access_token']
+        j = json.loads(content)
+        if 'access_token' in j:
+            return j['access_token']
         else:
             return None
                 
@@ -124,7 +124,7 @@ class FoursquareClient(object):
         h = httplib2.Http()
         try:
           resp, content = h.request(url, method, body=body_str)
-          raw_response = simplejson.loads(content)
+          raw_response = json.loads(content)
           if raw_response['meta']['code'] != 200:
             logging.error('ERROR: %s' % raw_response)
             raise FoursquareRemoteException(url, response.status, response_body)

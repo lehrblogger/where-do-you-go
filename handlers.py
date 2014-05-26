@@ -1,20 +1,16 @@
 import os
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
-from google.appengine.dist import use_library
-use_library('django', '1.0')
-
-import wsgiref.handlers
 from google.appengine.ext import webapp
-from google.appengine.ext import db
 from google.appengine.ext.webapp import template
+from google.appengine.ext.webapp.util import run_wsgi_app
+from google.appengine.ext import db
 from google.appengine.api import users
 from google.appengine.api import images
 from google.appengine.api.labs import taskqueue
 from google.appengine.api.urlfetch import DownloadError
 from google.appengine.api.datastore_errors import BadRequestError
 from google.appengine.runtime import DeadlineExceededError
-from django.utils import simplejson as json
 from os import environ
+import json
 import urllib
 import logging
 import time
@@ -286,7 +282,7 @@ def main():
                                         ('/map_is_done/', MapDoneEndpoint)],
                                       debug=True)
   constants.provider = provider.DBProvider()
-  wsgiref.handlers.CGIHandler().run(application)
+  run_wsgi_app(application)
 
 if __name__ == '__main__':
   main()
