@@ -12,6 +12,7 @@ from google.appengine.runtime import DeadlineExceededError
 from os import environ
 import json
 import urllib
+import urlparse
 import logging
 import time
 import foursquarev2 as foursquare
@@ -43,7 +44,7 @@ class IndexHandler(webapp.RequestHandler):
       'width': constants.default_dimension,
       'height': constants.default_dimension,
       'domain': environ['HTTP_HOST'],
-      'static_url': 'http://maps.google.com/maps/api/staticmap?center=40.738152838822934%2C-73.9822769165039&format=png&zoom=13&key=ABQIAAAAwA6oEsCLgzz6I150wm3ELBSujOi3smKLcjzph36ZE8UXngM_5BTs-xHblsuwK8V9g8bZ_PTfOWR1Fg&sensor=false&size=640x640',
+      'static_url': 'http://maps.google.com/maps/api/staticmap?center=40.738152838822934%2C-73.9822769165039&format=png&zoom=13&key=AIzaSyAYBD8ThpvGz1biNHjH00lI-zuiNxdQLX4&sensor=false&size=640x640',
       'mapimage_url': 'map/%s.png' % 'ag93aGVyZS1kby15b3UtZ29yEQsSCE1hcEltYWdlGNL0_wIM',
     }
     user = users.get_current_user()
@@ -203,7 +204,7 @@ class PublicPageHandler(webapp.RequestHandler):
       }
       map_data = {
         'domain': environ['HTTP_HOST'],
-        'static_url': mapimage.static_url,
+        'static_url': update_api_key_in_static_url(mapimage.static_url),
         'mapimage_url': 'map/%s.png' % mapimage.key(),
       }
       userinfo = UserInfo.all().filter('user =', mapimage.user).get()
@@ -228,7 +229,7 @@ class StaticMapHtmlWriter(webapp.RequestHandler):
       if mapimage:
         template_data = {
           'domain': environ['HTTP_HOST'],
-          'static_url': mapimage.static_url,
+          'static_url': update_api_key_in_static_url(mapimage.static_url),
           'mapimage_url': 'map/%s.png' % mapimage.key(),
           'public_url': 'public/%s.html' % mapimage.key(),
           'timestamp': str(time.time())
@@ -268,6 +269,20 @@ def convert_map_key(map_key):
       return db.get(new_key)
     else:
       raise BadRequestError, err
+
+# Sigh this is terrible. I'm not sure why I decided to write a Google Maps API Key to the database
+# as part of these URLs, but that's what I did. The correct thing to do would be to script something
+# to fix all of the existing entries (which, mind you, don't all have the same old key), or maybe
+# I could brush up on enough Python to put this in the MapImage model class. But alas, it's not worth
+# the time to do either given the remaining life expectancy for this project, so this will have to do.
+#
+# Note that if I need to use signed URLs, it would be easy to hack that in here.
+# https://developers.google.com/maps/documentation/maps-static/get-api-key?hl=en_US#dig-sig-key
+def update_api_key_in_static_url(url):
+  domain, param_string = url.split('?')
+  param_dict = dict(urlparse.parse_qsl(param_string))
+  param_dict['key'] = constants.google_maps_apikey
+  return domain + '?' + urllib.urlencode(param_dict)
 
 def main():
   application = webapp.WSGIApplication([('/', IndexHandler),

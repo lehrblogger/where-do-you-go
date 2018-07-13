@@ -19,7 +19,7 @@ default_lat = 40.73607172122901 #NYC
 default_lng = -73.96699905395508
 default_zoom = 13
 default_dimension = 640
-google_maps_apikey = 'ABQIAAAAwA6oEsCLgzz6I150wm3ELBSujOi3smKLcjzph36ZE8UXngM_5BTs-xHblsuwK8V9g8bZ_PTfOWR1Fg'
+google_maps_apikey = 'AIzaSyAYBD8ThpvGz1biNHjH00lI-zuiNxdQLX4'
 
 def get_oauth_strings(force_primary_domain=False):
   if force_primary_domain: # I was getting SIGNATURE_INVALID oauth errors on many of my backend calls because 
