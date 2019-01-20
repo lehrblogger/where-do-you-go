@@ -1,5 +1,5 @@
 cron:
   
- - description: clear out old UserVenues
-   url: /manage_foursquare_data/clear_old_uservenues
+ - description: Purge all user data not required for the static maps
+   url: /manage_foursquare_data/purge_user_data
    schedule: every 24 hours

@@ -1,5 +1,5 @@
 application: where-do-you-go-hrd
-version: 12-1
+version: 13-0
 runtime: python27
 threadsafe: false
 api_version: 1
@@ -17,27 +17,11 @@ handlers:
 - url: /delete_data/all
   script: scripts/delete_data.py
   login: admin
-  
-- url: /update_user_color/.*
-  script: scripts/update_user_color.py
-  login: required
 
-- url: /update_user_level/.*
-  script: scripts/update_user_level.py
-  login: required
-
-- url: /generate_static_map/.*
-  script: scripts/update_user_maps.py
-  login: required
-
-- url: /draw_static_tile/.*
-  script: scripts/update_user_maps.py
-  login: admin
-
-- url: /manage_foursquare_data/clear_old_uservenues|/manage_foursquare_data/next_for_user/.*
+- url: /manage_foursquare_data/purge_user_data
   script: scripts/manage_foursquare_data.py
   login: admin
-  
+
 - url: /static
   static_dir: static
 

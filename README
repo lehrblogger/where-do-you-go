@@ -1,9 +1,9 @@
-Where Do You Go provides Foursquare users with a dynamic heat map of the places they have visited on top of a standard Google Maps interface. Users can create static snapshots of their maps and then share them on Twitter, and these maps will self-update automatically in the background as users continue to visit new places and checkin with Foursquare.
+Where Do You Go provided Foursquare users with a dynamic heat map of the places they had visited on top of a standard Google Maps interface. Users could create static snapshots of their maps and then share them on Twitter, and these maps would self-update automatically in the background as users continued to visit new places and checkin with Foursquare.
 
-(Note that user privacy is protected because recent data is not shown and because individual check-ins are aggregated into an imprecise heat map.)
+(Note that user privacy was protected because recent data is not shown and because individual check-ins are aggregated into an imprecise heat map.)
 
 http://lehrblogger.com/2010/03/19/where-do-you-go/
 
-This project has gone on quite a while longer than the quick hack I intended it to be, so I apologize if the code is a bit of a mess. To create your own GAE installation of Where Do You Go you'll need to modify constants.py (and create the gitignore'd oauth_secrets.py) to contain the Google Maps API key and Foursquare consumer key/secret for the domain(s) you're using. Many thanks to Thiago Ganzarolli (https://github.com/tganzarolli) for updating the app to work with v2 of Foursquare's API!
+This project went on for quite a while longer than the quick hack I intended it to be, so I apologize if the code is a bit of a mess. To create your own Google App Engine installation of Where Do You Go you'll need to modify constants.py (and create the gitignore'd oauth_secrets.py) to contain the Google Maps API key and Foursquare consumer key/secret for the domain(s) you're using. Many thanks to Thiago Ganzarolli (https://github.com/tganzarolli) for updating the app to work with v2 of Foursquare's API!
 
 Feel free to contact me if you have any questions!

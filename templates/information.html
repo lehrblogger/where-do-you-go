@@ -1,17 +1,11 @@
 <div id="information" class="span-8 last">
-{% if has_been_cleared %}
-  <h2>re-fetch your check-ins!</h2>
-  <p>We've cleared your data, but you can re-authorize with Foursquare to fetch your check-ins again.</p>
-{% else %}
+  <h2>where am i?</h2>
+  <p>Previously, this site allowed Foursquare users to create and share a heat maps of their check-ins. It is no longer operational, but existing users can still log in with Google to see their old maps and delete their data.</p>
   {% if user %}
-	  <h2>almost there!</h2>
-	  <p>Just click above to securely sign in with Foursquare.</p>
-	{% else %}
-	  <h2>where am i?</h2>
-	  <p>Use this site to create and share a heat map of your Foursquare check-ins. Login with your Google account first, and then authenticate with Foursquare - don't worry, we don't see either password.</p>
-	  <script type="text/javascript">is_logged_in = false;</script>
+    <script type="text/javascript">is_logged_in = true;</script>
+  {% else %}
+    <script type="text/javascript">is_logged_in = false;</script>
   {% endif %}
-{% endif %}
 
   <h2><a href="http://foursquare.com/">foursquare</a> says:</h2>
     <p>"We're all about helping you find new ways to explore the city. We'll help you meet up with your friends and let you earn points and unlock badges for discovering new places, doing new things and meeting new people."</p>
