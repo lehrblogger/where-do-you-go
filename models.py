@@ -3,7 +3,7 @@ from geo.geomodel import GeoModel
 import constants
 from datetime import datetime
 
-class UserInfo(db.Expando):
+class UserInfo(db.Model):
   user = db.UserProperty()
   created = db.DateTimeProperty(auto_now_add=True) # unused to save index space, but keep anyway
   last_updated = db.DateTimeProperty(auto_now_add=True)
